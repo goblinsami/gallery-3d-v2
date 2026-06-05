@@ -1,8 +1,8 @@
-import { m as u, v as o } from "./mountGalleryRuntime-DPf-Lrg-.js";
-import { B, C, G as x, b as T, I as j, J as M, R as z, d as k, e as G, f as I, g as q, h as A, i as D, c as E, j as L, k as F, l as J, a as O, n as N, o as U, p as V, q as Q, r as K, s as W, t as _, u as H, w as X } from "./mountGalleryRuntime-DPf-Lrg-.js";
+import { m as u, v as i } from "./mountGalleryRuntime-BunLrSbU.js";
+import { B, C, G as x, b as T, I as j, J as M, R as z, d as W, e as k, f as A, g as E, h as F, i as G, c as D, j as I, k as O, l as q, a as L, n as J, o as N, p as U, q as V, r as Q, s as K, t as _, u as H, w as X } from "./mountGalleryRuntime-BunLrSbU.js";
 const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
-  const t = o(p(e.project));
-  return e.qualityOverride ? o({
+  const t = i(p(e.project));
+  return e.qualityOverride ? i({
     ...t,
     theme: {
       ...t.theme,
@@ -38,19 +38,24 @@ const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
     }
   },
   layout: {
-    type: "corridor",
+    type: "infinite-corridor",
     spacing: 14,
     bounds: {
       width: 8,
       height: 4.2,
-      depth: 128
+      depth: 360
     }
   },
   journey: {
     mode: "scroll",
-    loop: !1,
+    loop: !0,
     smoothing: 0.16,
     damping: 0.84,
+    loopWhiteAfterEndWindow: 0.14,
+    loopWhiteStartsBeforeEndWindow: 0.05,
+    loopWhiteFadeOutRevealWindow: 0.12,
+    loopWhiteFadeOutWindow: 0.22,
+    loopProgressAdvanceDuringWhiteFadeOut: 0.18,
     camera: {
       height: 1.72,
       fov: 50,
@@ -198,11 +203,11 @@ const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
       overBudget: !1,
       suggestedPreset: null
     };
-  const r = e.reduce((m, d) => m + d.frameTimeMs, 0) / e.length, c = h(a), i = r > c * 1.18;
+  const r = e.reduce((m, d) => m + d.frameTimeMs, 0) / e.length, c = h(a), o = r > c * 1.18;
   return {
     averageFrameTimeMs: r,
-    overBudget: i,
-    suggestedPreset: i ? f(t) : null
+    overBudget: o,
+    suggestedPreset: o ? f(t) : null
   };
 };
 export {
@@ -213,27 +218,27 @@ export {
   j as InfiniteCorridorLayout,
   M as JourneyController,
   z as Registry,
-  k as RenderScheduler,
-  G as RuntimeManager,
+  W as RenderScheduler,
+  k as RuntimeManager,
   w as ScrollixGallery,
   b as assessFrameBudget,
-  I as buildCameraKeyframes,
-  q as buildItemProgressMap,
+  A as buildCameraKeyframes,
+  E as buildItemProgressMap,
   g as clampScrollixProgress,
-  A as composeBottomSheetCamera,
-  D as createArchitecturalBake,
-  E as createBottomSheetView,
-  L as createDefaultLayoutRegistry,
-  F as createDefaultRendererRegistry,
-  J as createDefaultRuntimeManager,
-  O as createDesktopPanelView,
-  N as createLayoutRegistry,
-  U as createRendererRegistry,
-  V as getAdjacentItemProgress,
-  Q as getCameraStateAtProgress,
-  K as getDeviceProfile,
+  F as composeBottomSheetCamera,
+  G as createArchitecturalBake,
+  D as createBottomSheetView,
+  I as createDefaultLayoutRegistry,
+  O as createDefaultRendererRegistry,
+  q as createDefaultRuntimeManager,
+  L as createDesktopPanelView,
+  J as createLayoutRegistry,
+  N as createRendererRegistry,
+  U as getAdjacentItemProgress,
+  V as getCameraStateAtProgress,
+  Q as getDeviceProfile,
   h as getFrameBudgetMs,
-  W as getItemProgress,
+  K as getItemProgress,
   f as getLowerQualityPreset,
   u as mountGalleryRuntime,
   y as mountScrollixGallery,
@@ -242,6 +247,6 @@ export {
   P as premiumCorridorProject,
   H as resolveQuality,
   X as selectTextureSource,
-  o as validateGalleryProject
+  i as validateGalleryProject
 };
 //# sourceMappingURL=index.js.map

@@ -1,1 +1,1 @@
-{"version":3,"file":"validateGalleryProject.d.ts","sourceRoot":"","sources":["../../../src/utils/validateGalleryProject.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAKV,uBAAuB,EACxB,MAAM,yBAAyB,CAAC;AA2OjC,eAAO,MAAM,sBAAsB,GAAI,SAAS,OAAO,KAAG,uBAgBzD,CAAC"}
+{"version":3,"file":"validateGalleryProject.d.ts","sourceRoot":"","sources":["../../../src/utils/validateGalleryProject.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAKV,uBAAuB,EACxB,MAAM,yBAAyB,CAAC;AAsPjC,eAAO,MAAM,sBAAsB,GAAI,SAAS,OAAO,KAAG,uBAgBzD,CAAC"}

@@ -16,6 +16,18 @@ export const scrollixGalleryStyles = `
     touch-action: none;
   }
 
+  .white-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10000;
+    pointer-events: none;
+    background: #ffffff;
+    opacity: 0;
+    transition: opacity 80ms linear;
+    will-change: opacity;
+    transform: translateZ(0);
+  }
+
   .progress {
     position: absolute;
     left: 0;

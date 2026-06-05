@@ -5,7 +5,16 @@ export interface JourneyControllerOptions {
     smoothing?: number;
     damping?: number;
     loop?: boolean;
-    onProgress: (progress: number) => void;
+    loopWhiteAfterEndWindow?: number;
+    loopWhiteStartsBeforeEndWindow?: number;
+    loopWhiteFadeOutWindow?: number;
+    loopWhiteFadeOutRevealWindow?: number;
+    loopProgressAdvanceDuringWhiteFadeOut?: number;
+    onProgress: (state: JourneyProgressState) => void;
+}
+export interface JourneyProgressState {
+    progress: number;
+    whiteMix: number;
 }
 export declare class JourneyController {
     private readonly element;
@@ -13,9 +22,15 @@ export declare class JourneyController {
     private readonly smoothing;
     private readonly damping;
     private readonly loop;
+    private readonly loopWhiteAfterEndWindow;
+    private readonly loopWhiteStartsBeforeEndWindow;
+    private readonly loopWhiteFadeOutWindow;
+    private readonly loopWhiteFadeOutRevealWindow;
+    private readonly loopProgressAdvanceDuringWhiteFadeOut;
     private sensitivity;
     private progress;
     private targetProgress;
+    private hasCompletedInitialLoop;
     private velocity;
     private frameId;
     private activeTouchId;
@@ -38,5 +53,10 @@ export declare class JourneyController {
     private normalizeWheelDelta;
     private normalizePixelDelta;
     private normalizeProgress;
+    private getLoopCycleLength;
+    private mapLoopCycleToJourneyProgress;
+    private resolveProgressState;
+    private smoothstep;
+    private wrap;
 }
 //# sourceMappingURL=JourneyController.d.ts.map

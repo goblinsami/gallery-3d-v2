@@ -12,6 +12,11 @@ export interface JourneyConfig {
     loop?: boolean;
     smoothing?: number;
     damping?: number;
+    loopWhiteAfterEndWindow?: number;
+    loopWhiteStartsBeforeEndWindow?: number;
+    loopWhiteFadeOutWindow?: number;
+    loopWhiteFadeOutRevealWindow?: number;
+    loopProgressAdvanceDuringWhiteFadeOut?: number;
     camera?: CameraJourneyConfig;
 }
 export interface CameraKeyframe {

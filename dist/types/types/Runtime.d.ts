@@ -3,6 +3,7 @@ import type { BottomSheetState } from "./Journey";
 import type { ContentSurfaceListener, ContentSurfaceModel, ContentSurfaceUnsubscribe } from "./ContentSurface";
 export interface RuntimeState {
     progress: number;
+    whiteMix: number;
     activeItemId: string | null;
 }
 export type RuntimeStateListener = (state: RuntimeState) => void;

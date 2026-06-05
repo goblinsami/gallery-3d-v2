@@ -1,4 +1,4 @@
-import { m as o, c as n, a } from "./mountGalleryRuntime-DPf-Lrg-.js";
+import { m as n, c as a, a as l } from "./mountGalleryRuntime-BunLrSbU.js";
 const p = `
   :host {
     display: block;
@@ -15,6 +15,18 @@ const p = `
     min-width: 1px;
     min-height: 1px;
     touch-action: none;
+  }
+
+  .white-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10000;
+    pointer-events: none;
+    background: #ffffff;
+    opacity: 0;
+    transition: opacity 80ms linear;
+    will-change: opacity;
+    transform: translateZ(0);
   }
 
   .progress {
@@ -205,15 +217,17 @@ const p = `
       cursor: pointer;
     }
   }
-`, s = document.createElement("template");
-s.innerHTML = `
+`, o = document.createElement("template");
+o.innerHTML = `
   <style>${p}</style>
   <div class="viewport"></div>
+  <div class="white-overlay" aria-hidden="true"></div>
   <div class="progress" aria-hidden="true"><div class="progress__fill"></div></div>
 `;
-class l extends HTMLElement {
+class d extends HTMLElement {
   static observedAttributes = ["project"];
   viewport;
+  whiteOverlay;
   progressFill;
   runtime = null;
   bottomSheet = null;
@@ -223,11 +237,11 @@ class l extends HTMLElement {
   constructor() {
     super();
     const e = this.attachShadow({ mode: "open" });
-    e.appendChild(s.content.cloneNode(!0));
-    const r = e.querySelector(".viewport"), i = e.querySelector(".progress__fill");
-    if (!(r instanceof HTMLElement) || !(i instanceof HTMLElement))
+    e.appendChild(o.content.cloneNode(!0));
+    const r = e.querySelector(".viewport"), i = e.querySelector(".white-overlay"), s = e.querySelector(".progress__fill");
+    if (!(r instanceof HTMLElement) || !(i instanceof HTMLElement) || !(s instanceof HTMLElement))
       throw new Error("ScrollixGalleryElement template was not created.");
-    this.viewport = r, this.progressFill = i;
+    this.viewport = r, this.whiteOverlay = i, this.progressFill = s;
   }
   set project(e) {
     this.currentProject = e, this.syncRuntime();
@@ -239,7 +253,7 @@ class l extends HTMLElement {
     this.tabIndex = this.tabIndex >= 0 ? this.tabIndex : 0, this.addEventListener("keydown", this.handleKeydown), this.currentProject = this.currentProject ?? this.parseProjectAttribute(), this.syncRuntime();
   }
   disconnectedCallback() {
-    this.removeEventListener("keydown", this.handleKeydown), this.bottomSheet?.dispose(), this.bottomSheet = null, this.desktopPanel?.dispose(), this.desktopPanel = null, this.unsubscribeState?.(), this.unsubscribeState = null, this.runtime?.dispose(), this.runtime = null;
+    this.removeEventListener("keydown", this.handleKeydown), this.bottomSheet?.dispose(), this.bottomSheet = null, this.desktopPanel?.dispose(), this.desktopPanel = null, this.unsubscribeState?.(), this.unsubscribeState = null, this.runtime?.dispose(), this.runtime = null, delete this.viewport.dataset.g3dHostWhiteOverlay;
   }
   attributeChangedCallback(e) {
     e === "project" && (this.currentProject = this.parseProjectAttribute(), this.syncRuntime());
@@ -250,13 +264,13 @@ class l extends HTMLElement {
         await this.runtime.updateProject(this.currentProject);
         return;
       }
-      this.runtime = await o({
+      this.viewport.dataset.g3dHostWhiteOverlay = "true", this.runtime = await n({
         container: this.viewport,
         project: this.currentProject,
-        scrollElement: this.viewport
+        scrollElement: this
       }), this.unsubscribeState = this.runtime.subscribeState((e) => {
-        this.progressFill.style.transform = `scaleX(${e.progress})`;
-      }), this.bottomSheet = n(this.runtime), this.desktopPanel = a(this.runtime), this.shadowRoot?.appendChild(this.bottomSheet.element), this.shadowRoot?.appendChild(this.desktopPanel.element);
+        this.progressFill.style.transform = `scaleX(${e.progress})`, this.toggleAttribute("data-white-loop", e.whiteMix > 1e-3), this.whiteOverlay.style.setProperty("opacity", String(e.whiteMix), "important");
+      }), this.bottomSheet = a(this.runtime), this.desktopPanel = l(this.runtime), this.shadowRoot?.appendChild(this.bottomSheet.element), this.shadowRoot?.appendChild(this.desktopPanel.element);
     }
   }
   parseProjectAttribute() {
@@ -277,11 +291,11 @@ class l extends HTMLElement {
     }
   };
 }
-const h = (t = "scrollix-gallery") => {
-  customElements.get(t) || customElements.define(t, l);
+const c = (t = "scrollix-gallery") => {
+  customElements.get(t) || customElements.define(t, d);
 };
 export {
-  l as ScrollixGalleryElement,
-  h as defineScrollixGalleryElement
+  d as ScrollixGalleryElement,
+  c as defineScrollixGalleryElement
 };
 //# sourceMappingURL=element.js.map

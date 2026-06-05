@@ -23,6 +23,7 @@ import { getDeviceProfile, resolveQuality } from "../utils/resolveQuality";
 import { AssetManager } from "./AssetManager";
 import { RenderScheduler } from "./RenderScheduler";
 import { ResourceLibrary } from "./ResourceLibrary";
+import { clamp } from "../utils/clamp";
 import { validateGalleryProject } from "../utils/validateGalleryProject";
 
 export interface GalleryEngineOptions {
@@ -32,6 +33,16 @@ export interface GalleryEngineOptions {
   layouts: LayoutRegistry;
   assetBaseUrl?: string;
 }
+
+const BASE_BACKGROUND_COLOR = "#28251f";
+const BASE_FOG_COLOR = "#28251f";
+const LOOP_WHITE_COLOR = "#ffffff";
+const BASE_FOG_NEAR = 30;
+const BASE_FOG_FAR = 108;
+const LOOP_FOG_NEAR_PULL = 34;
+const LOOP_FOG_FAR_PULL = 46;
+const JOURNEY_PROGRESS_EPSILON = 0.000001;
+const LOOP_WHITE_MIX_EPSILON = 0.000001;
 
 export class GalleryEngine {
   private readonly container: HTMLElement;
@@ -49,9 +60,17 @@ export class GalleryEngine {
   private keyframes: CameraKeyframe[] = [];
   private positionedItems: PositionedGalleryItem[] = [];
   private progress = 0;
+  private loopWhiteMix = 0;
   private buildSerial = 0;
   private bottomSheetState: BottomSheetState = "collapsed";
   private disposed = false;
+  private baseFogNear = BASE_FOG_NEAR;
+  private baseFogFar = BASE_FOG_FAR;
+  private readonly whiteColor = new Color(LOOP_WHITE_COLOR);
+  private readonly baseBackgroundColor = new Color(BASE_BACKGROUND_COLOR);
+  private readonly baseFogColor = new Color(BASE_FOG_COLOR);
+  private readonly mixedBackgroundColor = new Color(BASE_BACKGROUND_COLOR);
+  private readonly mixedFogColor = new Color(BASE_FOG_COLOR);
 
   constructor(options: GalleryEngineOptions) {
     this.container = options.container;
@@ -65,8 +84,9 @@ export class GalleryEngine {
     this.assertActive();
     this.quality = resolveQuality(this.project.theme.quality, getDeviceProfile());
     this.scene = new Scene();
-    this.scene.background = new Color("#28251f");
-    this.scene.fog = new Fog("#28251f", 30, 108);
+    this.scene.background = new Color(BASE_BACKGROUND_COLOR);
+    this.scene.fog = new Fog(BASE_FOG_COLOR, BASE_FOG_NEAR, BASE_FOG_FAR);
+    this.resetAtmosphereBase();
     this.camera = new PerspectiveCamera(this.project.journey.camera?.fov ?? 52, 1, 0.1, 160);
     this.renderer = new WebGLRenderer({
       alpha: true,
@@ -97,6 +117,8 @@ export class GalleryEngine {
     this.assertActive();
     this.project = validateGalleryProject(project);
     this.quality = resolveQuality(this.project.theme.quality, getDeviceProfile());
+    this.loopWhiteMix = 0;
+    this.resetAtmosphereBase();
     await this.rebuildScene();
     this.resize();
     this.setProgress(0);
@@ -108,10 +130,23 @@ export class GalleryEngine {
   }
 
   setProgress(progress: number): CameraState {
+    return this.setJourneyState(progress, this.loopWhiteMix);
+  }
+
+  setJourneyState(progress: number, whiteMix: number): CameraState {
     this.assertActive();
-    this.progress = progress;
-    const cameraState = this.getComposedCameraState(progress);
+    const clampedProgress = clamp(progress, 0, 1);
+    const clampedWhiteMix = this.project.journey.loop ? clamp(whiteMix, 0, 1) : 0;
+    const progressChanged = Math.abs(clampedProgress - this.progress) > JOURNEY_PROGRESS_EPSILON;
+    const whiteMixChanged = Math.abs(clampedWhiteMix - this.loopWhiteMix) > LOOP_WHITE_MIX_EPSILON;
+    this.progress = clampedProgress;
+    this.loopWhiteMix = clampedWhiteMix;
+    const cameraState = this.getComposedCameraState(clampedProgress);
+    this.applyAtmosphere(clampedWhiteMix);
     this.applyCameraState(cameraState);
+    if (whiteMixChanged && !progressChanged) {
+      this.invalidate("loop-white-mix");
+    }
     return cameraState;
   }
 
@@ -155,6 +190,7 @@ export class GalleryEngine {
     this.scheduler = null;
     this.keyframes = [];
     this.positionedItems = [];
+    this.loopWhiteMix = 0;
     this.bottomSheetState = "collapsed";
   }
 
@@ -185,7 +221,8 @@ export class GalleryEngine {
     this.positionedItems = this.layouts
       .get(this.project.layout.type)
       .layout(this.project, this.project.layout, context);
-    this.keyframes = buildCameraKeyframes(this.positionedItems, {
+    const journeyItems = this.getJourneyItemsForKeyframes();
+    this.keyframes = buildCameraKeyframes(journeyItems, {
       cameraHeight: this.project.journey.camera?.height ?? 1.7,
       lookAhead: this.project.journey.camera?.lookAhead ?? 2.2,
     });
@@ -222,10 +259,54 @@ export class GalleryEngine {
     this.invalidate("camera-state");
   }
 
+  private resetAtmosphereBase(): void {
+    this.baseBackgroundColor.set(BASE_BACKGROUND_COLOR);
+    this.baseFogColor.set(BASE_FOG_COLOR);
+    this.baseFogNear = BASE_FOG_NEAR;
+    this.baseFogFar = BASE_FOG_FAR;
+  }
+
+  private applyAtmosphere(whiteMix: number): void {
+    if (!this.scene || !this.renderer) {
+      return;
+    }
+
+    this.mixedBackgroundColor.copy(this.baseBackgroundColor).lerp(this.whiteColor, whiteMix);
+    this.mixedFogColor.copy(this.baseFogColor).lerp(this.whiteColor, whiteMix);
+
+    if (this.scene.background instanceof Color) {
+      this.scene.background.copy(this.mixedBackgroundColor);
+    } else {
+      this.scene.background = this.mixedBackgroundColor.clone();
+    }
+
+    if (this.scene.fog instanceof Fog) {
+      this.scene.fog.color.copy(this.mixedFogColor);
+      this.scene.fog.near = Math.max(0, this.baseFogNear - whiteMix * LOOP_FOG_NEAR_PULL);
+      this.scene.fog.far = Math.max(
+        this.scene.fog.near + 1,
+        this.baseFogFar - whiteMix * LOOP_FOG_FAR_PULL,
+      );
+    }
+
+    this.renderer.setClearColor(this.mixedBackgroundColor, 0);
+  }
+
   private getComposedCameraState(progress: number): CameraState {
     const baseState = getCameraStateAtProgress(this.keyframes, progress);
     const activeItem = this.positionedItems.find((item) => item.id === baseState.activeItemId) ?? null;
     return composeBottomSheetCamera(baseState, activeItem, this.bottomSheetState);
+  }
+
+  private getJourneyItemsForKeyframes(): PositionedGalleryItem[] {
+    if (!this.project.journey.loop) {
+      return this.positionedItems;
+    }
+
+    const firstLoopCloneIndex = this.positionedItems.findIndex((item) => item.id.includes("__loop_"));
+    return firstLoopCloneIndex > 0
+      ? this.positionedItems.slice(0, firstLoopCloneIndex)
+      : this.positionedItems;
   }
 
   private renderFrame = (): void => {

@@ -103,6 +103,17 @@ const validateJourney = (source: Record<string, unknown>): GalleryProject["journ
     loop: getBoolean(source, "loop", false),
     smoothing: getNumber(source, "smoothing", 0.18, 0.04, 1),
     damping: getNumber(source, "damping", 0.86, 0.2, 0.98),
+    loopWhiteAfterEndWindow: getNumber(source, "loopWhiteAfterEndWindow", 0.14, 0.02, 0.45),
+    loopWhiteStartsBeforeEndWindow: getNumber(source, "loopWhiteStartsBeforeEndWindow", 0.05, 0, 0.45),
+    loopWhiteFadeOutWindow: getNumber(source, "loopWhiteFadeOutWindow", 0.22, 0.05, 0.6),
+    loopWhiteFadeOutRevealWindow: getNumber(source, "loopWhiteFadeOutRevealWindow", 0.12, 0.03, 0.45),
+    loopProgressAdvanceDuringWhiteFadeOut: getNumber(
+      source,
+      "loopProgressAdvanceDuringWhiteFadeOut",
+      0.18,
+      0,
+      0.45,
+    ),
     camera: {
       height: getNumber(camera, "height", undefined, 0.8, 4),
       fov: getNumber(camera, "fov", undefined, 28, 82),

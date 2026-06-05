@@ -4,6 +4,7 @@ import type { ContentSurfaceListener, ContentSurfaceModel, ContentSurfaceUnsubsc
 
 export interface RuntimeState {
   progress: number;
+  whiteMix: number;
   activeItemId: string | null;
 }
 

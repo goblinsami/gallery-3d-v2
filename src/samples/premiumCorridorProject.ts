@@ -10,19 +10,24 @@ export const premiumCorridorProject: GalleryProject = {
     },
   },
   layout: {
-    type: "corridor",
+    type: "infinite-corridor",
     spacing: 14,
     bounds: {
       width: 8,
       height: 4.2,
-      depth: 128,
+      depth: 360,
     },
   },
   journey: {
     mode: "scroll",
-    loop: false,
+    loop: true,
     smoothing: 0.16,
     damping: 0.84,
+    loopWhiteAfterEndWindow: 0.14,
+    loopWhiteStartsBeforeEndWindow: 0.05,
+    loopWhiteFadeOutRevealWindow: 0.12,
+    loopWhiteFadeOutWindow: 0.22,
+    loopProgressAdvanceDuringWhiteFadeOut: 0.18,
     camera: {
       height: 1.72,
       fov: 50,

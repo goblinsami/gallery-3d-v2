@@ -7,6 +7,7 @@ describe("premiumCorridorProject", () => {
     const validated = validateGalleryProject(premiumCorridorProject);
 
     expect(validated.items.length).toBeGreaterThan(0);
-    expect(validated.layout.type).toBe("corridor");
+    expect(validated.layout.type).toBe("infinite-corridor");
+    expect(validated.journey.loop).toBe(true);
   });
 });

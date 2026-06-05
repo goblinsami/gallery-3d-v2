@@ -11,6 +11,7 @@ const template = document.createElement("template");
 template.innerHTML = `
   <style>${scrollixGalleryStyles}</style>
   <div class="viewport"></div>
+  <div class="white-overlay" aria-hidden="true"></div>
   <div class="progress" aria-hidden="true"><div class="progress__fill"></div></div>
 `;
 
@@ -18,6 +19,7 @@ export class ScrollixGalleryElement extends HTMLElement {
   static observedAttributes = ["project"];
 
   private readonly viewport: HTMLElement;
+  private readonly whiteOverlay: HTMLElement;
   private readonly progressFill: HTMLElement;
   private runtime: RuntimeInstance | null = null;
   private bottomSheet: BottomSheetView | null = null;
@@ -30,12 +32,18 @@ export class ScrollixGalleryElement extends HTMLElement {
     const shadow = this.attachShadow({ mode: "open" });
     shadow.appendChild(template.content.cloneNode(true));
     const viewport = shadow.querySelector(".viewport");
+    const whiteOverlay = shadow.querySelector(".white-overlay");
     const progressFill = shadow.querySelector(".progress__fill");
-    if (!(viewport instanceof HTMLElement) || !(progressFill instanceof HTMLElement)) {
+    if (
+      !(viewport instanceof HTMLElement) ||
+      !(whiteOverlay instanceof HTMLElement) ||
+      !(progressFill instanceof HTMLElement)
+    ) {
       throw new Error("ScrollixGalleryElement template was not created.");
     }
 
     this.viewport = viewport;
+    this.whiteOverlay = whiteOverlay;
     this.progressFill = progressFill;
   }
 
@@ -65,6 +73,7 @@ export class ScrollixGalleryElement extends HTMLElement {
     this.unsubscribeState = null;
     this.runtime?.dispose();
     this.runtime = null;
+    delete this.viewport.dataset.g3dHostWhiteOverlay;
   }
 
   attributeChangedCallback(name: string): void {
@@ -86,13 +95,16 @@ export class ScrollixGalleryElement extends HTMLElement {
       return;
     }
 
+    this.viewport.dataset.g3dHostWhiteOverlay = "true";
     this.runtime = await mountGalleryRuntime({
       container: this.viewport,
       project: this.currentProject,
-      scrollElement: this.viewport,
+      scrollElement: this,
     });
     this.unsubscribeState = this.runtime.subscribeState((state) => {
       this.progressFill.style.transform = `scaleX(${state.progress})`;
+      this.toggleAttribute("data-white-loop", state.whiteMix > 0.001);
+      this.whiteOverlay.style.setProperty("opacity", String(state.whiteMix), "important");
     });
     this.bottomSheet = createBottomSheetView(this.runtime);
     this.desktopPanel = createDesktopPanelView(this.runtime);
