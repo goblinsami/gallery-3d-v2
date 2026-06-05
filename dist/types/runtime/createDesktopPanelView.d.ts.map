@@ -1,0 +1,1 @@
+{"version":3,"file":"createDesktopPanelView.d.ts","sourceRoot":"","sources":["../../../src/runtime/createDesktopPanelView.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,kBAAkB,CAAC;AAExD,MAAM,WAAW,gBAAgB;IAC/B,OAAO,EAAE,WAAW,CAAC;IACrB,OAAO,IAAI,IAAI,CAAC;CACjB;AA6BD,eAAO,MAAM,sBAAsB,GACjC,SAAS,eAAe,KACvB,gBAwCF,CAAC"}

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gallery3D V2 Demo</title>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background: #151512;
+      }
+
+      scrollix-gallery {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <scrollix-gallery></scrollix-gallery>
+    <script type="module">
+      import {
+        premiumCorridorProject
+      } from "../dist/index.js";
+      import {
+        defineScrollixGalleryElement
+      } from "../dist/element.js";
+
+      defineScrollixGalleryElement();
+      document.querySelector("scrollix-gallery").project = premiumCorridorProject;
+    </script>
+  </body>
+</html>
