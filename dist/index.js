@@ -1,5 +1,5 @@
-import { m as u, v as o } from "./mountGalleryRuntime-BTC_DqIO.js";
-import { B, C, G as x, b as T, I as j, J as M, R as z, d as k, e as G, f as I, g as q, h as A, i as D, c as E, j as L, k as F, l as J, a as O, n as N, o as U, p as V, q as Q, r as K, s as W, t as _, u as H, w as X } from "./mountGalleryRuntime-BTC_DqIO.js";
+import { m as u, v as o } from "./mountGalleryRuntime-DPf-Lrg-.js";
+import { B, C, G as x, b as T, I as j, J as M, R as z, d as k, e as G, f as I, g as q, h as A, i as D, c as E, j as L, k as F, l as J, a as O, n as N, o as U, p as V, q as Q, r as K, s as W, t as _, u as H, w as X } from "./mountGalleryRuntime-DPf-Lrg-.js";
 const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
   const t = o(p(e.project));
   return e.qualityOverride ? o({
@@ -39,11 +39,11 @@ const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
   },
   layout: {
     type: "corridor",
-    spacing: 6.4,
+    spacing: 14,
     bounds: {
-      width: 6.4,
-      height: 3.65,
-      depth: 72
+      width: 8,
+      height: 4.2,
+      depth: 128
     }
   },
   journey: {
@@ -52,9 +52,9 @@ const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
     smoothing: 0.16,
     damping: 0.84,
     camera: {
-      height: 1.68,
-      fov: 46,
-      lookAhead: 2.8
+      height: 1.72,
+      fov: 50,
+      lookAhead: 3.2
     }
   },
   items: [

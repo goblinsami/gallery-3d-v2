@@ -11,11 +11,11 @@ export const premiumCorridorProject: GalleryProject = {
   },
   layout: {
     type: "corridor",
-    spacing: 6.4,
+    spacing: 14,
     bounds: {
-      width: 6.4,
-      height: 3.65,
-      depth: 72,
+      width: 8,
+      height: 4.2,
+      depth: 128,
     },
   },
   journey: {
@@ -24,9 +24,9 @@ export const premiumCorridorProject: GalleryProject = {
     smoothing: 0.16,
     damping: 0.84,
     camera: {
-      height: 1.68,
-      fov: 46,
-      lookAhead: 2.8,
+      height: 1.72,
+      fov: 50,
+      lookAhead: 3.2,
     },
   },
   items: [

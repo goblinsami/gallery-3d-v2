@@ -1,4 +1,4 @@
-import { m as o, c as n, a } from "./mountGalleryRuntime-BTC_DqIO.js";
+import { m as o, c as n, a } from "./mountGalleryRuntime-DPf-Lrg-.js";
 const p = `
   :host {
     display: block;
