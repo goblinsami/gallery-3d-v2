@@ -13,7 +13,7 @@ import type {
   PlacementSide,
 } from "../types/GalleryItem";
 import type { TextureFormat, TextureSource } from "../types/Assets";
-import type { JourneyMode } from "../types/Journey";
+import type { ArtworkOverlayFramingMode, JourneyMode } from "../types/Journey";
 import type { QualityPreset } from "../types/Quality";
 import { MATERIAL_FAMILY_VALUES } from "../config/architecturalTextureCatalog";
 import { clamp } from "./clamp";
@@ -22,7 +22,33 @@ const QUALITY_PRESETS: Array<QualityPreset | "auto"> = ["low", "medium", "high",
 const TEXTURE_QUALITIES: Array<QualityPreset | "fallback"> = ["low", "medium", "high", "ultra", "fallback"];
 const PLACEMENT_SIDES: PlacementSide[] = ["left", "right", "center", "auto"];
 const JOURNEY_MODES: JourneyMode[] = ["scroll", "manual"];
+const ARTWORK_OVERLAY_FRAMING_MODES: ArtworkOverlayFramingMode[] = ["frontal", "balanced", "cinematic"];
 const TEXTURE_FORMATS: TextureFormat[] = ["ktx2", "webp", "jpg", "png"];
+const ARTWORK_OVERLAY_FRAMING_PRESETS: Record<ArtworkOverlayFramingMode, {
+  scale: number;
+  min: number;
+  max: number;
+  forwardOffset: number;
+}> = {
+  frontal: {
+    scale: 0.62,
+    min: 0.8,
+    max: 1.4,
+    forwardOffset: 0.08,
+  },
+  balanced: {
+    scale: 0.72,
+    min: 0.95,
+    max: 1.8,
+    forwardOffset: 0.14,
+  },
+  cinematic: {
+    scale: 0.85,
+    min: 1.1,
+    max: 2.2,
+    forwardOffset: 0.2,
+  },
+};
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -70,6 +96,7 @@ const resolveEnum = <T extends string>(
 const validateTheme = (source: Record<string, unknown>): GalleryProject["theme"] => {
   const materials = getRecord(source, "materials");
   const lighting = getRecord(source, "lighting");
+  const items = getRecord(source, "items");
   return {
     quality: resolveEnum(source.quality, QUALITY_PRESETS, "auto"),
     atmosphere: (getString(source, "atmosphere") ?? "calm") as AtmospherePreset,
@@ -81,6 +108,9 @@ const validateTheme = (source: Record<string, unknown>): GalleryProject["theme"]
     },
     lighting: {
       ceilingLightIntensity: getNumber(lighting, "ceilingLightIntensity", 1, 0, 2.5),
+    },
+    items: {
+      showBorders: getBoolean(items, "showBorders", true),
     },
   };
 };
@@ -102,11 +132,23 @@ const validateLayout = (source: Record<string, unknown>): GalleryProject["layout
 
 const validateJourney = (source: Record<string, unknown>): GalleryProject["journey"] => {
   const camera = getRecord(source, "camera");
+  const artworkOverlayFramingMode = resolveEnum(
+    source.artworkOverlayFramingMode,
+    ARTWORK_OVERLAY_FRAMING_MODES,
+    "balanced",
+  );
+  const overlayPreset = ARTWORK_OVERLAY_FRAMING_PRESETS[artworkOverlayFramingMode];
+
   return {
     mode: resolveEnum(source.mode, JOURNEY_MODES, "scroll"),
     loop: getBoolean(source, "loop", false),
     smoothing: getNumber(source, "smoothing", 0.18, 0.04, 1),
     damping: getNumber(source, "damping", 0.86, 0.2, 0.98),
+    artworkOverlayFramingMode,
+    artworkOverlayAngleDistanceScale: overlayPreset.scale,
+    artworkOverlayAngleDistanceMin: overlayPreset.min,
+    artworkOverlayAngleDistanceMax: overlayPreset.max,
+    artworkOverlayForwardOffset: overlayPreset.forwardOffset,
     loopWhiteAfterEndWindow: getNumber(source, "loopWhiteAfterEndWindow", 0.14, 0.02, 0.45),
     loopWhiteStartsBeforeEndWindow: getNumber(source, "loopWhiteStartsBeforeEndWindow", 0, 0, 0.45),
     loopWhiteFadeOutWindow: getNumber(source, "loopWhiteFadeOutWindow", 0.22, 0.05, 0.6),
@@ -263,10 +305,17 @@ export const validateGalleryProject = (project: unknown): ValidatedGalleryProjec
   const items = rawItems.map(validateItem);
   assertUniqueItemIds(items);
 
+  const journeySource = {
+    ...(typeof project.artworkOverlayFramingMode === "string"
+      ? { artworkOverlayFramingMode: project.artworkOverlayFramingMode }
+      : {}),
+    ...getRecord(project, "journey"),
+  };
+
   return {
     theme: validateTheme(getRecord(project, "theme")),
     layout: validateLayout(getRecord(project, "layout")),
-    journey: validateJourney(getRecord(project, "journey")),
+    journey: validateJourney(journeySource),
     items,
     __validated: true,
   };

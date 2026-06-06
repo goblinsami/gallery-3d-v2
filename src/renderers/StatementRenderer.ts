@@ -14,6 +14,7 @@ export class StatementRenderer implements ItemRenderer {
       background: "#171716",
       foreground: "#f5f0e8",
       accent: "#d4b26a",
+      showFrame: context.showItemBorders,
     }, context.resources);
   }
 }

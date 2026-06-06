@@ -11,6 +11,9 @@ export const premiumCorridorProject: GalleryProject = {
     lighting: {
       ceilingLightIntensity: 1,
     },
+    items: {
+      showBorders: true,
+    },
   },
   layout: {
     type: "infinite-corridor",
@@ -23,6 +26,7 @@ export const premiumCorridorProject: GalleryProject = {
   },
   journey: {
     mode: "scroll",
+    artworkOverlayFramingMode: "balanced",
     loop: true,
     smoothing: 0.16,
     damping: 0.84,

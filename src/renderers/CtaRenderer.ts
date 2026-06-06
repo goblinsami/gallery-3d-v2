@@ -14,6 +14,7 @@ export class CtaRenderer implements ItemRenderer {
       background: "#f1eee6",
       foreground: "#181817",
       accent: "#b08d57",
+      showFrame: context.showItemBorders,
     }, context.resources);
   }
 }

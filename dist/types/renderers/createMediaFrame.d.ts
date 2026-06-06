@@ -8,6 +8,7 @@ export interface MediaFrameOptions {
     frameColor: string;
     emissive?: string;
     texture?: Texture | null;
+    showFrame?: boolean;
 }
 export declare const createMediaFrame: (item: PositionedGalleryItem, options: MediaFrameOptions, resources: RenderResources) => Group;
 //# sourceMappingURL=createMediaFrame.d.ts.map

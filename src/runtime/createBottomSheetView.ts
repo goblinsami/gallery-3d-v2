@@ -20,6 +20,7 @@ const renderModel = (root: HTMLElement, model: ContentSurfaceModel): void => {
   const title = root.querySelector<HTMLElement>(".g3d-sheet__title");
   const eyebrow = root.querySelector<HTMLElement>(".g3d-sheet__eyebrow");
   const body = root.querySelector<HTMLElement>(".g3d-sheet__body");
+  const actions = root.querySelector<HTMLElement>(".g3d-sheet__actions");
   const description = root.querySelector<HTMLElement>(".g3d-sheet__description");
 
   if (eyebrow) {
@@ -35,7 +36,11 @@ const renderModel = (root: HTMLElement, model: ContentSurfaceModel): void => {
   }
 
   if (body) {
-    body.hidden = model.state === "collapsed";
+    body.hidden = model.state !== "full";
+  }
+
+  if (actions) {
+    actions.hidden = model.state === "collapsed";
   }
 };
 

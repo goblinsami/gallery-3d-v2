@@ -1,9 +1,12 @@
 import type { GalleryProject, MaterialFamily } from "../types/GalleryProject";
+import type { ArtworkOverlayFramingMode } from "../types/Journey";
 import { TEXTURE_FAMILY_OPTIONS } from "../config/architecturalTextureCatalog";
 
 type ControlName =
   | "primary"
   | "quality"
+  | "overlayFramingMode"
+  | "showBorders"
   | "spacing"
   | "width"
   | "height"
@@ -19,6 +22,8 @@ type ControlName =
 export interface GalleryPlaygroundValues {
   primary: MaterialFamily;
   quality: GalleryProject["theme"]["quality"];
+  overlayFramingMode: ArtworkOverlayFramingMode;
+  showBorders: boolean;
   spacing: number;
   width: number;
   height: number;
@@ -80,10 +85,30 @@ playgroundTemplate.innerHTML = `
       gap: 4px;
     }
 
+    .header__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
     .title {
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
+    }
+
+    .panel-toggle {
+      min-height: 26px;
+      padding: 0 9px;
+      border: 1px solid rgba(255, 248, 224, 0.2);
+      border-radius: 999px;
+      color: #fff8e8;
+      background: rgba(255, 255, 255, 0.08);
+      font: 700 10px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
     }
 
     .summary {
@@ -164,6 +189,24 @@ playgroundTemplate.innerHTML = `
       width: auto;
     }
 
+    :host([collapsed]) {
+      width: auto;
+      max-height: none;
+    }
+
+    :host([collapsed]) .panel {
+      gap: 0;
+      min-width: 176px;
+      max-height: none;
+      padding: 8px 10px;
+      overflow: hidden;
+    }
+
+    :host([collapsed]) .summary,
+    :host([collapsed]) .grid {
+      display: none;
+    }
+
     @media (max-width: 720px) {
       :host {
         top: auto;
@@ -181,7 +224,10 @@ playgroundTemplate.innerHTML = `
   </style>
   <form class="panel" aria-label="Gallery playground controls">
     <div class="header">
-      <div class="title">Playground</div>
+      <div class="header__top">
+        <div class="title">Playground</div>
+        <button class="panel-toggle" type="button" data-toggle-panel aria-expanded="true">Hide</button>
+      </div>
       <div class="summary" data-summary>Waiting for project…</div>
     </div>
     <div class="grid">
@@ -202,6 +248,22 @@ playgroundTemplate.innerHTML = `
           <option value="ultra">Ultra</option>
           <option value="low">Low</option>
         </select>
+      </label>
+      <label class="field">
+        <span class="field__label">Overlay framing <span class="field__value" data-value="overlayFramingMode">balanced</span></span>
+        <span class="field__hint">Define como se acerca la camara al abrir la ficha: frontal, equilibrado o cinematico.</span>
+        <select data-control="overlayFramingMode">
+          <option value="balanced">Balanced</option>
+          <option value="frontal">Frontal</option>
+          <option value="cinematic">Cinematic</option>
+        </select>
+      </label>
+      <label class="toggle">
+        <span>
+          Item borders
+          <span class="field__hint">Muestra u oculta marcos y bordes decorativos de las obras y paneles.</span>
+        </span>
+        <input data-control="showBorders" type="checkbox" />
       </label>
       <label class="field">
         <span class="field__label">Spacing <span class="field__value" data-value="spacing">14</span></span>
@@ -279,6 +341,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
 
   private readonly form: HTMLFormElement;
   private readonly summary: HTMLElement;
+  private readonly panelToggle: HTMLButtonElement;
   private readonly controls: Record<ControlName, HTMLInputElement | HTMLSelectElement>;
   private readonly valueLabels: Partial<Record<ControlName, HTMLElement>>;
   private currentProject: GalleryProject | null = null;
@@ -290,15 +353,23 @@ export class GalleryPlaygroundElement extends HTMLElement {
 
     const form = shadow.querySelector("form");
     const summary = shadow.querySelector("[data-summary]");
-    if (!(form instanceof HTMLFormElement) || !(summary instanceof HTMLElement)) {
+    const panelToggle = shadow.querySelector("[data-toggle-panel]");
+    if (
+      !(form instanceof HTMLFormElement) ||
+      !(summary instanceof HTMLElement) ||
+      !(panelToggle instanceof HTMLButtonElement)
+    ) {
       throw new Error("GalleryPlaygroundElement template was not created.");
     }
 
     this.form = form;
     this.summary = summary;
+    this.panelToggle = panelToggle;
     this.controls = {
       primary: this.getControl("primary", HTMLSelectElement),
       quality: this.getControl("quality", HTMLSelectElement),
+      overlayFramingMode: this.getControl("overlayFramingMode", HTMLSelectElement),
+      showBorders: this.getControl("showBorders", HTMLInputElement),
       spacing: this.getControl("spacing", HTMLInputElement),
       width: this.getControl("width", HTMLInputElement),
       height: this.getControl("height", HTMLInputElement),
@@ -314,6 +385,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.valueLabels = {
       primary: this.getValueLabel("primary"),
       quality: this.getValueLabel("quality"),
+      overlayFramingMode: this.getValueLabel("overlayFramingMode"),
       spacing: this.getValueLabel("spacing"),
       width: this.getValueLabel("width"),
       height: this.getValueLabel("height"),
@@ -337,12 +409,14 @@ export class GalleryPlaygroundElement extends HTMLElement {
 
   connectedCallback(): void {
     this.currentProject = this.currentProject ?? this.parseProjectAttribute();
+    this.panelToggle.addEventListener("click", this.handlePanelToggleClick);
     this.form.addEventListener("input", this.handleControlsChange);
     this.form.addEventListener("change", this.handleControlsChange);
     this.syncControlsFromProject();
   }
 
   disconnectedCallback(): void {
+    this.panelToggle.removeEventListener("click", this.handlePanelToggleClick);
     this.form.removeEventListener("input", this.handleControlsChange);
     this.form.removeEventListener("change", this.handleControlsChange);
   }
@@ -388,6 +462,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
     return {
       primary: project.theme.materials.primary,
       quality: project.theme.quality,
+      overlayFramingMode: project.journey.artworkOverlayFramingMode ?? "balanced",
+      showBorders: project.theme.items?.showBorders ?? true,
       spacing: project.layout.spacing ?? 14,
       width: project.layout.bounds?.width ?? 8,
       height: project.layout.bounds?.height ?? 4.2,
@@ -405,6 +481,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
   private writeValuesToControls(values: GalleryPlaygroundValues): void {
     this.controls.primary.value = values.primary;
     this.controls.quality.value = values.quality;
+    this.controls.overlayFramingMode.value = values.overlayFramingMode;
+    (this.controls.showBorders as HTMLInputElement).checked = values.showBorders;
     this.controls.spacing.value = String(values.spacing);
     this.controls.width.value = String(values.width);
     this.controls.height.value = String(values.height);
@@ -422,6 +500,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
     return {
       primary: this.controls.primary.value as MaterialFamily,
       quality: this.controls.quality.value as GalleryProject["theme"]["quality"],
+      overlayFramingMode: this.controls.overlayFramingMode.value as ArtworkOverlayFramingMode,
+      showBorders: (this.controls.showBorders as HTMLInputElement).checked,
       spacing: getNumber(this.controls.spacing as HTMLInputElement, 14),
       width: getNumber(this.controls.width as HTMLInputElement, 8),
       height: getNumber(this.controls.height as HTMLInputElement, 4.2),
@@ -455,6 +535,10 @@ export class GalleryPlaygroundElement extends HTMLElement {
           ...project.theme.lighting,
           ceilingLightIntensity: values.ceilingLightIntensity,
         },
+        items: {
+          ...project.theme.items,
+          showBorders: values.showBorders,
+        },
       },
       layout: {
         ...project.layout,
@@ -468,6 +552,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
       },
       journey: {
         ...project.journey,
+        artworkOverlayFramingMode: values.overlayFramingMode,
         loop: values.loop,
         smoothing: values.smoothing,
         camera: {
@@ -483,6 +568,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
   private renderValues(values: GalleryPlaygroundValues, itemCount: number): void {
     this.valueLabels.primary!.textContent = getTextureLabel(values.primary);
     this.valueLabels.quality!.textContent = values.quality;
+    this.valueLabels.overlayFramingMode!.textContent = values.overlayFramingMode;
     this.valueLabels.spacing!.textContent = formatNumber(values.spacing);
     this.valueLabels.width!.textContent = formatNumber(values.width);
     this.valueLabels.height!.textContent = formatNumber(values.height);
@@ -492,7 +578,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.valueLabels.cameraHeight!.textContent = formatNumber(values.cameraHeight);
     this.valueLabels.lookAhead!.textContent = formatNumber(values.lookAhead);
     this.valueLabels.smoothing!.textContent = formatNumber(values.smoothing);
-    this.summary.textContent = `${itemCount} items · ${getTextureLabel(values.primary)} · ${values.loop ? "loop" : "linear"}`;
+    this.summary.textContent = `${itemCount} items · ${getTextureLabel(values.primary)} · ${values.overlayFramingMode} · ${values.loop ? "loop" : "linear"}`;
   }
 
   private parseProjectAttribute(): GalleryProject | null {
@@ -503,6 +589,16 @@ export class GalleryPlaygroundElement extends HTMLElement {
 
     return JSON.parse(rawProject) as GalleryProject;
   }
+
+  private setPanelCollapsed(collapsed: boolean): void {
+    this.toggleAttribute("collapsed", collapsed);
+    this.panelToggle.textContent = collapsed ? "Show" : "Hide";
+    this.panelToggle.setAttribute("aria-expanded", String(!collapsed));
+  }
+
+  private handlePanelToggleClick = (): void => {
+    this.setPanelCollapsed(!this.hasAttribute("collapsed"));
+  };
 
   private handleControlsChange = (): void => {
     const values = this.readValuesFromControls();

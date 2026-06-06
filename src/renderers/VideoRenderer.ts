@@ -39,6 +39,7 @@ export class VideoRenderer implements ItemRenderer {
       frameColor: "#151716",
       emissive: "#6f9ca3",
       texture,
+      showFrame: context.showItemBorders,
     }, context.resources);
     const icon = createPlayIcon();
     icon.position.z = 0.05;

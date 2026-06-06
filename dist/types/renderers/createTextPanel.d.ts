@@ -7,6 +7,7 @@ export interface TextPanelOptions {
     background: string;
     foreground: string;
     accent: string;
+    showFrame?: boolean;
 }
 export declare const createTextPanel: (item: PositionedGalleryItem, content: GalleryContentProjection, options: TextPanelOptions, resources: RenderResources) => Group;
 //# sourceMappingURL=createTextPanel.d.ts.map

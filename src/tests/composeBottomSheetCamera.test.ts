@@ -35,11 +35,67 @@ describe("composeBottomSheetCamera", () => {
     expect(composed.lookAt.x).toBe(item.focusTarget.x);
   });
 
+  it("fully reframes the active item when the sheet opens half from a click", () => {
+    const composed = composeBottomSheetCamera(camera, item, "half", {
+      viewportAspect: 16 / 9,
+      overlayDistanceScale: 0.72,
+      overlayDistanceMin: 0.95,
+      overlayDistanceMax: 1.8,
+      overlayForwardOffset: 0.14,
+    });
+
+    expect(composed.lookAt).toEqual(item.focusTarget);
+    expect(composed.position.x - item.focusTarget.x).toBeGreaterThan(1.8);
+    expect(composed.position.z).toBeCloseTo(item.focusTarget.z + 0.14);
+  });
+
   it("keeps wide artwork inside narrower mobile viewports", () => {
     const desktop = composeBottomSheetCamera(camera, item, "full", { viewportAspect: 16 / 9 });
     const mobile = composeBottomSheetCamera(camera, item, "full", { viewportAspect: 3 / 4 });
 
     expect(mobile.position.x - item.focusTarget.x).toBeGreaterThan(desktop.position.x - item.focusTarget.x);
     expect(mobile.lookAt).toEqual(item.focusTarget);
+  });
+
+  it("uses overlay framing preset values for wall item targets", () => {
+    const frontal = composeBottomSheetCamera(camera, item, "full", {
+      viewportAspect: 16 / 9,
+      overlayDistanceScale: 0.62,
+      overlayDistanceMin: 0.8,
+      overlayDistanceMax: 1.4,
+      overlayForwardOffset: 0.08,
+    });
+    const cinematic = composeBottomSheetCamera(camera, item, "full", {
+      viewportAspect: 16 / 9,
+      overlayDistanceScale: 0.85,
+      overlayDistanceMin: 1.1,
+      overlayDistanceMax: 2.2,
+      overlayForwardOffset: 0.2,
+    });
+
+    expect(frontal.position.x - item.focusTarget.x).toBeGreaterThan(1.4);
+    expect(cinematic.position.x - item.focusTarget.x).toBeGreaterThan(frontal.position.x - item.focusTarget.x);
+    expect(cinematic.position.z).toBeGreaterThan(frontal.position.z);
+  });
+
+  it("keeps the whole artwork visible on narrow mobile overlay viewports", () => {
+    const frontal = composeBottomSheetCamera(camera, item, "half", {
+      viewportAspect: 0.55,
+      overlayDistanceScale: 0.62,
+      overlayDistanceMin: 0.8,
+      overlayDistanceMax: 1.4,
+      overlayForwardOffset: 0.08,
+    });
+    const cinematic = composeBottomSheetCamera(camera, item, "half", {
+      viewportAspect: 0.55,
+      overlayDistanceScale: 0.85,
+      overlayDistanceMin: 1.1,
+      overlayDistanceMax: 2.2,
+      overlayForwardOffset: 0.2,
+    });
+
+    expect(frontal.position.x - item.focusTarget.x).toBeGreaterThan(6);
+    expect(cinematic.position.x - item.focusTarget.x).toBeGreaterThan(frontal.position.x - item.focusTarget.x);
+    expect(cinematic.lookAt).toEqual(item.focusTarget);
   });
 });

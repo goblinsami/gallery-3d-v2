@@ -1,6 +1,7 @@
 import type { Vec3 } from "./GalleryItem";
 export type JourneyMode = "scroll" | "manual";
 export type BottomSheetState = "collapsed" | "half" | "full";
+export type ArtworkOverlayFramingMode = "frontal" | "balanced" | "cinematic";
 export interface CameraJourneyConfig {
     height?: number;
     fov?: number;
@@ -12,6 +13,11 @@ export interface JourneyConfig {
     loop?: boolean;
     smoothing?: number;
     damping?: number;
+    artworkOverlayFramingMode?: ArtworkOverlayFramingMode;
+    artworkOverlayAngleDistanceScale?: number;
+    artworkOverlayAngleDistanceMin?: number;
+    artworkOverlayAngleDistanceMax?: number;
+    artworkOverlayForwardOffset?: number;
     loopWhiteAfterEndWindow?: number;
     loopWhiteStartsBeforeEndWindow?: number;
     loopWhiteFadeOutWindow?: number;

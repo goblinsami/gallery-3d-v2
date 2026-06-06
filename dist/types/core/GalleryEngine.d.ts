@@ -51,6 +51,8 @@ export declare class GalleryEngine {
     setBottomSheetState(state: BottomSheetState): CameraState;
     setBottomSheetFocus(itemId: string | null, state: BottomSheetState): CameraState;
     getClosestItemIdFromClientPoint(clientX: number, clientY: number): string | null;
+    private getProjectedItemScreenBounds;
+    private getDistanceToScreenBoundsSq;
     invalidate(_reason: string): void;
     dispose(): void;
     private rebuildScene;

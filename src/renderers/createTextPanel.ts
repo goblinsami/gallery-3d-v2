@@ -17,6 +17,7 @@ export interface TextPanelOptions {
   background: string;
   foreground: string;
   accent: string;
+  showFrame?: boolean;
 }
 
 const CANVAS_WIDTH = 1024;
@@ -179,6 +180,7 @@ export const createTextPanel = (
 ): Group => {
   const root = new Group();
   const isCenter = item.placement.side === "center";
+  const showFrame = options.showFrame ?? true;
   const texture = createTextTexture(content, options, isCenter);
   const panel = new Mesh(
     resources.unitPlane,
@@ -194,14 +196,18 @@ export const createTextPanel = (
   );
 
   panel.scale.set(options.width, options.height, 1);
-  backing.scale.set(options.width + 0.08, options.height + 0.08, 1);
-  backing.position.z = -0.025;
-  root.add(backing, panel);
+  root.add(panel);
 
-  if (isCenter) {
-    root.add(createStationPortal(options.width, options.height));
-  } else {
-    root.add(createWallFrame(options.width, options.height, options.accent));
+  if (showFrame) {
+    backing.scale.set(options.width + 0.08, options.height + 0.08, 1);
+    backing.position.z = -0.025;
+    root.add(backing);
+
+    if (isCenter) {
+      root.add(createStationPortal(options.width, options.height));
+    } else {
+      root.add(createWallFrame(options.width, options.height, options.accent));
+    }
   }
 
   root.position.set(item.position.x, item.position.y, item.position.z);

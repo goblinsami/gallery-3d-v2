@@ -20,6 +20,7 @@ export class ArtworkRenderer implements ItemRenderer {
       frameColor: "#1f1e1b",
       emissive: "#d4b26a",
       texture,
+      showFrame: context.showItemBorders,
     }, context.resources);
   }
 }

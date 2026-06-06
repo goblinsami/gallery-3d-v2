@@ -1,5 +1,5 @@
-import { m as p, v as o } from "./mountGalleryRuntime-BbvnH1i9.js";
-import { B as v, C as E, G as j, b as M, I as x, J as I, R as A, d as B, e as L, f as C, g as F, h as k, i as G, c as q, j as z, k as O, l as W, a as D, n as U, o as _, p as J, q as V, r as N, s as Y, t as X, u as Q, w as K } from "./mountGalleryRuntime-BbvnH1i9.js";
+import { m as p, v as o } from "./mountGalleryRuntime-DtUta8et.js";
+import { B as T, C as E, G as j, b as M, I as x, J as B, R as I, d as A, e as L, f as C, g as F, h as k, i as G, c as q, j as z, k as O, l as W, a as D, n as U, o as _, p as J, q as V, r as N, s as Y, t as X, u as Q, w as K } from "./mountGalleryRuntime-DtUta8et.js";
 import { M as Z, T as $, a as ee, b as te, i as ae, r as re } from "./architecturalTextureCatalog-Dh0fUe_M.js";
 import { GalleryPlaygroundElement as oe, defineGalleryPlaygroundElement as se } from "./playground.js";
 const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
@@ -40,6 +40,9 @@ const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
     },
     lighting: {
       ceilingLightIntensity: 1
+    },
+    items: {
+      showBorders: !0
     }
   },
   layout: {
@@ -53,6 +56,7 @@ const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
   },
   journey: {
     mode: "scroll",
+    artworkOverlayFramingMode: "balanced",
     loop: !0,
     smoothing: 0.16,
     damping: 0.84,
@@ -283,16 +287,16 @@ const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
   };
 };
 export {
-  v as BottomSheetController,
+  T as BottomSheetController,
   E as CorridorLayout,
   j as GalleryEngine,
   oe as GalleryPlaygroundElement,
   M as GalleryRoomLayout,
   x as InfiniteCorridorLayout,
-  I as JourneyController,
+  B as JourneyController,
   Z as MATERIAL_FAMILY_VALUES,
-  A as Registry,
-  B as RenderScheduler,
+  I as Registry,
+  A as RenderScheduler,
   L as RuntimeManager,
   S as ScrollixGallery,
   $ as TEXTURE_FAMILY_OPTIONS,

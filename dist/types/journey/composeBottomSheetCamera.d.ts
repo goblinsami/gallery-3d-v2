@@ -4,5 +4,9 @@ export declare const composeBottomSheetCamera: (camera: CameraState, item: Posit
     fov?: number;
     viewportAspect?: number;
     focusFill?: number;
+    overlayDistanceScale?: number;
+    overlayDistanceMin?: number;
+    overlayDistanceMax?: number;
+    overlayForwardOffset?: number;
 }) => CameraState;
 //# sourceMappingURL=composeBottomSheetCamera.d.ts.map

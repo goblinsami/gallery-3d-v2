@@ -73,6 +73,19 @@ describe("validateGalleryProject", () => {
     expect(validated.theme.materials.primary).toBe("brick");
   });
 
+  it("validates item border visibility with a true default", () => {
+    const defaultProject = validateGalleryProject(createProject());
+    const hiddenBordersProject = createProject();
+    hiddenBordersProject.theme.items = {
+      showBorders: false,
+    };
+
+    const hiddenBorders = validateGalleryProject(hiddenBordersProject);
+
+    expect(defaultProject.theme.items?.showBorders).toBe(true);
+    expect(hiddenBorders.theme.items?.showBorders).toBe(false);
+  });
+
   it("preserves validated media texture sources", () => {
     const project = createProject();
     project.items[0] = {
@@ -98,5 +111,32 @@ describe("validateGalleryProject", () => {
       format: "ktx2",
       quality: "high",
     });
+  });
+
+  it("validates overlay framing mode and applies its preset values", () => {
+    const project = createProject();
+    project.journey.artworkOverlayFramingMode = "cinematic";
+    project.journey.artworkOverlayAngleDistanceScale = 99;
+    project.journey.artworkOverlayForwardOffset = 99;
+
+    const validated = validateGalleryProject(project);
+
+    expect(validated.journey.artworkOverlayFramingMode).toBe("cinematic");
+    expect(validated.journey.artworkOverlayAngleDistanceScale).toBe(0.85);
+    expect(validated.journey.artworkOverlayAngleDistanceMin).toBe(1.1);
+    expect(validated.journey.artworkOverlayAngleDistanceMax).toBe(2.2);
+    expect(validated.journey.artworkOverlayForwardOffset).toBe(0.2);
+  });
+
+  it("accepts the legacy root overlay framing mode shape", () => {
+    const project = {
+      ...createProject(),
+      artworkOverlayFramingMode: "frontal",
+    };
+
+    const validated = validateGalleryProject(project);
+
+    expect(validated.journey.artworkOverlayFramingMode).toBe("frontal");
+    expect(validated.journey.artworkOverlayAngleDistanceMax).toBe(1.4);
   });
 });

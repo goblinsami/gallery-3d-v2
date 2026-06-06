@@ -19,6 +19,7 @@ export class ImageRenderer implements ItemRenderer {
       surfaceColor: "#c4c9c4",
       frameColor: "#2d302e",
       texture,
+      showFrame: context.showItemBorders,
     }, context.resources);
   }
 }

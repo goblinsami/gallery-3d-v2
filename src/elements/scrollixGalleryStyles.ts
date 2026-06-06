@@ -69,7 +69,7 @@ export const scrollixGalleryStyles = `
   }
 
   .g3d-sheet[data-state="half"] {
-    min-height: 38%;
+    min-height: 0;
   }
 
   .g3d-sheet[data-state="full"] {

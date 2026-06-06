@@ -17,6 +17,9 @@ export interface ThemeConfig {
   lighting?: {
     ceilingLightIntensity?: number;
   };
+  items?: {
+    showBorders?: boolean;
+  };
 }
 
 export interface LayoutConfig {

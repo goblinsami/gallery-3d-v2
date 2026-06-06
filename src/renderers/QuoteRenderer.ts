@@ -14,6 +14,7 @@ export class QuoteRenderer implements ItemRenderer {
       background: "#eee8da",
       foreground: "#20201d",
       accent: "#6f7569",
+      showFrame: context.showItemBorders,
     }, context.resources);
   }
 }

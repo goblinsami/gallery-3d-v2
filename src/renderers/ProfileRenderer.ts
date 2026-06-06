@@ -14,6 +14,7 @@ export class ProfileRenderer implements ItemRenderer {
       background: "#202322",
       foreground: "#f3eee3",
       accent: "#9bb3a5",
+      showFrame: context.showItemBorders,
     }, context.resources);
   }
 }

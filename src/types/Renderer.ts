@@ -19,6 +19,7 @@ export interface RendererContext {
   resources: RenderResources;
   assets: RenderAssets;
   assetBaseUrl?: string;
+  showItemBorders: boolean;
 }
 
 export interface ItemRenderer {

@@ -1,4 +1,4 @@
-import { m as a, c as n, a as p } from "./mountGalleryRuntime-BbvnH1i9.js";
+import { m as a, c as n, a as p } from "./mountGalleryRuntime-DtUta8et.js";
 const l = `
   :host {
     display: block;
@@ -70,7 +70,7 @@ const l = `
   }
 
   .g3d-sheet[data-state="half"] {
-    min-height: 38%;
+    min-height: 0;
   }
 
   .g3d-sheet[data-state="full"] {

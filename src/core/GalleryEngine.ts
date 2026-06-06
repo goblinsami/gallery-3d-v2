@@ -242,13 +242,17 @@ export class GalleryEngine {
       const screenY = viewport.y + ((1 - projected.y) * 0.5) * viewport.height;
       const dx = localX - screenX;
       const dy = localY - screenY;
-      const distanceSq = dx * dx + dy * dy;
-      const captureRadiusSq = maxDistancePx * maxDistancePx;
-      if (distanceSq > captureRadiusSq) {
+      const centerDistanceSq = dx * dx + dy * dy;
+      const artworkScreenBounds = this.getProjectedItemScreenBounds(item, viewport);
+      const distanceSq = artworkScreenBounds
+        ? this.getDistanceToScreenBoundsSq(localX, localY, artworkScreenBounds)
+        : centerDistanceSq;
+      const captureRadiusSq = artworkScreenBounds ? 28 * 28 : maxDistancePx * maxDistancePx;
+      if (distanceSq > captureRadiusSq && centerDistanceSq > maxDistancePx * maxDistancePx) {
         continue;
       }
 
-      const score = distanceSq * (1 + Math.max(0, projected.z) * 0.35);
+      const score = (distanceSq + centerDistanceSq * 0.02) * (1 + Math.max(0, projected.z) * 0.35);
       if (score < closestScore) {
         closestScore = score;
         closestItemId = item.id.split("__loop_")[0];
@@ -256,6 +260,79 @@ export class GalleryEngine {
     }
 
     return closestItemId;
+  }
+
+  private getProjectedItemScreenBounds(
+    item: PositionedGalleryItem,
+    viewport: RenderViewport,
+  ): { minX: number; maxX: number; minY: number; maxY: number } | null {
+    if (!this.camera || !item.bounds) {
+      return null;
+    }
+
+    const halfWidth = item.bounds.width * 0.5;
+    const halfHeight = item.bounds.height * 0.5;
+    const side = item.placement.side ?? "auto";
+    const isWallItem = side !== "center";
+    const corners = isWallItem
+      ? [
+          { x: item.focusTarget.x, y: item.focusTarget.y - halfHeight, z: item.focusTarget.z - halfWidth },
+          { x: item.focusTarget.x, y: item.focusTarget.y - halfHeight, z: item.focusTarget.z + halfWidth },
+          { x: item.focusTarget.x, y: item.focusTarget.y + halfHeight, z: item.focusTarget.z - halfWidth },
+          { x: item.focusTarget.x, y: item.focusTarget.y + halfHeight, z: item.focusTarget.z + halfWidth },
+        ]
+      : [
+          { x: item.focusTarget.x - halfWidth, y: item.focusTarget.y - halfHeight, z: item.focusTarget.z },
+          { x: item.focusTarget.x + halfWidth, y: item.focusTarget.y - halfHeight, z: item.focusTarget.z },
+          { x: item.focusTarget.x - halfWidth, y: item.focusTarget.y + halfHeight, z: item.focusTarget.z },
+          { x: item.focusTarget.x + halfWidth, y: item.focusTarget.y + halfHeight, z: item.focusTarget.z },
+        ];
+    const points = corners
+      .map((corner) => this.projectedItemPoint
+        .set(corner.x, corner.y, corner.z)
+        .project(this.camera as PerspectiveCamera)
+        .clone())
+      .filter((point) =>
+        Number.isFinite(point.x) &&
+        Number.isFinite(point.y) &&
+        Number.isFinite(point.z) &&
+        point.z >= -1 &&
+        point.z <= 1,
+      );
+
+    if (points.length < 2) {
+      return null;
+    }
+
+    const screenPoints = points.map((point) => ({
+      x: viewport.x + ((point.x + 1) * 0.5) * viewport.width,
+      y: viewport.y + ((1 - point.y) * 0.5) * viewport.height,
+    }));
+
+    return screenPoints.reduce(
+      (bounds, point) => ({
+        minX: Math.min(bounds.minX, point.x),
+        maxX: Math.max(bounds.maxX, point.x),
+        minY: Math.min(bounds.minY, point.y),
+        maxY: Math.max(bounds.maxY, point.y),
+      }),
+      {
+        minX: Number.POSITIVE_INFINITY,
+        maxX: Number.NEGATIVE_INFINITY,
+        minY: Number.POSITIVE_INFINITY,
+        maxY: Number.NEGATIVE_INFINITY,
+      },
+    );
+  }
+
+  private getDistanceToScreenBoundsSq(
+    x: number,
+    y: number,
+    bounds: { minX: number; maxX: number; minY: number; maxY: number },
+  ): number {
+    const dx = x < bounds.minX ? bounds.minX - x : x > bounds.maxX ? x - bounds.maxX : 0;
+    const dy = y < bounds.minY ? bounds.minY - y : y > bounds.maxY ? y - bounds.maxY : 0;
+    return dx * dx + dy * dy;
   }
 
   invalidate(_reason: string): void {
@@ -343,6 +420,7 @@ export class GalleryEngine {
         resources,
         assets: this.assets as AssetManager,
         assetBaseUrl: this.assetBaseUrl,
+        showItemBorders: this.project.theme.items?.showBorders ?? true,
       });
     }));
     itemObjects.forEach((object) => root.add(object));
@@ -409,6 +487,10 @@ export class GalleryEngine {
     return composeBottomSheetCamera(baseState, activeItem, this.bottomSheetState, {
       fov: this.project.journey.camera?.fov ?? 50,
       viewportAspect: this.effectiveRenderViewport?.aspect ?? this.journeyViewportAspect,
+      overlayDistanceScale: this.project.journey.artworkOverlayAngleDistanceScale,
+      overlayDistanceMin: this.project.journey.artworkOverlayAngleDistanceMin,
+      overlayDistanceMax: this.project.journey.artworkOverlayAngleDistanceMax,
+      overlayForwardOffset: this.project.journey.artworkOverlayForwardOffset,
     });
   }
 
@@ -557,7 +639,7 @@ export class GalleryEngine {
     }
 
     if (this.bottomSheetState === "half") {
-      return isMobileViewport ? 0.58 : 1;
+      return isMobileViewport ? 0.82 : 1;
     }
 
     return 1;
