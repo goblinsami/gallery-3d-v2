@@ -1,20 +1,22 @@
 import type { GalleryProject } from "../types/GalleryProject";
 import type { PositionedGalleryItem } from "../types/GalleryItem";
 import type { LayoutContext, LayoutStrategy } from "../types/Layout";
+import { snapZToArchitecturalModuleCenter } from "../utils/architecturalModules";
 import { applyOffset, getItemBounds, toVec3 } from "./layoutUtils";
 
 export class CorridorLayout implements LayoutStrategy {
   readonly type = "corridor";
 
-  layout(project: GalleryProject, _config = project.layout, _context: LayoutContext): PositionedGalleryItem[] {
+  layout(project: GalleryProject, _config = project.layout, context: LayoutContext): PositionedGalleryItem[] {
     const spacing = project.layout.spacing ?? 7;
     const width = project.layout.bounds?.width ?? 5.4;
     const height = project.layout.bounds?.height ?? 3.4;
+    const depth = Math.max(project.layout.bounds?.depth ?? 44, 20);
     const wallInset = 0.08;
 
     return project.items.map((item, index) => ({
       ...item,
-      ...this.placeItem(item, index, spacing, width, height, wallInset),
+      ...this.placeItem(item, index, spacing, width, height, depth, context.qualityScale, wallInset),
     }));
   }
 
@@ -24,11 +26,16 @@ export class CorridorLayout implements LayoutStrategy {
     spacing: number,
     width: number,
     height: number,
+    depth: number,
+    qualityScale: number,
     wallInset: number,
   ): Omit<PositionedGalleryItem, keyof typeof item> {
     const side = item.placement.side === "right" ? "right" : item.placement.side === "center" ? "center" : "left";
     const bounds = getItemBounds(item);
-    const z = -(index + 1) * spacing;
+    const baseZ = -(index + 1) * spacing;
+    const z = side === "center"
+      ? baseZ
+      : snapZToArchitecturalModuleCenter(depth, qualityScale, baseZ);
     const y = Math.min(height - bounds.height * 0.5 - 0.25, 1.65);
 
     if (side === "center") {

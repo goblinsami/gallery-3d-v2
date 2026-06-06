@@ -1,6 +1,7 @@
 import type { GalleryProject } from "../types/GalleryProject";
 import type { PositionedGalleryItem } from "../types/GalleryItem";
 import type { LayoutContext, LayoutStrategy } from "../types/Layout";
+import { snapZToArchitecturalModuleCenter } from "../utils/architecturalModules";
 import { CorridorLayout } from "./CorridorLayout";
 
 const DEFAULT_REPEAT_CYCLES = 3;
@@ -16,21 +17,29 @@ export class InfiniteCorridorLayout implements LayoutStrategy {
     }
 
     const spacing = project.layout.spacing ?? 7;
+    const depth = Math.max(project.layout.bounds?.depth ?? 44, 20);
     const cycleDepth = base.length * spacing;
     return Array.from({ length: DEFAULT_REPEAT_CYCLES }, (_, cycleIndex) =>
-      base.map((item) => ({
-        ...item,
-        id: cycleIndex === 0 ? item.id : `${item.id}__loop_${cycleIndex}`,
-        index: cycleIndex * base.length + item.index,
-        position: {
-          ...item.position,
-          z: item.position.z - cycleIndex * cycleDepth,
-        },
-        focusTarget: {
-          ...item.focusTarget,
-          z: item.focusTarget.z - cycleIndex * cycleDepth,
-        },
-      })),
+      base.map((item) => {
+        const rawZ = item.position.z - cycleIndex * cycleDepth;
+        const isWallItem = item.placement.side !== "center";
+        const z = isWallItem
+          ? snapZToArchitecturalModuleCenter(depth, context.qualityScale, rawZ)
+          : rawZ;
+        return {
+          ...item,
+          id: cycleIndex === 0 ? item.id : `${item.id}__loop_${cycleIndex}`,
+          index: cycleIndex * base.length + item.index,
+          position: {
+            ...item.position,
+            z,
+          },
+          focusTarget: {
+            ...item.focusTarget,
+            z,
+          },
+        };
+      }),
     ).flat();
   }
 }

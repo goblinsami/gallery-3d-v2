@@ -15,6 +15,7 @@ import type { QualitySettings } from "../types/Quality";
 import { createArchitecturalBake } from "../lighting/ArchitecturalBake";
 import type { ProceduralArchitecturalMaterials } from "./createProceduralArchitecturalMaterials";
 import { createProceduralArchitecturalMaterials } from "./createProceduralArchitecturalMaterials";
+import { getArchitecturalModuleCount, getArchitecturalModuleZ } from "../utils/architecturalModules";
 
 export const createArchitectureShell = async (
   layout: LayoutConfig,
@@ -65,12 +66,6 @@ export const createArchitectureShell = async (
   return root;
 };
 
-const getModuleCount = (depth: number, quality: QualitySettings): number =>
-  Math.max(8, Math.round(depth / (quality.geometryDetail > 0.75 ? 4.2 : 5.6)));
-
-const getModuleZ = (depth: number, count: number, index: number): number =>
-  -0.16 - index * ((depth - 0.32) / Math.max(1, count - 1));
-
 const getWallLedXs = (width: number): [number, number] => [-width / 2 + 0.028, width / 2 - 0.028];
 const getLightGridXs = (width: number): [number, number, number] => [-width * 0.43, 0, width * 0.43];
 
@@ -83,7 +78,7 @@ const createCeilingGrid = (
 ): Group => {
   const root = new Group();
   const railWidth = 0.035;
-  const crossCount = getModuleCount(depth, quality);
+  const crossCount = getArchitecturalModuleCount(depth, quality.geometryDetail);
   const longitudinalXs = getLightGridXs(width);
   const [leftWallLedX, rightWallLedX] = getWallLedXs(width);
   const [leftGridX, , rightGridX] = longitudinalXs;
@@ -109,7 +104,7 @@ const createCeilingGrid = (
   );
 
   for (let index = 0; index < crossCount; index += 1) {
-    const z = getModuleZ(depth, crossCount, index);
+    const z = getArchitecturalModuleZ(depth, crossCount, index);
     matrix.makeTranslation(crossRailCenterX, gridY, z);
     crossRails.setMatrixAt(index, matrix);
   }
@@ -120,7 +115,7 @@ const createCeilingGrid = (
   });
 
   for (let index = 0; index < crossCount; index += 1) {
-    const z = getModuleZ(depth, crossCount, index);
+    const z = getArchitecturalModuleZ(depth, crossCount, index);
     matrix.makeTranslation((leftWallLedX + leftGridX) / 2, gridY, z);
     sideConnectors.setMatrixAt(index * 2, matrix);
     matrix.makeTranslation((rightWallLedX + rightGridX) / 2, gridY, z);
@@ -194,7 +189,7 @@ const createWallLeds = (
   quality: QualitySettings,
 ): Group => {
   const root = new Group();
-  const count = getModuleCount(depth, quality);
+  const count = getArchitecturalModuleCount(depth, quality.geometryDetail);
   const matrix = new Matrix4();
   const bottomY = 0;
   const topY = height;
@@ -208,7 +203,7 @@ const createWallLeds = (
   const centerY = bottomY + stripHeight / 2;
 
   for (let index = 0; index < count; index += 1) {
-    const z = getModuleZ(depth, count, index);
+    const z = getArchitecturalModuleZ(depth, count, index);
     matrix.makeTranslation(leftX, centerY, z);
     strip.setMatrixAt(index * 2, matrix);
     matrix.makeTranslation(rightX, centerY, z);
@@ -229,7 +224,7 @@ const createCeilingDownlights = (
   quality: QualitySettings,
 ): Group => {
   const root = new Group();
-  const countZ = getModuleCount(depth, quality);
+  const countZ = getArchitecturalModuleCount(depth, quality.geometryDetail);
   const xPositions = getLightGridXs(width);
   const total = xPositions.length * countZ;
   const trim = new InstancedMesh(new CylinderGeometry(0.095, 0.095, 0.033, 20), materials.fixtureTrim, total);
@@ -238,7 +233,7 @@ const createCeilingDownlights = (
 
   xPositions.forEach((x, rowIndex) => {
     for (let index = 0; index < countZ; index += 1) {
-      const z = getModuleZ(depth, countZ, index);
+      const z = getArchitecturalModuleZ(depth, countZ, index);
       const instance = rowIndex * countZ + index;
       matrix.makeTranslation(x, height - 0.072, z);
       trim.setMatrixAt(instance, matrix);

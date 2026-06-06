@@ -1,4 +1,4 @@
-import { m as a, c as n, a as p } from "./mountGalleryRuntime-ZKysR3o_.js";
+import { m as a, c as n, a as p } from "./mountGalleryRuntime-Zs-vZMjo.js";
 const l = `
   :host {
     display: block;

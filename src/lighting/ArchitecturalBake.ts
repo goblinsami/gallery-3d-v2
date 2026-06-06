@@ -13,6 +13,11 @@ import {
   Vector3,
 } from "three";
 import type { QualitySettings } from "../types/Quality";
+import {
+  getArchitecturalModuleCount,
+  getArchitecturalModuleSegmentDepth,
+  getArchitecturalModuleZ,
+} from "../utils/architecturalModules";
 
 type GradientAxis = "x" | "y";
 type GradientFocus = "start" | "center" | "end";
@@ -131,8 +136,8 @@ export const createArchitecturalBake = (
   ceilingLightIntensity = 1,
 ): Group => {
   const root = new Group();
-  const count = Math.max(8, Math.round(depth / (quality.geometryDetail > 0.75 ? 4.2 : 5.6)));
-  const segmentDepth = (depth - 0.32) / Math.max(1, count - 1);
+  const count = getArchitecturalModuleCount(depth, quality.geometryDetail);
+  const segmentDepth = getArchitecturalModuleSegmentDepth(depth, count);
   const surfaceOffset = 0.018;
   const wallX = width / 2 - surfaceOffset;
   const floorGlowWidth = Math.min(1.42, width / 2);
@@ -182,7 +187,7 @@ export const createArchitecturalBake = (
   );
 
   for (let index = 0; index < count; index += 1) {
-    const z = -0.16 - index * segmentDepth;
+    const z = getArchitecturalModuleZ(depth, count, index);
     const zCenter = z - segmentDepth * 0.5;
 
     floorLeft.setMatrixAt(
