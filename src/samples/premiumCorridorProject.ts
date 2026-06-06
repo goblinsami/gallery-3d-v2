@@ -5,7 +5,7 @@ export const premiumCorridorProject: GalleryProject = {
     quality: "auto",
     atmosphere: "calm",
     materials: {
-      primary: "wood",
+      primary: "stone",
       accent: "metal",
     },
   },
@@ -24,7 +24,7 @@ export const premiumCorridorProject: GalleryProject = {
     smoothing: 0.16,
     damping: 0.84,
     loopWhiteAfterEndWindow: 0.14,
-    loopWhiteStartsBeforeEndWindow: 0.05,
+    loopWhiteStartsBeforeEndWindow: 0,
     loopWhiteFadeOutRevealWindow: 0.12,
     loopWhiteFadeOutWindow: 0.22,
     loopProgressAdvanceDuringWhiteFadeOut: 0.18,
@@ -61,11 +61,18 @@ export const premiumCorridorProject: GalleryProject = {
       appearance: {
         size: "medium",
         material: "metal",
+        media: [{
+          src: "/images/work1.jpg",
+          type: "image",
+          format: "jpg",
+          quality: "high",
+          alt: "Campaign visual from the public images library",
+        }],
       },
       content: {
         eyebrow: "Portfolio",
         title: "Campaign System",
-        description: "Wall items pull the camera toward the surface instead of blocking the corridor.",
+        description: "Wall items use real project imagery while the camera moves toward the surface.",
       },
     },
     {
@@ -101,6 +108,29 @@ export const premiumCorridorProject: GalleryProject = {
       },
     },
     {
+      id: "identity-right",
+      type: "artwork",
+      placement: {
+        side: "right",
+      },
+      appearance: {
+        size: "medium",
+        material: "metal",
+        media: [{
+          src: "/images/project4.png",
+          type: "image",
+          format: "png",
+          quality: "high",
+          alt: "Identity system artwork from public images",
+        }],
+      },
+      content: {
+        eyebrow: "Identity",
+        title: "Modular Visual System",
+        description: "PNG portfolio assets from public/images can be dropped into the same item contract.",
+      },
+    },
+    {
       id: "profile-left",
       type: "profile",
       placement: {
@@ -125,11 +155,41 @@ export const premiumCorridorProject: GalleryProject = {
       appearance: {
         size: "medium",
         material: "metal",
+        media: [{
+          src: "/images/project2.png",
+          type: "image",
+          format: "png",
+          quality: "high",
+          alt: "Launch film poster from public images",
+        }],
       },
       content: {
         eyebrow: "Motion",
         title: "Launch Film",
-        description: "Video is an item type, not a separate gallery subsystem.",
+        description: "Video can carry a real poster image without becoming a separate gallery subsystem.",
+      },
+    },
+    {
+      id: "editorial-left",
+      type: "image",
+      placement: {
+        side: "left",
+      },
+      appearance: {
+        size: "medium",
+        material: "wood",
+        media: [{
+          src: "/images/work3.jpg",
+          type: "image",
+          format: "jpg",
+          quality: "high",
+          alt: "Editorial image from public images",
+        }],
+      },
+      content: {
+        eyebrow: "Editorial",
+        title: "Tactile Direction",
+        description: "Image stations can mix JPEG work samples with architectural materials.",
       },
     },
     {
@@ -141,6 +201,13 @@ export const premiumCorridorProject: GalleryProject = {
       appearance: {
         size: "medium",
         material: "metal",
+        media: [{
+          src: "/images/project3.png",
+          type: "image",
+          format: "png",
+          quality: "high",
+          alt: "Spatial narrative case image from public images",
+        }],
       },
       content: {
         eyebrow: "Case Study",

@@ -1,7 +1,7 @@
 import type { GalleryItem } from "./GalleryItem";
 import type { JourneyConfig } from "./Journey";
 import type { QualityPreset } from "./Quality";
-export type MaterialFamily = "stone" | "concrete" | "wood" | "metal" | "glass";
+export type MaterialFamily = "stone" | "brick" | "concrete" | "wood" | "metal" | "glass";
 export type LayoutType = "corridor" | "infinite-corridor" | "gallery-room" | string;
 export type AtmospherePreset = "calm" | "bright" | "nocturne" | "neutral" | string;
 export interface ThemeConfig {

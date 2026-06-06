@@ -8,6 +8,7 @@ export default defineConfig({
       entry: {
         element: resolve(__dirname, "src/elements/ScrollixGalleryElement.ts"),
         index: resolve(__dirname, "src/index.ts"),
+        playground: resolve(__dirname, "src/playground/GalleryPlaygroundElement.ts"),
       },
       fileName: (_format, entryName) => `${entryName}.js`,
       formats: ["es"],

@@ -8,7 +8,7 @@ npm run build
 npm run dev:demo
 ```
 
-Open `/demo/` on the local Vite URL, for example `http://localhost:5173/demo/`.
+Open the local Vite URL, for example `http://localhost:5173`.
 
 ## Web Component
 

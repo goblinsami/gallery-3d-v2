@@ -1,39 +1,40 @@
-import { m as u, v as i } from "./mountGalleryRuntime-BunLrSbU.js";
-import { B, C, G as x, b as T, I as j, J as M, R as z, d as W, e as k, f as A, g as E, h as F, i as G, c as D, j as I, k as O, l as q, a as L, n as J, o as N, p as U, q as V, r as Q, s as K, t as _, u as H, w as X } from "./mountGalleryRuntime-BunLrSbU.js";
-const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
-  const t = i(p(e.project));
-  return e.qualityOverride ? i({
+import { m as p, v as o } from "./mountGalleryRuntime-C-Z5-5xx.js";
+import { B as R, C as B, G as x, b as C, I as E, J as T, R as k, d as G, e as M, f as q, g as z, h as I, i as W, c as A, j as D, k as F, l as L, a as O, n as J, o as N, p as V, q as U, r as Q, s as K, t as _, u as H, w as X } from "./mountGalleryRuntime-C-Z5-5xx.js";
+import { GalleryPlaygroundElement as Z, defineGalleryPlaygroundElement as $ } from "./playground.js";
+const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
+  const t = o(u(e.project));
+  return e.qualityOverride ? o({
     ...t,
     theme: {
       ...t.theme,
       quality: e.qualityOverride
     }
   }) : t;
-}, g = (e) => Math.min(Math.max(e, 0), 1), n = (e, t) => {
+}, g = (e) => Math.min(Math.max(e, 0), 1), l = (e, t) => {
   t.bottomSheetState && e.setBottomSheetState(t.bottomSheetState), typeof t.initialProgress == "number" && e.setProgress(g(t.initialProgress));
 }, y = async (e) => {
-  const t = await u({
+  const t = await p({
     container: e.container,
     project: s(e.props),
     assetBaseUrl: e.props.assetBaseUrl,
     scrollElement: e.scrollElement,
     autoStartJourney: e.props.autoStartJourney
   });
-  return n(t, e.props), {
+  return l(t, e.props), {
     runtime: t,
     update: async (a) => {
-      await t.updateProject(s(a)), n(t, a);
+      await t.updateProject(s(a)), l(t, a);
     },
     dispose: () => {
       t.dispose();
     }
   };
-}, w = y, P = {
+}, S = y, b = {
   theme: {
     quality: "auto",
     atmosphere: "calm",
     materials: {
-      primary: "wood",
+      primary: "stone",
       accent: "metal"
     }
   },
@@ -52,7 +53,7 @@ const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
     smoothing: 0.16,
     damping: 0.84,
     loopWhiteAfterEndWindow: 0.14,
-    loopWhiteStartsBeforeEndWindow: 0.05,
+    loopWhiteStartsBeforeEndWindow: 0,
     loopWhiteFadeOutRevealWindow: 0.12,
     loopWhiteFadeOutWindow: 0.22,
     loopProgressAdvanceDuringWhiteFadeOut: 0.18,
@@ -88,12 +89,19 @@ const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
       },
       appearance: {
         size: "medium",
-        material: "metal"
+        material: "metal",
+        media: [{
+          src: "/images/work1.jpg",
+          type: "image",
+          format: "jpg",
+          quality: "high",
+          alt: "Campaign visual from the public images library"
+        }]
       },
       content: {
         eyebrow: "Portfolio",
         title: "Campaign System",
-        description: "Wall items pull the camera toward the surface instead of blocking the corridor."
+        description: "Wall items use real project imagery while the camera moves toward the surface."
       }
     },
     {
@@ -129,6 +137,29 @@ const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
       }
     },
     {
+      id: "identity-right",
+      type: "artwork",
+      placement: {
+        side: "right"
+      },
+      appearance: {
+        size: "medium",
+        material: "metal",
+        media: [{
+          src: "/images/project4.png",
+          type: "image",
+          format: "png",
+          quality: "high",
+          alt: "Identity system artwork from public images"
+        }]
+      },
+      content: {
+        eyebrow: "Identity",
+        title: "Modular Visual System",
+        description: "PNG portfolio assets from public/images can be dropped into the same item contract."
+      }
+    },
+    {
       id: "profile-left",
       type: "profile",
       placement: {
@@ -152,12 +183,42 @@ const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
       },
       appearance: {
         size: "medium",
-        material: "metal"
+        material: "metal",
+        media: [{
+          src: "/images/project2.png",
+          type: "image",
+          format: "png",
+          quality: "high",
+          alt: "Launch film poster from public images"
+        }]
       },
       content: {
         eyebrow: "Motion",
         title: "Launch Film",
-        description: "Video is an item type, not a separate gallery subsystem."
+        description: "Video can carry a real poster image without becoming a separate gallery subsystem."
+      }
+    },
+    {
+      id: "editorial-left",
+      type: "image",
+      placement: {
+        side: "left"
+      },
+      appearance: {
+        size: "medium",
+        material: "wood",
+        media: [{
+          src: "/images/work3.jpg",
+          type: "image",
+          format: "jpg",
+          quality: "high",
+          alt: "Editorial image from public images"
+        }]
+      },
+      content: {
+        eyebrow: "Editorial",
+        title: "Tactile Direction",
+        description: "Image stations can mix JPEG work samples with architectural materials."
       }
     },
     {
@@ -168,7 +229,14 @@ const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
       },
       appearance: {
         size: "medium",
-        material: "metal"
+        material: "metal",
+        media: [{
+          src: "/images/project3.png",
+          type: "image",
+          format: "png",
+          quality: "high",
+          alt: "Spatial narrative case image from public images"
+        }]
       },
       content: {
         eyebrow: "Case Study",
@@ -193,60 +261,62 @@ const p = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
       }
     }
   ]
-}, l = ["low", "medium", "high", "ultra"], h = (e) => 1e3 / Math.max(1, e), f = (e) => {
-  const t = l.indexOf(e);
-  return t > 0 ? l[t - 1] : null;
-}, b = (e, t, a) => {
+}, n = ["low", "medium", "high", "ultra"], h = (e) => 1e3 / Math.max(1, e), f = (e) => {
+  const t = n.indexOf(e);
+  return t > 0 ? n[t - 1] : null;
+}, P = (e, t, a) => {
   if (e.length === 0)
     return {
       averageFrameTimeMs: 0,
       overBudget: !1,
       suggestedPreset: null
     };
-  const r = e.reduce((m, d) => m + d.frameTimeMs, 0) / e.length, c = h(a), o = r > c * 1.18;
+  const r = e.reduce((c, d) => c + d.frameTimeMs, 0) / e.length, m = h(a), i = r > m * 1.18;
   return {
     averageFrameTimeMs: r,
-    overBudget: o,
-    suggestedPreset: o ? f(t) : null
+    overBudget: i,
+    suggestedPreset: i ? f(t) : null
   };
 };
 export {
-  B as BottomSheetController,
-  C as CorridorLayout,
+  R as BottomSheetController,
+  B as CorridorLayout,
   x as GalleryEngine,
-  T as GalleryRoomLayout,
-  j as InfiniteCorridorLayout,
-  M as JourneyController,
-  z as Registry,
-  W as RenderScheduler,
-  k as RuntimeManager,
-  w as ScrollixGallery,
-  b as assessFrameBudget,
-  A as buildCameraKeyframes,
-  E as buildItemProgressMap,
+  Z as GalleryPlaygroundElement,
+  C as GalleryRoomLayout,
+  E as InfiniteCorridorLayout,
+  T as JourneyController,
+  k as Registry,
+  G as RenderScheduler,
+  M as RuntimeManager,
+  S as ScrollixGallery,
+  P as assessFrameBudget,
+  q as buildCameraKeyframes,
+  z as buildItemProgressMap,
   g as clampScrollixProgress,
-  F as composeBottomSheetCamera,
-  G as createArchitecturalBake,
-  D as createBottomSheetView,
-  I as createDefaultLayoutRegistry,
-  O as createDefaultRendererRegistry,
-  q as createDefaultRuntimeManager,
-  L as createDesktopPanelView,
+  I as composeBottomSheetCamera,
+  W as createArchitecturalBake,
+  A as createBottomSheetView,
+  D as createDefaultLayoutRegistry,
+  F as createDefaultRendererRegistry,
+  L as createDefaultRuntimeManager,
+  O as createDesktopPanelView,
   J as createLayoutRegistry,
   N as createRendererRegistry,
-  U as getAdjacentItemProgress,
-  V as getCameraStateAtProgress,
+  $ as defineGalleryPlaygroundElement,
+  V as getAdjacentItemProgress,
+  U as getCameraStateAtProgress,
   Q as getDeviceProfile,
   h as getFrameBudgetMs,
   K as getItemProgress,
   f as getLowerQualityPreset,
-  u as mountGalleryRuntime,
+  p as mountGalleryRuntime,
   y as mountScrollixGallery,
   s as normalizeScrollixGalleryProject,
   _ as planArchitecturalBake,
-  P as premiumCorridorProject,
+  b as premiumCorridorProject,
   H as resolveQuality,
   X as selectTextureSource,
-  i as validateGalleryProject
+  o as validateGalleryProject
 };
 //# sourceMappingURL=index.js.map

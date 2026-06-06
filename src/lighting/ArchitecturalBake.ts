@@ -138,6 +138,10 @@ export const createArchitecturalBake = (
   const wallEdgeHeight = Math.min(0.74, height / 2);
   const verticalGlowWidth = 0.95;
   const baseOpacity = quality.preset === "low" ? 0.18 : 0.32;
+  const verticalGlowBottom = 0;
+  const verticalGlowTop = height;
+  const verticalGlowHeight = verticalGlowTop - verticalGlowBottom;
+  const verticalGlowCenter = verticalGlowBottom + verticalGlowHeight / 2;
 
   const floorLeft = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
@@ -151,12 +155,12 @@ export const createArchitecturalBake = (
   );
   const ceilingLeft = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
-    createBakeMaterial("x", "start", baseOpacity * 0.46),
+    createBakeMaterial("x", "start", baseOpacity * 0.68),
     count,
   );
   const ceilingRight = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
-    createBakeMaterial("x", "end", baseOpacity * 0.46),
+    createBakeMaterial("x", "end", baseOpacity * 0.68),
     count,
   );
   const wallLower = new InstancedMesh(
@@ -166,11 +170,11 @@ export const createArchitecturalBake = (
   );
   const wallUpper = new InstancedMesh(
     new PlaneGeometry(segmentDepth, wallEdgeHeight),
-    createBakeMaterial("y", "end", baseOpacity * 0.42),
+    createBakeMaterial("y", "end", baseOpacity * 0.52),
     count * 2,
   );
   const wallVertical = new InstancedMesh(
-    new PlaneGeometry(verticalGlowWidth, height - 0.14),
+    new PlaneGeometry(verticalGlowWidth, verticalGlowHeight),
     createBakeMaterial("x", "center", baseOpacity * 0.96),
     count * 2,
   );
@@ -211,8 +215,8 @@ export const createArchitecturalBake = (
       index * 2 + 1,
       createTransform(wallX, height - wallEdgeHeight / 2, zCenter, 0, -Math.PI / 2),
     );
-    wallVertical.setMatrixAt(index * 2, createTransform(-wallX, height / 2, z, 0, Math.PI / 2));
-    wallVertical.setMatrixAt(index * 2 + 1, createTransform(wallX, height / 2, z, 0, -Math.PI / 2));
+    wallVertical.setMatrixAt(index * 2, createTransform(-wallX, verticalGlowCenter, z, 0, Math.PI / 2));
+    wallVertical.setMatrixAt(index * 2 + 1, createTransform(wallX, verticalGlowCenter, z, 0, -Math.PI / 2));
   }
 
   [floorLeft, floorRight, ceilingLeft, ceilingRight, wallLower, wallUpper, wallVertical].forEach((mesh) => {

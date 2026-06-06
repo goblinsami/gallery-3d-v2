@@ -226,7 +226,11 @@ export class GalleryEngine {
       cameraHeight: this.project.journey.camera?.height ?? 1.7,
       lookAhead: this.project.journey.camera?.lookAhead ?? 2.2,
     });
-    root.add(await createArchitectureShell(this.project.layout, this.quality));
+    root.add(await createArchitectureShell(
+      this.project.layout,
+      this.quality,
+      this.project.theme.materials.primary,
+    ));
 
     const itemObjects = await Promise.all(this.positionedItems.map((item) => {
       const itemRenderer = this.renderers.get(item.type);

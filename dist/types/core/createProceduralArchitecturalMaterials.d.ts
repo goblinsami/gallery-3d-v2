@@ -1,5 +1,6 @@
 import { MeshBasicMaterial, MeshStandardMaterial } from "three";
 import type { QualitySettings } from "../types/Quality";
+import type { MaterialFamily } from "../types/GalleryProject";
 export interface ProceduralArchitecturalMaterials {
     wall: MeshStandardMaterial;
     wallAccent: MeshStandardMaterial;
@@ -14,5 +15,5 @@ export interface ProceduralArchitecturalMaterials {
     fixtureTrim: MeshStandardMaterial;
     fixtureCore: MeshBasicMaterial;
 }
-export declare const createProceduralArchitecturalMaterials: (quality: QualitySettings, depth: number) => Promise<ProceduralArchitecturalMaterials>;
+export declare const createProceduralArchitecturalMaterials: (quality: QualitySettings, depth: number, materialFamily: MaterialFamily) => Promise<ProceduralArchitecturalMaterials>;
 //# sourceMappingURL=createProceduralArchitecturalMaterials.d.ts.map

@@ -19,28 +19,6 @@ const getLoopWhiteHoldProgress = (project: ValidatedGalleryProject): number => {
   return 1 + afterEndWindow;
 };
 
-const smoothstep = (value: number): number => {
-  const t = Math.min(Math.max(value, 0), 1);
-  return t * t * (3 - 2 * t);
-};
-
-const resolveVisibleWhiteMix = (
-  project: ValidatedGalleryProject,
-  progress: number,
-  whiteMix: number,
-): number => {
-  if (!project.journey.loop) {
-    return 0;
-  }
-
-  const leadWindow = Math.max(0.0001, project.journey.loopWhiteStartsBeforeEndWindow ?? 0.05);
-  const leadStart = Math.max(0, 1 - leadWindow);
-  const progressWhiteMix = progress >= leadStart
-    ? smoothstep((progress - leadStart) / leadWindow)
-    : 0;
-  return Math.min(Math.max(Math.max(whiteMix, progressWhiteMix), 0), 1);
-};
-
 export class RuntimeManager {
   private readonly renderers: RendererRegistry;
   private readonly layouts: LayoutRegistry;
@@ -95,7 +73,7 @@ export class RuntimeManager {
     }
 
     const syncProgress = (progress: number, whiteMix = 0): void => {
-      const visibleWhiteMix = resolveVisibleWhiteMix(currentProject, progress, whiteMix);
+      const visibleWhiteMix = currentProject.journey.loop ? whiteMix : 0;
       const state = engine.setJourneyState(progress, visibleWhiteMix);
       if (whiteOverlay) {
         whiteOverlay.style.setProperty("opacity", String(visibleWhiteMix), "important");
@@ -163,10 +141,15 @@ export class RuntimeManager {
         return true;
       },
       nextItem: () => {
+        if (currentProject.journey.loop && runtimeState.progress >= 0.999) {
+          setRuntimeProgress(getLoopWhiteHoldProgress(currentProject));
+          return true;
+        }
+
         const next = getAdjacentItemProgress(itemProgress, bottomSheet.getModel().activeItemId, 1);
         if (!next) {
           if (currentProject.journey.loop) {
-            setRuntimeProgress(getLoopWhiteHoldProgress(currentProject));
+            setRuntimeProgress(1);
             return true;
           }
 

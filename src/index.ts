@@ -19,6 +19,7 @@ export * from "./runtime/createDesktopPanelView";
 export * from "./runtime/mountGalleryRuntime";
 export * from "./runtime/RuntimeManager";
 export * from "./framer/ScrollixGallery";
+export * from "./playground/GalleryPlaygroundElement";
 export * from "./samples/premiumCorridorProject";
 export * from "./types/GalleryItem";
 export * from "./types/ContentSurface";

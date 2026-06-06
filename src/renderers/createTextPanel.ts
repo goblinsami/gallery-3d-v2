@@ -262,14 +262,16 @@ const createWallFrame = (panelWidth: number, panelHeight: number, accent: string
   const thickness = 0.055;
   const top = createBar(panelWidth + 0.18, thickness, 0.06, frameMaterial);
   const bottom = createBar(panelWidth + 0.18, thickness, 0.06, frameMaterial);
-  const side = createBar(thickness, panelHeight + 0.18, 0.06, frameMaterial);
+  const left = createBar(thickness, panelHeight + 0.18, 0.045, frameMaterial);
+  const right = createBar(thickness, panelHeight + 0.18, 0.045, frameMaterial);
   const glow = createBar(panelWidth * 0.42, 0.022, 0.022, ledMaterial);
 
   top.position.set(0, panelHeight / 2 + 0.075, 0.035);
   bottom.position.set(0, -panelHeight / 2 - 0.075, 0.035);
-  side.position.set(-panelWidth / 2 - 0.075, 0, 0.035);
+  left.position.set(-panelWidth / 2 - 0.075, 0, 0.035);
+  right.position.set(panelWidth / 2 + 0.075, 0, 0.035);
   glow.position.set(-panelWidth * 0.22, panelHeight / 2 + 0.12, 0.075);
   root.name = "wall-panel-frame";
-  root.add(top, bottom, side, glow);
+  root.add(top, bottom, left, right, glow);
   return root;
 };

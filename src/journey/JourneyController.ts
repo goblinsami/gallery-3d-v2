@@ -52,7 +52,7 @@ export class JourneyController {
     this.damping = clamp(options.damping ?? 0.86, 0.2, 0.98);
     this.loop = options.loop ?? false;
     this.loopWhiteAfterEndWindow = clamp(options.loopWhiteAfterEndWindow ?? 0.14, 0.02, 0.45);
-    this.loopWhiteStartsBeforeEndWindow = clamp(options.loopWhiteStartsBeforeEndWindow ?? 0.05, 0, 0.45);
+    this.loopWhiteStartsBeforeEndWindow = clamp(options.loopWhiteStartsBeforeEndWindow ?? 0, 0, 0.45);
     this.loopWhiteFadeOutWindow = clamp(options.loopWhiteFadeOutWindow ?? 0.22, 0.05, 0.6);
     this.loopWhiteFadeOutRevealWindow = clamp(options.loopWhiteFadeOutRevealWindow ?? 0.12, 0.03, 0.45);
     this.loopProgressAdvanceDuringWhiteFadeOut = clamp(

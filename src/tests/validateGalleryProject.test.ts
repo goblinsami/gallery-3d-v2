@@ -64,6 +64,15 @@ describe("validateGalleryProject", () => {
     expect(() => validateGalleryProject(project)).toThrow("missing a valid type");
   });
 
+  it("accepts brick as a material family", () => {
+    const project = createProject();
+    project.theme.materials.primary = "brick";
+
+    const validated = validateGalleryProject(project);
+
+    expect(validated.theme.materials.primary).toBe("brick");
+  });
+
   it("preserves validated media texture sources", () => {
     const project = createProject();
     project.items[0] = {

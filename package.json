@@ -13,6 +13,10 @@
     "./element": {
       "types": "./dist/types/elements/ScrollixGalleryElement.d.ts",
       "default": "./dist/element.js"
+    },
+    "./playground": {
+      "types": "./dist/types/playground/GalleryPlaygroundElement.d.ts",
+      "default": "./dist/playground.js"
     }
   },
   "scripts": {

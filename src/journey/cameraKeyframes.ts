@@ -112,12 +112,13 @@ export const buildCameraKeyframes = (
   });
 
   const last = items[items.length - 1];
+  const endTailDistance = resolved.focusDistance * 2.35;
   frames.push({
     progress: 1,
-    position: { x: 0, y: resolved.cameraHeight, z: last.position.z - resolved.focusDistance },
-    lookAt: add(last.focusTarget, 0, 0, -resolved.lookAhead),
+    position: { x: 0, y: resolved.cameraHeight, z: last.position.z - endTailDistance },
+    lookAt: add(last.focusTarget, 0, 0, -resolved.lookAhead * 4),
     activeItemId: null,
-    label: "end",
+    label: "empty-corridor-tail",
   });
 
   return frames.sort((a, b) => a.progress - b.progress);

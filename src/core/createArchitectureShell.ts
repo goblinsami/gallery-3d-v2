@@ -10,7 +10,7 @@ import {
   Mesh,
   PlaneGeometry,
 } from "three";
-import type { LayoutConfig } from "../types/GalleryProject";
+import type { LayoutConfig, MaterialFamily } from "../types/GalleryProject";
 import type { QualitySettings } from "../types/Quality";
 import { createArchitecturalBake } from "../lighting/ArchitecturalBake";
 import type { ProceduralArchitecturalMaterials } from "./createProceduralArchitecturalMaterials";
@@ -19,20 +19,21 @@ import { createProceduralArchitecturalMaterials } from "./createProceduralArchit
 export const createArchitectureShell = async (
   layout: LayoutConfig,
   quality: QualitySettings,
+  materialFamily: MaterialFamily,
 ): Promise<Group> => {
   const root = new Group();
   const width = layout.bounds?.width ?? 5.4;
   const height = layout.bounds?.height ?? 3.4;
   const depth = Math.max(layout.bounds?.depth ?? 44, 20);
-  const materials = await createProceduralArchitecturalMaterials(quality, depth);
+  const materials = await createProceduralArchitecturalMaterials(quality, depth, materialFamily);
   const floor = new Mesh(new PlaneGeometry(width, depth), materials.floor);
   const floorBase = new Mesh(new BoxGeometry(width, 0.04, depth), materials.trim);
   const ceiling = new Mesh(new PlaneGeometry(width, depth), materials.ceiling);
   const leftWall = new Mesh(new PlaneGeometry(depth, height), materials.wall);
   const rightWall = new Mesh(new PlaneGeometry(depth, height), materials.wall);
-  const ambient = new AmbientLight("#f4ead9", quality.preset === "low" ? 0.32 : 0.46);
-  const hemisphere = new HemisphereLight("#fff4dc", "#5b452d", quality.preset === "low" ? 0.58 : 0.82);
-  const key = new DirectionalLight("#fff2d7", quality.lightBudget > 1 ? 1.24 : 0.78);
+  const ambient = new AmbientLight("#f4ead9", quality.preset === "low" ? 0.36 : 0.52);
+  const hemisphere = new HemisphereLight("#fff4dc", "#5b452d", quality.preset === "low" ? 0.64 : 0.9);
+  const key = new DirectionalLight("#fff2d7", quality.lightBudget > 1 ? 1.32 : 0.84);
 
   floor.position.set(0, 0.002, -depth / 2);
   floor.rotation.x = -Math.PI / 2;
@@ -68,6 +69,9 @@ const getModuleCount = (depth: number, quality: QualitySettings): number =>
 const getModuleZ = (depth: number, count: number, index: number): number =>
   -0.16 - index * ((depth - 0.32) / Math.max(1, count - 1));
 
+const getWallLedXs = (width: number): [number, number] => [-width / 2 + 0.028, width / 2 - 0.028];
+const getLightGridXs = (width: number): [number, number, number] => [-width * 0.43, 0, width * 0.43];
+
 const createCeilingGrid = (
   width: number,
   depth: number,
@@ -78,30 +82,54 @@ const createCeilingGrid = (
   const root = new Group();
   const railWidth = 0.035;
   const crossCount = getModuleCount(depth, quality);
-  const longitudinalXs = [-width * 0.43, 0, width * 0.43];
+  const longitudinalXs = getLightGridXs(width);
+  const [leftWallLedX, rightWallLedX] = getWallLedXs(width);
+  const [leftGridX, , rightGridX] = longitudinalXs;
+  const gridY = height - railWidth * 0.5;
+  const crossRailWidth = rightGridX - leftGridX;
+  const crossRailCenterX = leftGridX + crossRailWidth / 2;
+  const sideConnectorWidth = Math.abs(leftGridX - leftWallLedX);
   const matrix = new Matrix4();
-  const crossRails = new InstancedMesh(new BoxGeometry(width, railWidth, railWidth), materials.trim, crossCount);
+  const crossRails = new InstancedMesh(
+    new BoxGeometry(crossRailWidth, railWidth, railWidth),
+    materials.trim,
+    crossCount,
+  );
   const longitudinalRails = new InstancedMesh(
     new BoxGeometry(railWidth, railWidth, depth),
     materials.trim,
     longitudinalXs.length,
   );
+  const sideConnectors = new InstancedMesh(
+    new BoxGeometry(sideConnectorWidth, railWidth, railWidth),
+    materials.trim,
+    crossCount * 2,
+  );
 
   for (let index = 0; index < crossCount; index += 1) {
     const z = getModuleZ(depth, crossCount, index);
-    matrix.makeTranslation(0, height - railWidth * 0.5 - 0.014, z);
+    matrix.makeTranslation(crossRailCenterX, gridY, z);
     crossRails.setMatrixAt(index, matrix);
   }
 
   longitudinalXs.forEach((x, index) => {
-    matrix.makeTranslation(x, height - railWidth * 0.5 - 0.018, -depth / 2);
+    matrix.makeTranslation(x, gridY, -depth / 2);
     longitudinalRails.setMatrixAt(index, matrix);
   });
 
+  for (let index = 0; index < crossCount; index += 1) {
+    const z = getModuleZ(depth, crossCount, index);
+    matrix.makeTranslation((leftWallLedX + leftGridX) / 2, gridY, z);
+    sideConnectors.setMatrixAt(index * 2, matrix);
+    matrix.makeTranslation((rightWallLedX + rightGridX) / 2, gridY, z);
+    sideConnectors.setMatrixAt(index * 2 + 1, matrix);
+  }
+
   crossRails.instanceMatrix.needsUpdate = true;
   longitudinalRails.instanceMatrix.needsUpdate = true;
+  sideConnectors.instanceMatrix.needsUpdate = true;
   root.name = "ceiling-grid";
-  root.add(longitudinalRails, crossRails);
+  root.add(longitudinalRails, crossRails, sideConnectors);
   return root;
 };
 
@@ -113,9 +141,11 @@ const createLongLeds = (
 ): Group => {
   const root = new Group();
   const horizontal = new BoxGeometry(0.04, 0.04, depth);
+  const [leftX, rightX] = getWallLedXs(width);
+  const topY = height - 0.02;
   const positions = [
-    [-width / 2 + 0.08, height - 0.18, -depth / 2],
-    [width / 2 - 0.08, height - 0.18, -depth / 2],
+    [leftX, topY, -depth / 2],
+    [rightX, topY, -depth / 2],
   ] as const;
 
   positions.forEach(([x, y, z], index) => {
@@ -136,9 +166,11 @@ const createFloorLeds = (
 ): Group => {
   const root = new Group();
   const ledGeometry = new BoxGeometry(0.036, 0.036, depth);
+  const [leftX, rightX] = getWallLedXs(width);
+  const floorY = 0.018;
   const positions = [
-    [-width / 2 + 0.08, 0.07, -depth / 2],
-    [width / 2 - 0.08, 0.07, -depth / 2],
+    [leftX, floorY, -depth / 2],
+    [rightX, floorY, -depth / 2],
   ] as const;
 
   positions.forEach(([x, y, z], index) => {
@@ -162,17 +194,22 @@ const createWallLeds = (
   const root = new Group();
   const count = getModuleCount(depth, quality);
   const matrix = new Matrix4();
+  const bottomY = 0;
+  const topY = height;
+  const stripHeight = topY - bottomY;
+  const [leftX, rightX] = getWallLedXs(width);
   const strip = new InstancedMesh(
-    new BoxGeometry(0.032, height - 0.12, 0.032),
+    new BoxGeometry(0.032, stripHeight, 0.032),
     materials.led,
     count * 2,
   );
+  const centerY = bottomY + stripHeight / 2;
 
   for (let index = 0; index < count; index += 1) {
     const z = getModuleZ(depth, count, index);
-    matrix.makeTranslation(-width / 2 + 0.028, height / 2, z);
+    matrix.makeTranslation(leftX, centerY, z);
     strip.setMatrixAt(index * 2, matrix);
-    matrix.makeTranslation(width / 2 - 0.028, height / 2, z);
+    matrix.makeTranslation(rightX, centerY, z);
     strip.setMatrixAt(index * 2 + 1, matrix);
   }
 
@@ -190,21 +227,20 @@ const createCeilingDownlights = (
   quality: QualitySettings,
 ): Group => {
   const root = new Group();
-  const rows = quality.preset === "low" ? 1 : 2;
-  const countZ = Math.max(5, Math.round(depth / 8));
-  const total = rows * countZ;
-  const trim = new InstancedMesh(new CylinderGeometry(0.105, 0.105, 0.035, 20), materials.fixtureTrim, total);
-  const core = new InstancedMesh(new CylinderGeometry(0.058, 0.058, 0.039, 16), materials.fixtureCore, total);
+  const countZ = getModuleCount(depth, quality);
+  const xPositions = getLightGridXs(width);
+  const total = xPositions.length * countZ;
+  const trim = new InstancedMesh(new CylinderGeometry(0.095, 0.095, 0.033, 20), materials.fixtureTrim, total);
+  const core = new InstancedMesh(new CylinderGeometry(0.052, 0.052, 0.037, 16), materials.fixtureCore, total);
   const matrix = new Matrix4();
-  const xPositions = rows === 1 ? [0] : [-width * 0.28, width * 0.28];
 
   xPositions.forEach((x, rowIndex) => {
     for (let index = 0; index < countZ; index += 1) {
-      const z = -2.6 - index * (depth - 5.2) / Math.max(1, countZ - 1);
+      const z = getModuleZ(depth, countZ, index);
       const instance = rowIndex * countZ + index;
-      matrix.makeTranslation(x, height - 0.08, z);
+      matrix.makeTranslation(x, height - 0.072, z);
       trim.setMatrixAt(instance, matrix);
-      matrix.makeTranslation(x, height - 0.102, z);
+      matrix.makeTranslation(x, height - 0.096, z);
       core.setMatrixAt(instance, matrix);
     }
   });
