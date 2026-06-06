@@ -23,6 +23,8 @@ export interface RuntimeInstance {
   updateProject(project: GalleryProject): Promise<void>;
   setProgress(progress: number): void;
   focusItem(itemId: string): boolean;
+  selectItem(itemId: string): boolean;
+  selectItemAtClientPoint(clientX: number, clientY: number): boolean;
   nextItem(): boolean;
   previousItem(): boolean;
   setBottomSheetState(state: BottomSheetState): void;

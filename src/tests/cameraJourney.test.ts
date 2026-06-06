@@ -53,4 +53,22 @@ describe("camera journey", () => {
     expect(focus?.position.x).toBeLessThan(0);
     expect(focus?.position.z).toBe(wall.position.z);
   });
+
+  it("moves farther back when a wide wall item needs mobile framing", () => {
+    const wall = {
+      ...item("wide-wall", -6, "left"),
+      position: { x: -3, y: 1.6, z: -6 },
+      focusTarget: { x: -3, y: 1.6, z: -6 },
+      bounds: { width: 3.4, height: 1.25, depth: 0.08 },
+    };
+    const desktopFocus = buildCameraKeyframes([wall], { viewportAspect: 16 / 9 })
+      .find((frame) => frame.label === "wide-wall:focus");
+    const mobileFocus = buildCameraKeyframes([wall], { viewportAspect: 3 / 4 })
+      .find((frame) => frame.label === "wide-wall:focus");
+
+    expect(desktopFocus).toBeDefined();
+    expect(mobileFocus).toBeDefined();
+    expect((mobileFocus?.position.x ?? 0) - wall.focusTarget.x)
+      .toBeGreaterThan((desktopFocus?.position.x ?? 0) - wall.focusTarget.x);
+  });
 });

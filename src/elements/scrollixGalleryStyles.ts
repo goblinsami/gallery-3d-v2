@@ -155,59 +155,82 @@ export const scrollixGalleryStyles = `
     .g3d-panel {
       display: block;
       position: absolute;
-      left: 50%;
-      bottom: 26px;
+      left: max(4px, env(safe-area-inset-left));
+      top: max(8px, env(safe-area-inset-top));
+      bottom: max(8px, env(safe-area-inset-bottom));
       z-index: 4;
-      width: min(720px, calc(100% - 48px));
-      min-height: 70px;
-      padding: 14px 18px 16px;
+      width: clamp(360px, 25.5vw, 468px);
+      max-width: calc(100% - 72px);
+      padding: 42px 18px 18px;
+      overflow: auto;
       color: #f4efe6;
-      background: rgba(8, 9, 10, 0.88);
-      border: 1px solid rgba(244, 226, 194, 0.16);
+      background: rgba(4, 7, 13, 0.9);
+      border: 1px solid rgba(201, 211, 232, 0.16);
       border-radius: 18px;
-      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+      box-shadow: 0 18px 70px rgba(0, 0, 0, 0.34);
       backdrop-filter: blur(16px);
-      transform: translateX(-50%);
+      transform: translateX(0);
+    }
+
+    .g3d-panel[data-state="collapsed"] {
+      display: none;
     }
 
     .g3d-panel__grip {
       width: 44px;
       height: 4px;
-      margin: 0 auto 10px;
+      margin: -24px auto 18px;
       border-radius: 999px;
-      background: rgba(244, 239, 230, 0.58);
+      background: rgba(201, 211, 232, 0.72);
+    }
+
+    .g3d-panel__close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 1px solid rgba(201, 211, 232, 0.22);
+      border-radius: 999px;
+      color: #f4efe6;
+      background: rgba(255, 255, 255, 0.08);
+      font: 700 24px/1 system-ui, sans-serif;
+      cursor: pointer;
     }
 
     .g3d-panel__eyebrow {
-      margin: 0 0 6px;
+      margin: 0 0 4px;
       font: 600 11px/1.2 system-ui, sans-serif;
       text-transform: uppercase;
-      opacity: 0.66;
+      letter-spacing: 0.08em;
+      color: rgba(217, 225, 242, 0.72);
     }
 
     .g3d-panel__title {
       margin: 0;
-      font: 700 18px/1.18 system-ui, sans-serif;
+      font: 750 17px/1.14 system-ui, sans-serif;
     }
 
     .g3d-panel__description {
-      margin: 4px 160px 0 0;
-      font: 400 14px/1.55 system-ui, sans-serif;
-      color: rgba(244, 239, 230, 0.74);
+      margin: 28px 0 0;
+      padding-top: 28px;
+      border-top: 1px solid rgba(201, 211, 232, 0.14);
+      font: 400 16px/1.55 system-ui, sans-serif;
+      color: rgba(244, 239, 230, 0.9);
     }
 
     .g3d-panel__actions {
       display: flex;
       gap: 8px;
-      position: absolute;
-      right: 18px;
-      bottom: 16px;
-      width: 172px;
+      margin-top: 28px;
     }
 
     .g3d-panel__nav {
       flex: 1;
-      min-height: 30px;
+      min-height: 34px;
       border: 1px solid rgba(244, 239, 230, 0.18);
       border-radius: 7px;
       color: #f4efe6;

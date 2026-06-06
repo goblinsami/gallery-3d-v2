@@ -37,6 +37,7 @@ export class RuntimeManager {
       whiteMix: 0,
       activeItemId: null,
     };
+    let selectedSourceItemId: string | null = currentProject.items[0]?.id ?? null;
     const stateListeners = new Set<RuntimeStateListener>();
     const bottomSheet = new BottomSheetController();
     const engine = new GalleryEngine({
@@ -72,6 +73,32 @@ export class RuntimeManager {
       options.container.appendChild(whiteOverlay);
     }
 
+    const getSourceItem = (itemId: string | null) =>
+      itemId
+        ? currentProject.items.find((item) => item.id === itemId.split("__loop_")[0]) ?? null
+        : null;
+    const getSelectedItem = () => getSourceItem(selectedSourceItemId);
+    const syncBottomSheetFocus = (): void => {
+      controller?.setInteractionEnabled(bottomSheet.getModel().state === "collapsed");
+      engine.setBottomSheetFocus(selectedSourceItemId, bottomSheet.getModel().state);
+    };
+    const selectSourceItem = (itemId: string, state: BottomSheetState): boolean => {
+      const sourceItem = getSourceItem(itemId);
+      if (!sourceItem) {
+        return false;
+      }
+
+      selectedSourceItemId = sourceItem.id;
+      bottomSheet.setActiveItem(sourceItem);
+      bottomSheet.setState(state);
+      syncBottomSheetFocus();
+      runtimeState = {
+        ...runtimeState,
+        activeItemId: sourceItem.id,
+      };
+      stateListeners.forEach((listener) => listener(runtimeState));
+      return true;
+    };
     const syncProgress = (progress: number, whiteMix = 0): void => {
       const visibleWhiteMix = currentProject.journey.loop ? whiteMix : 0;
       const state = engine.setJourneyState(progress, visibleWhiteMix);
@@ -84,9 +111,11 @@ export class RuntimeManager {
         activeItemId: state.activeItemId,
       };
       const activeSourceId = state.activeItemId?.split("__loop_")[0] ?? null;
-      bottomSheet.setActiveItem(
-        currentProject.items.find((item) => item.id === activeSourceId) ?? null,
-      );
+      if (activeSourceId) {
+        selectedSourceItemId = activeSourceId;
+      }
+      bottomSheet.setActiveItem(getSourceItem(activeSourceId) ?? getSelectedItem());
+      syncBottomSheetFocus();
       stateListeners.forEach((listener) => listener(runtimeState));
     };
     const setRuntimeProgress = (progress: number): void => {
@@ -126,6 +155,7 @@ export class RuntimeManager {
       updateProject: async (project: GalleryProject) => {
         currentProject = validateGalleryProject(project);
         itemProgress = buildItemProgressMap(currentProject.items);
+        selectedSourceItemId = currentProject.items[0]?.id ?? null;
         await engine.updateProject(currentProject);
         resetJourneyController(currentProject);
         syncProgress(0);
@@ -139,6 +169,11 @@ export class RuntimeManager {
 
         setRuntimeProgress(progress);
         return true;
+      },
+      selectItem: (itemId: string) => selectSourceItem(itemId, "half"),
+      selectItemAtClientPoint: (clientX: number, clientY: number) => {
+        const itemId = engine.getClosestItemIdFromClientPoint(clientX, clientY);
+        return itemId ? selectSourceItem(itemId, "half") : false;
       },
       nextItem: () => {
         if (currentProject.journey.loop && runtimeState.progress >= 0.999) {
@@ -170,7 +205,7 @@ export class RuntimeManager {
       },
       setBottomSheetState: (state: BottomSheetState) => {
         bottomSheet.setState(state);
-        engine.setBottomSheetState(state);
+        syncBottomSheetFocus();
       },
       getState: () => runtimeState,
       subscribeState: (listener) => {

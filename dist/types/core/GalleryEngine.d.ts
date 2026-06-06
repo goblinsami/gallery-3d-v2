@@ -35,6 +35,13 @@ export declare class GalleryEngine {
     private readonly baseFogColor;
     private readonly mixedBackgroundColor;
     private readonly mixedFogColor;
+    private readonly projectedItemPoint;
+    private renderViewport;
+    private effectiveRenderViewport;
+    private journeyViewportAspect;
+    private bottomSheetFocusItemId;
+    private lastContainerWidth;
+    private lastContainerHeight;
     constructor(options: GalleryEngineOptions);
     init(): Promise<void>;
     updateProject(project: GalleryProject): Promise<void>;
@@ -42,6 +49,8 @@ export declare class GalleryEngine {
     setProgress(progress: number): CameraState;
     setJourneyState(progress: number, whiteMix: number): CameraState;
     setBottomSheetState(state: BottomSheetState): CameraState;
+    setBottomSheetFocus(itemId: string | null, state: BottomSheetState): CameraState;
+    getClosestItemIdFromClientPoint(clientX: number, clientY: number): string | null;
     invalidate(_reason: string): void;
     dispose(): void;
     private rebuildScene;
@@ -49,10 +58,17 @@ export declare class GalleryEngine {
     private resetAtmosphereBase;
     private applyAtmosphere;
     private getComposedCameraState;
+    private findPositionedItemById;
+    private rebuildKeyframes;
     private getJourneyItemsForKeyframes;
     private renderFrame;
     private resize;
     private getViewportAspect;
+    private calculateRenderViewport;
+    private resolveEffectiveRenderViewport;
+    private getVisibleRatioForBottomSheet;
+    private isMobileViewport;
+    private applyRendererViewport;
     private assertActive;
 }
 //# sourceMappingURL=GalleryEngine.d.ts.map

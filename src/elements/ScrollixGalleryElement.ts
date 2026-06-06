@@ -59,12 +59,14 @@ export class ScrollixGalleryElement extends HTMLElement {
   connectedCallback(): void {
     this.tabIndex = this.tabIndex >= 0 ? this.tabIndex : 0;
     this.addEventListener("keydown", this.handleKeydown);
+    this.viewport.addEventListener("click", this.handleViewportClick);
     this.currentProject = this.currentProject ?? this.parseProjectAttribute();
     void this.syncRuntime();
   }
 
   disconnectedCallback(): void {
     this.removeEventListener("keydown", this.handleKeydown);
+    this.viewport.removeEventListener("click", this.handleViewportClick);
     this.bottomSheet?.dispose();
     this.bottomSheet = null;
     this.desktopPanel?.dispose();
@@ -143,6 +145,18 @@ export class ScrollixGalleryElement extends HTMLElement {
       event.preventDefault();
       this.runtime.setBottomSheetState("collapsed");
     }
+  };
+
+  private handleViewportClick = (event: MouseEvent): void => {
+    if (!this.runtime || event.button !== 0) {
+      return;
+    }
+
+    if (this.runtime.getContentSurface().state !== "collapsed") {
+      return;
+    }
+
+    this.runtime.selectItemAtClientPoint(event.clientX, event.clientY);
   };
 }
 

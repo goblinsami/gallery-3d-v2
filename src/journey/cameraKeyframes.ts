@@ -1,10 +1,14 @@
 import type { PositionedGalleryItem, Vec3 } from "../types/GalleryItem";
 import type { CameraKeyframe, JourneyMetrics } from "../types/Journey";
+import { getFramedFocusDistance, getItemFramingBounds } from "./framing";
 
 const DEFAULT_METRICS: JourneyMetrics = {
   cameraHeight: 1.7,
   focusDistance: 4.2,
   lookAhead: 2.2,
+  fov: 50,
+  viewportAspect: 16 / 9,
+  focusFill: 0.74,
 };
 
 const add = (value: Vec3, x: number, y: number, z: number): Vec3 => ({
@@ -13,11 +17,9 @@ const add = (value: Vec3, x: number, y: number, z: number): Vec3 => ({
   z: value.z + z,
 });
 
-const getWallFocusDistance = (item: PositionedGalleryItem, fallback: number): number => {
-  const bounds = item.bounds;
-  const width = bounds?.width ?? 2.4;
-  const height = bounds?.height ?? 1.6;
-  return Math.max(1.35, Math.min(fallback, Math.max(width * 0.9, height * 1.05)));
+const getWallFocusDistance = (item: PositionedGalleryItem): number => {
+  const bounds = getItemFramingBounds(item);
+  return Math.max(1.35, bounds.width * 0.6, bounds.height * 0.75);
 };
 
 export const buildCameraKeyframes = (
@@ -57,10 +59,16 @@ export const buildCameraKeyframes = (
     if (isCenter) {
       const approach = Math.min(1, start + step * 0.32);
       const passThrough = Math.min(1, start + step * 0.72);
+      const focusDistance = getFramedFocusDistance(getItemFramingBounds(item), {
+        fov: resolved.fov,
+        viewportAspect: resolved.viewportAspect,
+        fill: resolved.focusFill,
+        minDistance: 1.35,
+      });
 
       frames.push({
         progress: approach,
-        position: { x: 0, y: resolved.cameraHeight, z: item.position.z + resolved.focusDistance },
+        position: { x: 0, y: resolved.cameraHeight, z: item.position.z + focusDistance },
         lookAt: add(item.focusTarget, 0, 0, -resolved.lookAhead),
         activeItemId: item.id,
         label: `${item.id}:approach`,
@@ -76,7 +84,12 @@ export const buildCameraKeyframes = (
     }
 
     const normalX = side === "left" ? 1 : -1;
-    const focusDistance = getWallFocusDistance(item, resolved.focusDistance);
+    const focusDistance = getFramedFocusDistance(getItemFramingBounds(item), {
+      fov: resolved.fov,
+      viewportAspect: resolved.viewportAspect,
+      fill: resolved.focusFill,
+      minDistance: getWallFocusDistance(item),
+    });
     const centerPosition = {
       x: 0,
       y: resolved.cameraHeight,

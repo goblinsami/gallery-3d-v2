@@ -1,5 +1,6 @@
 import type { PositionedGalleryItem, Vec3 } from "../types/GalleryItem";
 import type { BottomSheetState, CameraState } from "../types/Journey";
+import { getFramedFocusDistance, getItemFramingBounds } from "./framing";
 
 const lerp = (from: number, to: number, t: number): number => from + (to - from) * t;
 
@@ -25,21 +26,41 @@ export const composeBottomSheetCamera = (
   camera: CameraState,
   item: PositionedGalleryItem | null,
   sheetState: BottomSheetState,
+  options: {
+    fov?: number;
+    viewportAspect?: number;
+    focusFill?: number;
+  } = {},
 ): CameraState => {
   const mix = getSheetMix(sheetState);
   if (mix === 0 || !item) {
     return camera;
   }
 
-  const distance = Math.max(2.8, Math.abs(camera.position.z - item.focusTarget.z));
-  const composedPosition: Vec3 = {
-    x: lerp(camera.position.x, item.focusTarget.x * 0.18, mix),
-    y: camera.position.y + mix * 0.28,
-    z: lerp(camera.position.z, item.focusTarget.z + distance * 0.72, mix),
-  };
+  const side = item.placement.side ?? "auto";
+  const isWallItem = side !== "center";
+  const focusDistance = getFramedFocusDistance(getItemFramingBounds(item), {
+    fov: options.fov ?? 50,
+    viewportAspect: options.viewportAspect ?? 16 / 9,
+    fill: options.focusFill ?? (sheetState === "full" ? 0.66 : 0.72),
+    minDistance: isWallItem ? 1.35 : 1.6,
+  });
+  const normalX = side === "left" ? 1 : -1;
+  const targetPosition: Vec3 = isWallItem
+    ? {
+        x: item.focusTarget.x + normalX * focusDistance,
+        y: item.focusTarget.y,
+        z: item.focusTarget.z,
+      }
+    : {
+        x: 0,
+        y: item.focusTarget.y,
+        z: item.focusTarget.z + focusDistance,
+      };
+  const composedPosition: Vec3 = lerpVec3(camera.position, targetPosition, mix);
   const composedLookAt: Vec3 = lerpVec3(camera.lookAt, {
     x: item.focusTarget.x,
-    y: item.focusTarget.y + mix * 0.18,
+    y: item.focusTarget.y,
     z: item.focusTarget.z,
   }, mix);
 

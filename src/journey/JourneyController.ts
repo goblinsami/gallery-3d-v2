@@ -43,6 +43,7 @@ export class JourneyController {
   private activeTouchId: number | null = null;
   private lastTouchY: number | null = null;
   private running = false;
+  private interactionEnabled = true;
 
   constructor(options: JourneyControllerOptions) {
     this.element = options.element;
@@ -90,6 +91,20 @@ export class JourneyController {
     this.sensitivity = clamp(sensitivity, 0.00005, 0.01);
   }
 
+  setInteractionEnabled(enabled: boolean): void {
+    if (this.interactionEnabled === enabled) {
+      return;
+    }
+
+    this.interactionEnabled = enabled;
+    if (!enabled) {
+      this.velocity = 0;
+      this.targetProgress = this.progress;
+      this.activeTouchId = null;
+      this.lastTouchY = null;
+    }
+  }
+
   dispose(): void {
     this.running = false;
     this.element.removeEventListener("wheel", this.handleWheel);
@@ -105,6 +120,10 @@ export class JourneyController {
   }
 
   private handleWheel = (event: WheelEvent): void => {
+    if (!this.interactionEnabled) {
+      return;
+    }
+
     if (event.ctrlKey) {
       return;
     }
@@ -115,6 +134,12 @@ export class JourneyController {
   };
 
   private handleTouchStart = (event: TouchEvent): void => {
+    if (!this.interactionEnabled) {
+      this.activeTouchId = null;
+      this.lastTouchY = null;
+      return;
+    }
+
     const touch = event.touches[0];
     if (!touch) {
       return;
@@ -125,6 +150,10 @@ export class JourneyController {
   };
 
   private handleTouchMove = (event: TouchEvent): void => {
+    if (!this.interactionEnabled) {
+      return;
+    }
+
     if (this.lastTouchY === null) {
       return;
     }
@@ -146,6 +175,12 @@ export class JourneyController {
   };
 
   private handleTouchEnd = (event: TouchEvent): void => {
+    if (!this.interactionEnabled) {
+      this.activeTouchId = null;
+      this.lastTouchY = null;
+      return;
+    }
+
     const touch = this.getTrackedTouch(event.touches);
     this.activeTouchId = touch?.identifier ?? null;
     this.lastTouchY = touch?.clientY ?? null;

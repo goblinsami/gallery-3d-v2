@@ -36,10 +36,12 @@ export declare class JourneyController {
     private activeTouchId;
     private lastTouchY;
     private running;
+    private interactionEnabled;
     constructor(options: JourneyControllerOptions);
     start(): void;
     setProgress(progress: number): void;
     setSensitivity(sensitivity: number): void;
+    setInteractionEnabled(enabled: boolean): void;
     dispose(): void;
     private handleWheel;
     private handleTouchStart;

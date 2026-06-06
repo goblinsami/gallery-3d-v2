@@ -54,4 +54,7 @@ export interface JourneyMetrics {
   cameraHeight: number;
   focusDistance: number;
   lookAhead: number;
+  fov: number;
+  viewportAspect: number;
+  focusFill: number;
 }

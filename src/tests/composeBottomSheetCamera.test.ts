@@ -12,13 +12,14 @@ const camera: CameraState = {
 const item: PositionedGalleryItem = {
   id: "item-1",
   type: "statement",
-  placement: {},
+  placement: { side: "left" },
   appearance: {},
   content: {},
   index: 0,
   position: { x: 1.2, y: 1.6, z: -4 },
   rotation: { x: 0, y: 0, z: 0 },
   focusTarget: { x: 1.2, y: 1.6, z: -4 },
+  bounds: { width: 3.2, height: 1.2, depth: 0.08 },
 };
 
 describe("composeBottomSheetCamera", () => {
@@ -30,7 +31,15 @@ describe("composeBottomSheetCamera", () => {
     const composed = composeBottomSheetCamera(camera, item, "full");
 
     expect(composed.position.x).toBeGreaterThan(camera.position.x);
-    expect(composed.position.y).toBeGreaterThan(camera.position.y);
+    expect(composed.position.y).toBe(item.focusTarget.y);
     expect(composed.lookAt.x).toBe(item.focusTarget.x);
+  });
+
+  it("keeps wide artwork inside narrower mobile viewports", () => {
+    const desktop = composeBottomSheetCamera(camera, item, "full", { viewportAspect: 16 / 9 });
+    const mobile = composeBottomSheetCamera(camera, item, "full", { viewportAspect: 3 / 4 });
+
+    expect(mobile.position.x - item.focusTarget.x).toBeGreaterThan(desktop.position.x - item.focusTarget.x);
+    expect(mobile.lookAt).toEqual(item.focusTarget);
   });
 });

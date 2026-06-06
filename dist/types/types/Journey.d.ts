@@ -46,5 +46,8 @@ export interface JourneyMetrics {
     cameraHeight: number;
     focusDistance: number;
     lookAhead: number;
+    fov: number;
+    viewportAspect: number;
+    focusFill: number;
 }
 //# sourceMappingURL=Journey.d.ts.map

@@ -7,6 +7,7 @@ import {
   PerspectiveCamera,
   Scene,
   SRGBColorSpace,
+  Vector3,
   WebGLRenderer,
 } from "three";
 import type { BottomSheetState, CameraKeyframe, CameraState, JourneyState } from "../types/Journey";
@@ -43,6 +44,20 @@ const LOOP_FOG_NEAR_PULL = 34;
 const LOOP_FOG_FAR_PULL = 46;
 const JOURNEY_PROGRESS_EPSILON = 0.000001;
 const LOOP_WHITE_MIX_EPSILON = 0.000001;
+const JOURNEY_ASPECT_EPSILON = 0.01;
+const MOBILE_BREAKPOINT = 820;
+const DESKTOP_PANEL_MAX_WIDTH = 468;
+const DESKTOP_PANEL_MIN_WIDTH = 360;
+const DESKTOP_PANEL_WIDTH_RATIO = 0.255;
+const DESKTOP_PANEL_GAP = 32;
+
+interface RenderViewport {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  aspect: number;
+}
 
 export class GalleryEngine {
   private readonly container: HTMLElement;
@@ -71,6 +86,13 @@ export class GalleryEngine {
   private readonly baseFogColor = new Color(BASE_FOG_COLOR);
   private readonly mixedBackgroundColor = new Color(BASE_BACKGROUND_COLOR);
   private readonly mixedFogColor = new Color(BASE_FOG_COLOR);
+  private readonly projectedItemPoint = new Vector3();
+  private renderViewport: RenderViewport | null = null;
+  private effectiveRenderViewport: RenderViewport | null = null;
+  private journeyViewportAspect = 16 / 9;
+  private bottomSheetFocusItemId: string | null = null;
+  private lastContainerWidth = 0;
+  private lastContainerHeight = 0;
 
   constructor(options: GalleryEngineOptions) {
     this.container = options.container;
@@ -101,6 +123,8 @@ export class GalleryEngine {
     this.renderer.domElement.style.display = "block";
     this.renderer.domElement.style.width = "100%";
     this.renderer.domElement.style.height = "100%";
+    this.renderer.domElement.style.maxWidth = "100%";
+    this.renderer.domElement.style.maxHeight = "100%";
     this.container.appendChild(this.renderer.domElement);
     this.scheduler = new RenderScheduler({
       container: this.container,
@@ -118,6 +142,7 @@ export class GalleryEngine {
     this.project = validateGalleryProject(project);
     this.quality = resolveQuality(this.project.theme.quality, getDeviceProfile());
     this.loopWhiteMix = 0;
+    this.bottomSheetFocusItemId = null;
     this.resetAtmosphereBase();
     await this.rebuildScene();
     this.resize();
@@ -153,9 +178,84 @@ export class GalleryEngine {
   setBottomSheetState(state: BottomSheetState): CameraState {
     this.assertActive();
     this.bottomSheetState = state;
+    this.resize(true);
     const cameraState = this.getComposedCameraState(this.progress);
     this.applyCameraState(cameraState);
     return cameraState;
+  }
+
+  setBottomSheetFocus(itemId: string | null, state: BottomSheetState): CameraState {
+    this.assertActive();
+    this.bottomSheetFocusItemId = itemId;
+    this.bottomSheetState = state;
+    this.resize(true);
+    const cameraState = this.getComposedCameraState(this.progress);
+    this.applyCameraState(cameraState);
+    return cameraState;
+  }
+
+  getClosestItemIdFromClientPoint(clientX: number, clientY: number): string | null {
+    if (!this.camera || this.positionedItems.length === 0) {
+      return null;
+    }
+
+    const rect = this.container.getBoundingClientRect();
+    const localX = clientX - rect.left;
+    const localY = clientY - rect.top;
+    const viewport = this.effectiveRenderViewport ?? this.renderViewport ?? {
+      x: 0,
+      y: 0,
+      width: Math.max(1, Math.round(rect.width)),
+      height: Math.max(1, Math.round(rect.height)),
+      aspect: Math.max(1, Math.round(rect.width)) / Math.max(1, Math.round(rect.height)),
+    };
+
+    if (
+      localX < viewport.x ||
+      localX > viewport.x + viewport.width ||
+      localY < viewport.y ||
+      localY > viewport.y + viewport.height
+    ) {
+      return null;
+    }
+
+    const maxDistancePx = clamp(viewport.width * 0.2, 64, 180);
+    let closestItemId: string | null = null;
+    let closestScore = Number.POSITIVE_INFINITY;
+
+    for (const item of this.getJourneyItemsForKeyframes()) {
+      const projected = this.projectedItemPoint
+        .set(item.focusTarget.x, item.focusTarget.y, item.focusTarget.z)
+        .project(this.camera);
+
+      if (
+        !Number.isFinite(projected.x) ||
+        !Number.isFinite(projected.y) ||
+        !Number.isFinite(projected.z) ||
+        projected.z < -1 ||
+        projected.z > 1
+      ) {
+        continue;
+      }
+
+      const screenX = viewport.x + ((projected.x + 1) * 0.5) * viewport.width;
+      const screenY = viewport.y + ((1 - projected.y) * 0.5) * viewport.height;
+      const dx = localX - screenX;
+      const dy = localY - screenY;
+      const distanceSq = dx * dx + dy * dy;
+      const captureRadiusSq = maxDistancePx * maxDistancePx;
+      if (distanceSq > captureRadiusSq) {
+        continue;
+      }
+
+      const score = distanceSq * (1 + Math.max(0, projected.z) * 0.35);
+      if (score < closestScore) {
+        closestScore = score;
+        closestItemId = item.id.split("__loop_")[0];
+      }
+    }
+
+    return closestItemId;
   }
 
   invalidate(_reason: string): void {
@@ -192,6 +292,12 @@ export class GalleryEngine {
     this.positionedItems = [];
     this.loopWhiteMix = 0;
     this.bottomSheetState = "collapsed";
+    this.bottomSheetFocusItemId = null;
+    this.renderViewport = null;
+    this.effectiveRenderViewport = null;
+    this.journeyViewportAspect = 16 / 9;
+    this.lastContainerWidth = 0;
+    this.lastContainerHeight = 0;
   }
 
   private async rebuildScene(): Promise<void> {
@@ -214,18 +320,15 @@ export class GalleryEngine {
       quality: this.quality,
       assetBaseUrl: this.assetBaseUrl,
     });
+    this.journeyViewportAspect = this.getViewportAspect();
     const context = {
-      viewportAspect: this.getViewportAspect(),
+      viewportAspect: this.journeyViewportAspect,
       qualityScale: this.quality.geometryDetail,
     };
     this.positionedItems = this.layouts
       .get(this.project.layout.type)
       .layout(this.project, this.project.layout, context);
-    const journeyItems = this.getJourneyItemsForKeyframes();
-    this.keyframes = buildCameraKeyframes(journeyItems, {
-      cameraHeight: this.project.journey.camera?.height ?? 1.7,
-      lookAhead: this.project.journey.camera?.lookAhead ?? 2.2,
-    });
+    this.rebuildKeyframes();
     root.add(await createArchitectureShell(
       this.project.layout,
       this.quality,
@@ -299,8 +402,29 @@ export class GalleryEngine {
 
   private getComposedCameraState(progress: number): CameraState {
     const baseState = getCameraStateAtProgress(this.keyframes, progress);
-    const activeItem = this.positionedItems.find((item) => item.id === baseState.activeItemId) ?? null;
-    return composeBottomSheetCamera(baseState, activeItem, this.bottomSheetState);
+    const focusItemId = this.bottomSheetState === "collapsed"
+      ? baseState.activeItemId
+      : this.bottomSheetFocusItemId ?? baseState.activeItemId;
+    const activeItem = focusItemId ? this.findPositionedItemById(focusItemId) : null;
+    return composeBottomSheetCamera(baseState, activeItem, this.bottomSheetState, {
+      fov: this.project.journey.camera?.fov ?? 50,
+      viewportAspect: this.effectiveRenderViewport?.aspect ?? this.journeyViewportAspect,
+    });
+  }
+
+  private findPositionedItemById(itemId: string): PositionedGalleryItem | null {
+    const sourceId = itemId.split("__loop_")[0];
+    return this.positionedItems.find((item) => item.id === itemId || item.id.split("__loop_")[0] === sourceId) ?? null;
+  }
+
+  private rebuildKeyframes(): void {
+    const journeyItems = this.getJourneyItemsForKeyframes();
+    this.keyframes = buildCameraKeyframes(journeyItems, {
+      cameraHeight: this.project.journey.camera?.height ?? 1.7,
+      lookAhead: this.project.journey.camera?.lookAhead ?? 2.2,
+      fov: this.project.journey.camera?.fov ?? 50,
+      viewportAspect: this.journeyViewportAspect,
+    });
   }
 
   private getJourneyItemsForKeyframes(): PositionedGalleryItem[] {
@@ -320,26 +444,141 @@ export class GalleryEngine {
     }
 
     this.resize();
+    this.renderer.setScissorTest(false);
+    this.renderer.clear(true, true, true);
+    const viewport = this.effectiveRenderViewport;
+    if (viewport) {
+      this.applyRendererViewport(viewport);
+    }
     this.renderer.render(this.scene, this.camera);
   };
 
-  private resize(): void {
+  private resize(force = false): void {
     if (!this.renderer || !this.camera || !this.quality) {
       return;
     }
 
     const width = Math.max(1, this.container.clientWidth || window.innerWidth);
     const height = Math.max(1, this.container.clientHeight || window.innerHeight);
-    this.camera.aspect = width / height;
+    const nextViewport = this.calculateRenderViewport(width, height);
+    const effectiveViewport = this.resolveEffectiveRenderViewport(nextViewport);
+    const changed =
+      force ||
+      width !== this.lastContainerWidth ||
+      height !== this.lastContainerHeight ||
+      !this.effectiveRenderViewport ||
+      effectiveViewport.x !== this.effectiveRenderViewport.x ||
+      effectiveViewport.y !== this.effectiveRenderViewport.y ||
+      effectiveViewport.width !== this.effectiveRenderViewport.width ||
+      effectiveViewport.height !== this.effectiveRenderViewport.height;
+
+    if (!changed) {
+      return;
+    }
+
+    this.lastContainerWidth = width;
+    this.lastContainerHeight = height;
+    this.renderViewport = nextViewport;
+    this.effectiveRenderViewport = effectiveViewport;
+    this.camera.aspect = effectiveViewport.aspect;
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.quality.pixelRatioCap, 2));
     this.renderer.setSize(width, height, false);
+    this.applyRendererViewport(effectiveViewport);
+    this.container.style.setProperty("--gallery-vp-left", `${effectiveViewport.x}px`);
+    this.container.style.setProperty("--gallery-vp-top", `${effectiveViewport.y}px`);
+    this.container.style.setProperty("--gallery-vp-right", `${Math.max(0, width - (effectiveViewport.x + effectiveViewport.width))}px`);
+    this.container.style.setProperty("--gallery-vp-bottom", `${Math.max(0, height - (effectiveViewport.y + effectiveViewport.height))}px`);
+
+    if (Math.abs(effectiveViewport.aspect - this.journeyViewportAspect) >= JOURNEY_ASPECT_EPSILON) {
+      this.journeyViewportAspect = effectiveViewport.aspect;
+      this.rebuildKeyframes();
+      this.applyCameraState(this.getComposedCameraState(this.progress));
+    }
   }
 
   private getViewportAspect(): number {
     const width = Math.max(1, this.container.clientWidth || window.innerWidth);
     const height = Math.max(1, this.container.clientHeight || window.innerHeight);
     return width / height;
+  }
+
+  private calculateRenderViewport(width: number, height: number): RenderViewport {
+    return {
+      x: 0,
+      y: 0,
+      width,
+      height,
+      aspect: width / height,
+    };
+  }
+
+  private resolveEffectiveRenderViewport(baseViewport: RenderViewport): RenderViewport {
+    if (this.bottomSheetState === "collapsed") {
+      return baseViewport;
+    }
+
+    const isMobileViewport = this.isMobileViewport();
+    if (!isMobileViewport) {
+      const panelWidth = clamp(
+        baseViewport.width * DESKTOP_PANEL_WIDTH_RATIO,
+        DESKTOP_PANEL_MIN_WIDTH,
+        DESKTOP_PANEL_MAX_WIDTH,
+      );
+      const x = Math.min(baseViewport.width - 1, Math.round(panelWidth + DESKTOP_PANEL_GAP));
+      const width = Math.max(1, baseViewport.width - x);
+      return {
+        x,
+        y: 0,
+        width,
+        height: baseViewport.height,
+        aspect: width / baseViewport.height,
+      };
+    }
+
+    const visibleRatio = this.getVisibleRatioForBottomSheet(isMobileViewport);
+    if (visibleRatio >= 0.999) {
+      return baseViewport;
+    }
+
+    const croppedHeight = Math.max(1, Math.round(baseViewport.height * visibleRatio));
+    return {
+      x: baseViewport.x,
+      y: baseViewport.y,
+      width: baseViewport.width,
+      height: croppedHeight,
+      aspect: baseViewport.width / croppedHeight,
+    };
+  }
+
+  private getVisibleRatioForBottomSheet(isMobileViewport: boolean): number {
+    if (this.bottomSheetState === "full") {
+      return isMobileViewport ? 0.2 : 1;
+    }
+
+    if (this.bottomSheetState === "half") {
+      return isMobileViewport ? 0.58 : 1;
+    }
+
+    return 1;
+  }
+
+  private isMobileViewport(): boolean {
+    const root = this.container.getRootNode();
+    const host = root instanceof ShadowRoot ? root.host : null;
+    return this.container.clientWidth <= MOBILE_BREAKPOINT ||
+      (host instanceof HTMLElement && host.hasAttribute("force-mobile"));
+  }
+
+  private applyRendererViewport(viewport: RenderViewport): void {
+    if (!this.renderer) {
+      return;
+    }
+
+    const rendererY = Math.max(0, this.lastContainerHeight - (viewport.y + viewport.height));
+    this.renderer.setViewport(viewport.x, rendererY, viewport.width, viewport.height);
+    this.renderer.setScissor(viewport.x, rendererY, viewport.width, viewport.height);
+    this.renderer.setScissorTest(true);
   }
 
   private assertActive(): void {

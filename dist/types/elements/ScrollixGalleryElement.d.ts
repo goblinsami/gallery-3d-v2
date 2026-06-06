@@ -18,6 +18,7 @@ export declare class ScrollixGalleryElement extends HTMLElement {
     private syncRuntime;
     private parseProjectAttribute;
     private handleKeydown;
+    private handleViewportClick;
 }
 export declare const defineScrollixGalleryElement: (tagName?: string) => void;
 declare global {
