@@ -11,6 +11,15 @@
         height: 100%;
         margin: 0;
         background: #151512;
+        overflow: hidden;
+      }
+
+      body.is-mobile-viewport {
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 50% 18%, rgba(244, 226, 194, 0.12), transparent 34%),
+          #10110f;
       }
 
       scrollix-gallery {
@@ -37,6 +46,8 @@
       playground.project = premiumCorridorProject;
       playground.addEventListener("gallery-playground-change", (event) => {
         gallery.project = event.detail.project;
+        gallery.toggleAttribute("force-mobile", event.detail.values.forceMobile);
+        document.body.classList.toggle("is-mobile-viewport", event.detail.values.forceMobile);
       });
     </script>
   </body>

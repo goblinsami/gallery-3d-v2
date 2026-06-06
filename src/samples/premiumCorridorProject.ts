@@ -8,6 +8,9 @@ export const premiumCorridorProject: GalleryProject = {
       primary: "stone",
       accent: "metal",
     },
+    lighting: {
+      ceilingLightIntensity: 1,
+    },
   },
   layout: {
     type: "infinite-corridor",

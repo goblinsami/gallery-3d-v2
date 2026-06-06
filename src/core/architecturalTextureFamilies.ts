@@ -1,57 +1,17 @@
-import type { MaterialFamily } from "../types/GalleryProject";
-
-export type TexturedMaterialFamily = "stone" | "brick" | "wood";
-
-export interface TextureFamilyConfig {
-  colorUrl: string;
-  normalUrl: string;
-  tint: string;
-  accent: string;
-  emissive: string;
-  normalScale: number;
-  wallRepeatScale: number;
-  floorRepeatScale: number;
-  ceilingRepeatScale: number;
-}
-
-export const TEXTURE_LIBRARY: Record<TexturedMaterialFamily, TextureFamilyConfig> = {
-  stone: {
-    colorUrl: "/textures/stone/stone_color.jpg",
-    normalUrl: "/textures/stone/stone_normal.jpg",
-    tint: "#ffffff",
-    accent: "#6d5b43",
-    emissive: "#2a2118",
-    normalScale: 0.72,
-    wallRepeatScale: 1.35,
-    floorRepeatScale: 1.3,
-    ceilingRepeatScale: 1.1,
-  },
-  brick: {
-    colorUrl: "/textures/brick/brick_color.jpg",
-    normalUrl: "/textures/brick/brick_normal.jpg",
-    tint: "#fff4df",
-    accent: "#8b5a38",
-    emissive: "#332016",
-    normalScale: 0.88,
-    wallRepeatScale: 1.9,
-    floorRepeatScale: 2.2,
-    ceilingRepeatScale: 1.55,
-  },
-  wood: {
-    colorUrl: "/textures/wood/wood_color.jpg",
-    normalUrl: "/textures/wood/wood_normal.jpg",
-    tint: "#fff3dc",
-    accent: "#765239",
-    emissive: "#302014",
-    normalScale: 0.62,
-    wallRepeatScale: 1.55,
-    floorRepeatScale: 1.45,
-    ceilingRepeatScale: 1.2,
-  },
-};
-
-export const resolveTextureFamily = (materialFamily: MaterialFamily): TexturedMaterialFamily =>
-  materialFamily === "brick" || materialFamily === "wood" ? materialFamily : "stone";
+export type {
+  TextureFamilyConfig,
+  TextureFamilyOption,
+  TexturedMaterialFamily,
+  UntypedMaterialFamily,
+} from "../config/architecturalTextureCatalog";
+export {
+  isTexturedMaterialFamily,
+  MATERIAL_FAMILY_VALUES,
+  TEXTURE_FAMILY_OPTIONS,
+  TEXTURE_FAMILY_VALUES,
+  TEXTURE_LIBRARY,
+  resolveTextureFamily,
+} from "../config/architecturalTextureCatalog";
 
 const pseudoRandom01 = (seed: number): number => {
   const value = Math.sin(seed * 12.9898) * 43758.5453;

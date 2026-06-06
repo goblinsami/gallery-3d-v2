@@ -1,5 +1,5 @@
-import { m as n, c as a, a as l } from "./mountGalleryRuntime-C-Z5-5xx.js";
-const p = `
+import { m as a, c as n, a as p } from "./mountGalleryRuntime-ZKysR3o_.js";
+const l = `
   :host {
     display: block;
     position: relative;
@@ -217,9 +217,27 @@ const p = `
       cursor: pointer;
     }
   }
+
+  :host([force-mobile]) .g3d-sheet {
+    display: block;
+  }
+
+  :host([force-mobile]) .g3d-panel {
+    display: none;
+  }
+
+  :host([force-mobile]) {
+    width: min(390px, calc(100vw - 24px)) !important;
+    height: min(844px, calc(100dvh - 24px)) !important;
+    min-height: 0;
+    margin: 12px auto;
+    border: 1px solid rgba(244, 239, 230, 0.18);
+    border-radius: 30px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+  }
 `, o = document.createElement("template");
 o.innerHTML = `
-  <style>${p}</style>
+  <style>${l}</style>
   <div class="viewport"></div>
   <div class="white-overlay" aria-hidden="true"></div>
   <div class="progress" aria-hidden="true"><div class="progress__fill"></div></div>
@@ -264,13 +282,13 @@ class d extends HTMLElement {
         await this.runtime.updateProject(this.currentProject);
         return;
       }
-      this.viewport.dataset.g3dHostWhiteOverlay = "true", this.runtime = await n({
+      this.viewport.dataset.g3dHostWhiteOverlay = "true", this.runtime = await a({
         container: this.viewport,
         project: this.currentProject,
         scrollElement: this
       }), this.unsubscribeState = this.runtime.subscribeState((e) => {
         this.progressFill.style.transform = `scaleX(${e.progress})`, this.toggleAttribute("data-white-loop", e.whiteMix > 1e-3), this.whiteOverlay.style.setProperty("opacity", String(e.whiteMix), "important");
-      }), this.bottomSheet = a(this.runtime), this.desktopPanel = l(this.runtime), this.shadowRoot?.appendChild(this.bottomSheet.element), this.shadowRoot?.appendChild(this.desktopPanel.element);
+      }), this.bottomSheet = n(this.runtime), this.desktopPanel = p(this.runtime), this.shadowRoot?.appendChild(this.bottomSheet.element), this.shadowRoot?.appendChild(this.desktopPanel.element);
     }
   }
   parseProjectAttribute() {

@@ -1,4 +1,5 @@
 export * from "./core/GalleryEngine";
+export * from "./config/architecturalTextureCatalog";
 export * from "./core/Registry";
 export * from "./core/RenderScheduler";
 export * from "./journey/JourneyController";

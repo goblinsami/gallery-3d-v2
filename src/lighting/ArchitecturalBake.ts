@@ -128,6 +128,7 @@ export const createArchitecturalBake = (
   depth: number,
   height: number,
   quality: QualitySettings,
+  ceilingLightIntensity = 1,
 ): Group => {
   const root = new Group();
   const count = Math.max(8, Math.round(depth / (quality.geometryDetail > 0.75 ? 4.2 : 5.6)));
@@ -138,6 +139,7 @@ export const createArchitecturalBake = (
   const wallEdgeHeight = Math.min(0.74, height / 2);
   const verticalGlowWidth = 0.95;
   const baseOpacity = quality.preset === "low" ? 0.18 : 0.32;
+  const ceilingOpacity = baseOpacity * 0.68 * Math.max(0, ceilingLightIntensity);
   const verticalGlowBottom = 0;
   const verticalGlowTop = height;
   const verticalGlowHeight = verticalGlowTop - verticalGlowBottom;
@@ -155,12 +157,12 @@ export const createArchitecturalBake = (
   );
   const ceilingLeft = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
-    createBakeMaterial("x", "start", baseOpacity * 0.68),
+    createBakeMaterial("x", "start", ceilingOpacity),
     count,
   );
   const ceilingRight = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
-    createBakeMaterial("x", "end", baseOpacity * 0.68),
+    createBakeMaterial("x", "end", ceilingOpacity),
     count,
   );
   const wallLower = new InstancedMesh(

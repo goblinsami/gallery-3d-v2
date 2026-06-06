@@ -1,8 +1,9 @@
 import type { GalleryItem } from "./GalleryItem";
 import type { JourneyConfig } from "./Journey";
 import type { QualityPreset } from "./Quality";
+import type { MaterialFamily } from "../config/architecturalTextureCatalog";
 
-export type MaterialFamily = "stone" | "brick" | "concrete" | "wood" | "metal" | "glass";
+export type { MaterialFamily };
 export type LayoutType = "corridor" | "infinite-corridor" | "gallery-room" | string;
 export type AtmospherePreset = "calm" | "bright" | "nocturne" | "neutral" | string;
 
@@ -12,6 +13,9 @@ export interface ThemeConfig {
   materials: {
     primary: MaterialFamily;
     accent?: MaterialFamily;
+  };
+  lighting?: {
+    ceilingLightIntensity?: number;
   };
 }
 

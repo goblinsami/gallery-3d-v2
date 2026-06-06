@@ -230,6 +230,7 @@ export class GalleryEngine {
       this.project.layout,
       this.quality,
       this.project.theme.materials.primary,
+      this.project.theme.lighting?.ceilingLightIntensity,
     ));
 
     const itemObjects = await Promise.all(this.positionedItems.map((item) => {

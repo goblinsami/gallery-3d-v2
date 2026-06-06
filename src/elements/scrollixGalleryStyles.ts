@@ -216,4 +216,22 @@ export const scrollixGalleryStyles = `
       cursor: pointer;
     }
   }
+
+  :host([force-mobile]) .g3d-sheet {
+    display: block;
+  }
+
+  :host([force-mobile]) .g3d-panel {
+    display: none;
+  }
+
+  :host([force-mobile]) {
+    width: min(390px, calc(100vw - 24px)) !important;
+    height: min(844px, calc(100dvh - 24px)) !important;
+    min-height: 0;
+    margin: 12px auto;
+    border: 1px solid rgba(244, 239, 230, 0.18);
+    border-radius: 30px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+  }
 `;

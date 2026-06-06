@@ -15,11 +15,11 @@ import type {
 import type { TextureFormat, TextureSource } from "../types/Assets";
 import type { JourneyMode } from "../types/Journey";
 import type { QualityPreset } from "../types/Quality";
+import { MATERIAL_FAMILY_VALUES } from "../config/architecturalTextureCatalog";
 import { clamp } from "./clamp";
 
 const QUALITY_PRESETS: Array<QualityPreset | "auto"> = ["low", "medium", "high", "ultra", "auto"];
 const TEXTURE_QUALITIES: Array<QualityPreset | "fallback"> = ["low", "medium", "high", "ultra", "fallback"];
-const MATERIAL_FAMILIES: MaterialFamily[] = ["stone", "brick", "concrete", "wood", "metal", "glass"];
 const PLACEMENT_SIDES: PlacementSide[] = ["left", "right", "center", "auto"];
 const JOURNEY_MODES: JourneyMode[] = ["scroll", "manual"];
 const TEXTURE_FORMATS: TextureFormat[] = ["ktx2", "webp", "jpg", "png"];
@@ -69,14 +69,18 @@ const resolveEnum = <T extends string>(
 
 const validateTheme = (source: Record<string, unknown>): GalleryProject["theme"] => {
   const materials = getRecord(source, "materials");
+  const lighting = getRecord(source, "lighting");
   return {
     quality: resolveEnum(source.quality, QUALITY_PRESETS, "auto"),
     atmosphere: (getString(source, "atmosphere") ?? "calm") as AtmospherePreset,
     materials: {
-      primary: resolveEnum(materials.primary, MATERIAL_FAMILIES, "concrete"),
+      primary: resolveEnum(materials.primary, MATERIAL_FAMILY_VALUES, "concrete"),
       accent: materials.accent
-        ? resolveEnum(materials.accent, MATERIAL_FAMILIES, "metal")
+        ? resolveEnum(materials.accent, MATERIAL_FAMILY_VALUES, "metal")
         : undefined,
+    },
+    lighting: {
+      ceilingLightIntensity: getNumber(lighting, "ceilingLightIntensity", 1, 0, 2.5),
     },
   };
 };

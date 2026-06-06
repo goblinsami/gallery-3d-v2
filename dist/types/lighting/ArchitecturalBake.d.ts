@@ -10,5 +10,5 @@ export interface ArchitecturalBakePlan {
     dynamicLightCount: number;
 }
 export declare const planArchitecturalBake: (config: ArchitecturalBakeConfig, quality: QualitySettings) => ArchitecturalBakePlan;
-export declare const createArchitecturalBake: (width: number, depth: number, height: number, quality: QualitySettings) => Group;
+export declare const createArchitecturalBake: (width: number, depth: number, height: number, quality: QualitySettings, ceilingLightIntensity?: number) => Group;
 //# sourceMappingURL=ArchitecturalBake.d.ts.map

@@ -1,6 +1,7 @@
-import { m as p, v as o } from "./mountGalleryRuntime-C-Z5-5xx.js";
-import { B as R, C as B, G as x, b as C, I as E, J as T, R as k, d as G, e as M, f as q, g as z, h as I, i as W, c as A, j as D, k as F, l as L, a as O, n as J, o as N, p as V, q as U, r as Q, s as K, t as _, u as H, w as X } from "./mountGalleryRuntime-C-Z5-5xx.js";
-import { GalleryPlaygroundElement as Z, defineGalleryPlaygroundElement as $ } from "./playground.js";
+import { m as p, v as o } from "./mountGalleryRuntime-ZKysR3o_.js";
+import { B as v, C as E, G as j, b as M, I as x, J as I, R as A, d as B, e as L, f as C, g as F, h as k, i as G, c as q, j as z, k as O, l as W, a as D, n as U, o as _, p as J, q as V, r as N, s as Y, t as X, u as Q, w as K } from "./mountGalleryRuntime-ZKysR3o_.js";
+import { M as Z, T as $, a as ee, b as te, i as ae, r as re } from "./architecturalTextureCatalog-Dh0fUe_M.js";
+import { GalleryPlaygroundElement as oe, defineGalleryPlaygroundElement as se } from "./playground.js";
 const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
   const t = o(u(e.project));
   return e.qualityOverride ? o({
@@ -36,6 +37,9 @@ const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
     materials: {
       primary: "stone",
       accent: "metal"
+    },
+    lighting: {
+      ceilingLightIntensity: 1
     }
   },
   layout: {
@@ -279,44 +283,50 @@ const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
   };
 };
 export {
-  R as BottomSheetController,
-  B as CorridorLayout,
-  x as GalleryEngine,
-  Z as GalleryPlaygroundElement,
-  C as GalleryRoomLayout,
-  E as InfiniteCorridorLayout,
-  T as JourneyController,
-  k as Registry,
-  G as RenderScheduler,
-  M as RuntimeManager,
+  v as BottomSheetController,
+  E as CorridorLayout,
+  j as GalleryEngine,
+  oe as GalleryPlaygroundElement,
+  M as GalleryRoomLayout,
+  x as InfiniteCorridorLayout,
+  I as JourneyController,
+  Z as MATERIAL_FAMILY_VALUES,
+  A as Registry,
+  B as RenderScheduler,
+  L as RuntimeManager,
   S as ScrollixGallery,
+  $ as TEXTURE_FAMILY_OPTIONS,
+  ee as TEXTURE_FAMILY_VALUES,
+  te as TEXTURE_LIBRARY,
   P as assessFrameBudget,
-  q as buildCameraKeyframes,
-  z as buildItemProgressMap,
+  C as buildCameraKeyframes,
+  F as buildItemProgressMap,
   g as clampScrollixProgress,
-  I as composeBottomSheetCamera,
-  W as createArchitecturalBake,
-  A as createBottomSheetView,
-  D as createDefaultLayoutRegistry,
-  F as createDefaultRendererRegistry,
-  L as createDefaultRuntimeManager,
-  O as createDesktopPanelView,
-  J as createLayoutRegistry,
-  N as createRendererRegistry,
-  $ as defineGalleryPlaygroundElement,
-  V as getAdjacentItemProgress,
-  U as getCameraStateAtProgress,
-  Q as getDeviceProfile,
+  k as composeBottomSheetCamera,
+  G as createArchitecturalBake,
+  q as createBottomSheetView,
+  z as createDefaultLayoutRegistry,
+  O as createDefaultRendererRegistry,
+  W as createDefaultRuntimeManager,
+  D as createDesktopPanelView,
+  U as createLayoutRegistry,
+  _ as createRendererRegistry,
+  se as defineGalleryPlaygroundElement,
+  J as getAdjacentItemProgress,
+  V as getCameraStateAtProgress,
+  N as getDeviceProfile,
   h as getFrameBudgetMs,
-  K as getItemProgress,
+  Y as getItemProgress,
   f as getLowerQualityPreset,
+  ae as isTexturedMaterialFamily,
   p as mountGalleryRuntime,
   y as mountScrollixGallery,
   s as normalizeScrollixGalleryProject,
-  _ as planArchitecturalBake,
+  X as planArchitecturalBake,
   b as premiumCorridorProject,
-  H as resolveQuality,
-  X as selectTextureSource,
+  Q as resolveQuality,
+  re as resolveTextureFamily,
+  K as selectTextureSource,
   o as validateGalleryProject
 };
 //# sourceMappingURL=index.js.map

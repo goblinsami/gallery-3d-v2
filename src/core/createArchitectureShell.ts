@@ -20,20 +20,22 @@ export const createArchitectureShell = async (
   layout: LayoutConfig,
   quality: QualitySettings,
   materialFamily: MaterialFamily,
+  ceilingLightIntensity = 1,
 ): Promise<Group> => {
   const root = new Group();
   const width = layout.bounds?.width ?? 5.4;
   const height = layout.bounds?.height ?? 3.4;
   const depth = Math.max(layout.bounds?.depth ?? 44, 20);
-  const materials = await createProceduralArchitecturalMaterials(quality, depth, materialFamily);
+  const lightScale = Math.max(0, ceilingLightIntensity);
+  const materials = await createProceduralArchitecturalMaterials(quality, depth, materialFamily, lightScale);
   const floor = new Mesh(new PlaneGeometry(width, depth), materials.floor);
   const floorBase = new Mesh(new BoxGeometry(width, 0.04, depth), materials.trim);
   const ceiling = new Mesh(new PlaneGeometry(width, depth), materials.ceiling);
   const leftWall = new Mesh(new PlaneGeometry(depth, height), materials.wall);
   const rightWall = new Mesh(new PlaneGeometry(depth, height), materials.wall);
   const ambient = new AmbientLight("#f4ead9", quality.preset === "low" ? 0.36 : 0.52);
-  const hemisphere = new HemisphereLight("#fff4dc", "#5b452d", quality.preset === "low" ? 0.64 : 0.9);
-  const key = new DirectionalLight("#fff2d7", quality.lightBudget > 1 ? 1.32 : 0.84);
+  const hemisphere = new HemisphereLight("#fff4dc", "#5b452d", (quality.preset === "low" ? 0.64 : 0.9) * lightScale);
+  const key = new DirectionalLight("#fff2d7", (quality.lightBudget > 1 ? 1.32 : 0.84) * lightScale);
 
   floor.position.set(0, 0.002, -depth / 2);
   floor.rotation.x = -Math.PI / 2;
@@ -58,7 +60,7 @@ export const createArchitectureShell = async (
   root.add(createWallLeds(width, depth, height, materials, quality));
   root.add(createCeilingGrid(width, depth, height, materials, quality));
   root.add(createCeilingDownlights(width, depth, height, materials, quality));
-  root.add(createArchitecturalBake(width, depth, height, quality));
+  root.add(createArchitecturalBake(width, depth, height, quality, lightScale));
 
   return root;
 };

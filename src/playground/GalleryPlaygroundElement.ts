@@ -1,4 +1,5 @@
 import type { GalleryProject, MaterialFamily } from "../types/GalleryProject";
+import { TEXTURE_FAMILY_OPTIONS } from "../config/architecturalTextureCatalog";
 
 type ControlName =
   | "primary"
@@ -7,11 +8,13 @@ type ControlName =
   | "width"
   | "height"
   | "depth"
+  | "ceilingLightIntensity"
   | "fov"
   | "cameraHeight"
   | "lookAhead"
   | "smoothing"
-  | "loop";
+  | "loop"
+  | "forceMobile";
 
 export interface GalleryPlaygroundValues {
   primary: MaterialFamily;
@@ -20,17 +23,26 @@ export interface GalleryPlaygroundValues {
   width: number;
   height: number;
   depth: number;
+  ceilingLightIntensity: number;
   fov: number;
   cameraHeight: number;
   lookAhead: number;
   smoothing: number;
   loop: boolean;
+  forceMobile: boolean;
 }
 
 export interface GalleryPlaygroundChangeDetail {
   project: GalleryProject;
   values: GalleryPlaygroundValues;
 }
+
+const textureOptionsMarkup = TEXTURE_FAMILY_OPTIONS
+  .map((option) => `<option value="${option.value}">${option.label}</option>`)
+  .join("");
+
+const getTextureLabel = (value: MaterialFamily): string =>
+  TEXTURE_FAMILY_OPTIONS.find((option) => option.value === value)?.label ?? value;
 
 const playgroundTemplate = document.createElement("template");
 playgroundTemplate.innerHTML = `
@@ -41,15 +53,21 @@ playgroundTemplate.innerHTML = `
       right: 12px;
       z-index: 40;
       width: min(300px, calc(100vw - 24px));
+      max-height: calc(100dvh - 24px);
       color: #f8f2e8;
       font: 600 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       letter-spacing: 0.04em;
     }
 
     .panel {
+      box-sizing: border-box;
       display: grid;
       gap: 12px;
+      max-height: inherit;
       padding: 12px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
       background: rgba(7, 7, 6, 0.76);
       border: 1px solid rgba(255, 248, 224, 0.18);
       border-radius: 12px;
@@ -153,11 +171,11 @@ playgroundTemplate.innerHTML = `
         bottom: 10px;
         left: 10px;
         width: auto;
+        max-height: 46vh;
       }
 
       .panel {
-        max-height: 46vh;
-        overflow: auto;
+        max-height: inherit;
       }
     }
   </style>
@@ -168,12 +186,10 @@ playgroundTemplate.innerHTML = `
     </div>
     <div class="grid">
       <label class="field">
-        <span class="field__label">Texture <span class="field__value" data-value="primary">stone</span></span>
+        <span class="field__label">Texture <span class="field__value" data-value="primary">Legacy stone</span></span>
         <span class="field__hint">Cambia el material arquitectónico base de paredes, suelo y atmósfera.</span>
         <select data-control="primary">
-          <option value="stone">Legacy stone</option>
-          <option value="brick">Brick</option>
-          <option value="wood">Wood</option>
+          ${textureOptionsMarkup}
         </select>
       </label>
       <label class="field">
@@ -208,6 +224,11 @@ playgroundTemplate.innerHTML = `
         <input data-control="depth" type="range" min="120" max="400" step="10" />
       </label>
       <label class="field">
+        <span class="field__label">Ceiling light <span class="field__value" data-value="ceilingLightIntensity">1</span></span>
+        <span class="field__hint">Regula la intensidad de downlights, glow y rebote superior del techo.</span>
+        <input data-control="ceilingLightIntensity" type="range" min="0" max="2.5" step="0.05" />
+      </label>
+      <label class="field">
         <span class="field__label">FOV <span class="field__value" data-value="fov">50</span></span>
         <span class="field__hint">Modifica la apertura de cámara: más alto se siente más angular.</span>
         <input data-control="fov" type="range" min="36" max="68" step="1" />
@@ -233,6 +254,13 @@ playgroundTemplate.innerHTML = `
           <span class="field__hint">Activa el fundido blanco y la vuelta continua al inicio.</span>
         </span>
         <input data-control="loop" type="checkbox" />
+      </label>
+      <label class="toggle">
+        <span>
+          Force mobile
+          <span class="field__hint">Muestra la bottom sheet móvil aunque el viewport sea desktop.</span>
+        </span>
+        <input data-control="forceMobile" type="checkbox" />
       </label>
     </div>
   </form>
@@ -275,11 +303,13 @@ export class GalleryPlaygroundElement extends HTMLElement {
       width: this.getControl("width", HTMLInputElement),
       height: this.getControl("height", HTMLInputElement),
       depth: this.getControl("depth", HTMLInputElement),
+      ceilingLightIntensity: this.getControl("ceilingLightIntensity", HTMLInputElement),
       fov: this.getControl("fov", HTMLInputElement),
       cameraHeight: this.getControl("cameraHeight", HTMLInputElement),
       lookAhead: this.getControl("lookAhead", HTMLInputElement),
       smoothing: this.getControl("smoothing", HTMLInputElement),
       loop: this.getControl("loop", HTMLInputElement),
+      forceMobile: this.getControl("forceMobile", HTMLInputElement),
     };
     this.valueLabels = {
       primary: this.getValueLabel("primary"),
@@ -288,6 +318,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
       width: this.getValueLabel("width"),
       height: this.getValueLabel("height"),
       depth: this.getValueLabel("depth"),
+      ceilingLightIntensity: this.getValueLabel("ceilingLightIntensity"),
       fov: this.getValueLabel("fov"),
       cameraHeight: this.getValueLabel("cameraHeight"),
       lookAhead: this.getValueLabel("lookAhead"),
@@ -361,11 +392,13 @@ export class GalleryPlaygroundElement extends HTMLElement {
       width: project.layout.bounds?.width ?? 8,
       height: project.layout.bounds?.height ?? 4.2,
       depth: project.layout.bounds?.depth ?? 360,
+      ceilingLightIntensity: project.theme.lighting?.ceilingLightIntensity ?? 1,
       fov: project.journey.camera?.fov ?? 50,
       cameraHeight: project.journey.camera?.height ?? 1.72,
       lookAhead: project.journey.camera?.lookAhead ?? 3.2,
       smoothing: project.journey.smoothing ?? 0.16,
       loop: project.journey.loop ?? false,
+      forceMobile: (this.controls.forceMobile as HTMLInputElement).checked,
     };
   }
 
@@ -376,11 +409,13 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.controls.width.value = String(values.width);
     this.controls.height.value = String(values.height);
     this.controls.depth.value = String(values.depth);
+    this.controls.ceilingLightIntensity.value = String(values.ceilingLightIntensity);
     this.controls.fov.value = String(values.fov);
     this.controls.cameraHeight.value = String(values.cameraHeight);
     this.controls.lookAhead.value = String(values.lookAhead);
     this.controls.smoothing.value = String(values.smoothing);
     (this.controls.loop as HTMLInputElement).checked = values.loop;
+    (this.controls.forceMobile as HTMLInputElement).checked = values.forceMobile;
   }
 
   private readValuesFromControls(): GalleryPlaygroundValues {
@@ -391,11 +426,13 @@ export class GalleryPlaygroundElement extends HTMLElement {
       width: getNumber(this.controls.width as HTMLInputElement, 8),
       height: getNumber(this.controls.height as HTMLInputElement, 4.2),
       depth: getNumber(this.controls.depth as HTMLInputElement, 360),
+      ceilingLightIntensity: getNumber(this.controls.ceilingLightIntensity as HTMLInputElement, 1),
       fov: getNumber(this.controls.fov as HTMLInputElement, 50),
       cameraHeight: getNumber(this.controls.cameraHeight as HTMLInputElement, 1.72),
       lookAhead: getNumber(this.controls.lookAhead as HTMLInputElement, 3.2),
       smoothing: getNumber(this.controls.smoothing as HTMLInputElement, 0.16),
       loop: (this.controls.loop as HTMLInputElement).checked,
+      forceMobile: (this.controls.forceMobile as HTMLInputElement).checked,
     };
   }
 
@@ -413,6 +450,10 @@ export class GalleryPlaygroundElement extends HTMLElement {
         materials: {
           ...project.theme.materials,
           primary: values.primary,
+        },
+        lighting: {
+          ...project.theme.lighting,
+          ceilingLightIntensity: values.ceilingLightIntensity,
         },
       },
       layout: {
@@ -440,17 +481,18 @@ export class GalleryPlaygroundElement extends HTMLElement {
   }
 
   private renderValues(values: GalleryPlaygroundValues, itemCount: number): void {
-    this.valueLabels.primary!.textContent = values.primary;
+    this.valueLabels.primary!.textContent = getTextureLabel(values.primary);
     this.valueLabels.quality!.textContent = values.quality;
     this.valueLabels.spacing!.textContent = formatNumber(values.spacing);
     this.valueLabels.width!.textContent = formatNumber(values.width);
     this.valueLabels.height!.textContent = formatNumber(values.height);
     this.valueLabels.depth!.textContent = formatNumber(values.depth);
+    this.valueLabels.ceilingLightIntensity!.textContent = formatNumber(values.ceilingLightIntensity);
     this.valueLabels.fov!.textContent = formatNumber(values.fov);
     this.valueLabels.cameraHeight!.textContent = formatNumber(values.cameraHeight);
     this.valueLabels.lookAhead!.textContent = formatNumber(values.lookAhead);
     this.valueLabels.smoothing!.textContent = formatNumber(values.smoothing);
-    this.summary.textContent = `${itemCount} items · ${values.primary} · ${values.loop ? "loop" : "linear"}`;
+    this.summary.textContent = `${itemCount} items · ${getTextureLabel(values.primary)} · ${values.loop ? "loop" : "linear"}`;
   }
 
   private parseProjectAttribute(): GalleryProject | null {

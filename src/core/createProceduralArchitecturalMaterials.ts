@@ -120,7 +120,9 @@ export const createProceduralArchitecturalMaterials = (
   quality: QualitySettings,
   depth: number,
   materialFamily: MaterialFamily,
+  ceilingLightIntensity = 1,
 ): Promise<ProceduralArchitecturalMaterials> => {
+  const lightScale = Math.max(0, ceilingLightIntensity);
   const textureSize = textureSizeForQuality(quality);
   const legacySegmentLength = 12;
   const depthRepeat = Math.max(1, depth / legacySegmentLength);
@@ -195,7 +197,7 @@ export const createProceduralArchitecturalMaterials = (
         normalTexture,
         config.normalScale * 0.58,
         config.emissive,
-        0.2,
+        0.2 * lightScale,
       ),
       ceilingAccent: createTexturedMaterial(
         config.tint,
@@ -206,7 +208,7 @@ export const createProceduralArchitecturalMaterials = (
         normalTexture,
         config.normalScale * 0.5,
         config.emissive,
-        0.16,
+        0.16 * lightScale,
       ),
       trim: new MeshStandardMaterial({
         color: "#11100d",
@@ -214,20 +216,20 @@ export const createProceduralArchitecturalMaterials = (
         metalness: 0.2,
       }),
       led: new MeshBasicMaterial({
-        color: "#fff8df",
+        color: new Color("#fff8df").multiplyScalar(lightScale),
         toneMapped: false,
       }),
       bounce: new MeshBasicMaterial({
         color: "#e0b67a",
         transparent: true,
-        opacity: quality.preset === "low" ? 0.12 : 0.2,
+        opacity: (quality.preset === "low" ? 0.12 : 0.2) * lightScale,
         depthWrite: false,
         toneMapped: false,
       }),
       wallWash: new MeshBasicMaterial({
         color: "#d7985f",
         transparent: true,
-        opacity: quality.preset === "low" ? 0.18 : 0.34,
+        opacity: (quality.preset === "low" ? 0.18 : 0.34) * lightScale,
         blending: AdditiveBlending,
         depthWrite: false,
         toneMapped: false,
@@ -238,7 +240,7 @@ export const createProceduralArchitecturalMaterials = (
         metalness: 0.3,
       }),
       fixtureCore: new MeshBasicMaterial({
-        color: "#fff6df",
+        color: new Color("#fff6df").multiplyScalar(lightScale),
         toneMapped: false,
       }),
     };
