@@ -19,3 +19,9 @@ declare module "framer" {
   export const ControlType: Record<string, string>;
   export function addPropertyControls(component: unknown, controls: Record<string, unknown>): void;
 }
+
+declare namespace JSX {
+  interface IntrinsicElements {
+    [elementName: string]: any;
+  }
+}
