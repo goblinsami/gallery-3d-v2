@@ -15,7 +15,13 @@ template.innerHTML = `
 `;
 
 export class ScrollixGalleryElement extends HTMLElement {
-  static observedAttributes = ["project"];
+  static observedAttributes = [
+    "asset-base-url",
+    "auto-start-journey",
+    "bottom-sheet-state",
+    "initial-progress",
+    "project",
+  ];
 
   private readonly viewport: HTMLElement;
   private readonly progressFill: HTMLElement;
@@ -24,6 +30,8 @@ export class ScrollixGalleryElement extends HTMLElement {
   private desktopPanel: DesktopPanelView | null = null;
   private unsubscribeState: RuntimeStateUnsubscribe | null = null;
   private currentProject: GalleryProject | null = null;
+  private mountedAssetBaseUrl: string | undefined;
+  private mountedAutoStartJourney: boolean | undefined;
 
   constructor() {
     super();
@@ -62,22 +70,14 @@ export class ScrollixGalleryElement extends HTMLElement {
   disconnectedCallback(): void {
     this.removeEventListener("keydown", this.handleKeydown);
     this.viewport.removeEventListener("click", this.handleViewportClick);
-    this.bottomSheet?.dispose();
-    this.bottomSheet = null;
-    this.desktopPanel?.dispose();
-    this.desktopPanel = null;
-    this.unsubscribeState?.();
-    this.unsubscribeState = null;
-    this.runtime?.dispose();
-    this.runtime = null;
+    this.disposeRuntime();
   }
 
   attributeChangedCallback(name: string): void {
-    if (name !== "project") {
-      return;
+    if (name === "project") {
+      this.currentProject = this.parseProjectAttribute();
     }
 
-    this.currentProject = this.parseProjectAttribute();
     void this.syncRuntime();
   }
 
@@ -86,16 +86,30 @@ export class ScrollixGalleryElement extends HTMLElement {
       return;
     }
 
+    const assetBaseUrl = this.getAssetBaseUrl();
+    const autoStartJourney = this.getAutoStartJourney();
+    const shouldRemount = this.runtime &&
+      (assetBaseUrl !== this.mountedAssetBaseUrl || autoStartJourney !== this.mountedAutoStartJourney);
+
+    if (shouldRemount) {
+      this.disposeRuntime();
+    }
+
     if (this.runtime) {
       await this.runtime.updateProject(this.currentProject);
+      this.applyRuntimeState();
       return;
     }
 
     this.runtime = await mountGalleryRuntime({
       container: this.viewport,
       project: this.currentProject,
+      assetBaseUrl,
       scrollElement: this,
+      autoStartJourney,
     });
+    this.mountedAssetBaseUrl = assetBaseUrl;
+    this.mountedAutoStartJourney = autoStartJourney;
     this.unsubscribeState = this.runtime.subscribeState((state) => {
       this.progressFill.style.transform = `scaleX(${state.progress})`;
     });
@@ -103,6 +117,7 @@ export class ScrollixGalleryElement extends HTMLElement {
     this.desktopPanel = createDesktopPanelView(this.runtime);
     this.shadowRoot?.appendChild(this.bottomSheet.element);
     this.shadowRoot?.appendChild(this.desktopPanel.element);
+    this.applyRuntimeState();
   }
 
   private parseProjectAttribute(): GalleryProject | null {
@@ -113,6 +128,59 @@ export class ScrollixGalleryElement extends HTMLElement {
 
     const parsed: unknown = JSON.parse(rawProject);
     return parsed as GalleryProject;
+  }
+
+  private getAssetBaseUrl(): string | undefined {
+    const value = this.getAttribute("asset-base-url")?.trim();
+    return value || undefined;
+  }
+
+  private getAutoStartJourney(): boolean | undefined {
+    const value = this.getAttribute("auto-start-journey");
+    if (value === null) {
+      return undefined;
+    }
+
+    return value !== "false";
+  }
+
+  private getInitialProgress(): number | null {
+    const value = this.getAttribute("initial-progress");
+    if (value === null) {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), 1) : null;
+  }
+
+  private applyRuntimeState(): void {
+    if (!this.runtime) {
+      return;
+    }
+
+    const bottomSheetState = this.getAttribute("bottom-sheet-state");
+    if (bottomSheetState === "collapsed" || bottomSheetState === "half" || bottomSheetState === "full") {
+      this.runtime.setBottomSheetState(bottomSheetState);
+    }
+
+    const initialProgress = this.getInitialProgress();
+    if (initialProgress !== null) {
+      this.runtime.setProgress(initialProgress);
+    }
+  }
+
+  private disposeRuntime(): void {
+    this.bottomSheet?.dispose();
+    this.bottomSheet = null;
+    this.desktopPanel?.dispose();
+    this.desktopPanel = null;
+    this.unsubscribeState?.();
+    this.unsubscribeState = null;
+    this.runtime?.dispose();
+    this.runtime = null;
+    this.mountedAssetBaseUrl = undefined;
+    this.mountedAutoStartJourney = undefined;
   }
 
   private handleKeydown = (event: KeyboardEvent): void => {
@@ -159,7 +227,28 @@ export const defineScrollixGalleryElement = (
   }
 };
 
+export const registerScrollixGalleryRuntime = (
+  tagName = "scrollix-gallery",
+): void => {
+  defineScrollixGalleryElement(tagName);
+};
+
+if (typeof window !== "undefined" && window.customElements) {
+  registerScrollixGalleryRuntime();
+  window.ScrollixGalleryRuntime = {
+    init: registerScrollixGalleryRuntime,
+    registerWebComponents: registerScrollixGalleryRuntime,
+  };
+}
+
 declare global {
+  interface Window {
+    ScrollixGalleryRuntime?: {
+      init(tagName?: string): void;
+      registerWebComponents(tagName?: string): void;
+    };
+  }
+
   interface HTMLElementTagNameMap {
     "scrollix-gallery": ScrollixGalleryElement;
   }
