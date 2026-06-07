@@ -357,6 +357,8 @@ const buildProject = (props: ScrollixGalleryFramerRemoteProps) => {
  * @framerIntrinsicHeight 760
  */
 export default function ScrollixGalleryFramerRemote(props: ScrollixGalleryFramerRemoteProps) {
+  const hostRef = React.useRef<HTMLDivElement | null>(null);
+  const galleryRef = React.useRef<HTMLElement | null>(null);
   const [state, setState] = React.useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = React.useState("");
   const scriptUrl = React.useMemo(() => resolveRuntimeScriptUrl(props), [props.runtimeBaseUrl, props.runtimeScriptUrl]);
@@ -383,6 +385,44 @@ export default function ScrollixGalleryFramerRemote(props: ScrollixGalleryFramer
     };
   }, [scriptUrl]);
 
+  React.useEffect(() => {
+    if (state !== "ready" || !hostRef.current) {
+      return;
+    }
+
+    const gallery = galleryRef.current ?? document.createElement(tagName);
+    galleryRef.current = gallery;
+    gallery.setAttribute("project", project);
+    gallery.setAttribute("asset-base-url", assetBaseUrl);
+    gallery.setAttribute("auto-start-journey", String(props.autoStartJourney));
+    gallery.setAttribute("initial-progress", String(props.initialProgress));
+    gallery.setAttribute("bottom-sheet-state", props.bottomSheetState);
+    gallery.toggleAttribute("force-mobile", props.forceMobile);
+    gallery.style.display = "block";
+    gallery.style.width = "100%";
+    gallery.style.height = "100%";
+    gallery.style.minHeight = "100%";
+    gallery.style.minWidth = "0";
+
+    if (!gallery.parentElement) {
+      hostRef.current.appendChild(gallery);
+    }
+
+    return () => {
+      if (gallery.parentElement && gallery.parentElement !== hostRef.current) {
+        gallery.remove();
+      }
+    };
+  }, [
+    state,
+    project,
+    assetBaseUrl,
+    props.autoStartJourney,
+    props.initialProgress,
+    props.bottomSheetState,
+    props.forceMobile,
+  ]);
+
   if (state !== "ready") {
     return React.createElement(
       "div",
@@ -391,21 +431,17 @@ export default function ScrollixGalleryFramerRemote(props: ScrollixGalleryFramer
     );
   }
 
-  return React.createElement(tagName, {
+  return React.createElement("div", {
+    ref: hostRef,
     style: {
-      display: "block",
+      position: "relative",
       width: "100%",
       height: "100%",
-      minHeight: "100%",
+      minHeight: 420,
       minWidth: 0,
+      overflow: "hidden",
       ...(props.style || {}),
     },
-    project,
-    "asset-base-url": assetBaseUrl,
-    "auto-start-journey": String(props.autoStartJourney),
-    "initial-progress": String(props.initialProgress),
-    "bottom-sheet-state": props.bottomSheetState,
-    "force-mobile": props.forceMobile ? "" : undefined,
   });
 }
 
