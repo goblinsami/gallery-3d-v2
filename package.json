@@ -17,6 +17,22 @@
     "./playground": {
       "types": "./dist/types/playground/GalleryPlaygroundElement.d.ts",
       "default": "./dist/playground.js"
+    },
+    "./framer": {
+      "types": "./dist/types/framer/ScrollixGalleryFramer.d.ts",
+      "default": "./dist/framer.js"
+    }
+  },
+  "peerDependencies": {
+    "framer": "*",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "framer": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
     }
   },
   "scripts": {
