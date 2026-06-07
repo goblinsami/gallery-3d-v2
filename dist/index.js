@@ -1,9 +1,9 @@
-import { m as p, v as o } from "./mountGalleryRuntime-DtUta8et.js";
-import { B as T, C as E, G as j, b as M, I as x, J as B, R as I, d as A, e as L, f as C, g as F, h as k, i as G, c as q, j as z, k as O, l as W, a as D, n as U, o as _, p as J, q as V, r as N, s as Y, t as X, u as Q, w as K } from "./mountGalleryRuntime-DtUta8et.js";
+import { m as p, v as o } from "./mountGalleryRuntime-Di_qbToc.js";
+import { B as v, C as E, G as j, b as M, I as x, J as I, R as B, d as L, e as A, f as C, g as k, h as G, i as q, c as z, j as F, k as D, l as O, a as U, n as _, o as J, p as V, q as N, r as Y, s as X, t as Q, u as K, w as W } from "./mountGalleryRuntime-Di_qbToc.js";
 import { M as Z, T as $, a as ee, b as te, i as ae, r as re } from "./architecturalTextureCatalog-Dh0fUe_M.js";
 import { GalleryPlaygroundElement as oe, defineGalleryPlaygroundElement as se } from "./playground.js";
-const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
-  const t = o(u(e.project));
+const g = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
+  const t = o(g(e.project));
   return e.qualityOverride ? o({
     ...t,
     theme: {
@@ -11,8 +11,8 @@ const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
       quality: e.qualityOverride
     }
   }) : t;
-}, g = (e) => Math.min(Math.max(e, 0), 1), l = (e, t) => {
-  t.bottomSheetState && e.setBottomSheetState(t.bottomSheetState), typeof t.initialProgress == "number" && e.setProgress(g(t.initialProgress));
+}, u = (e) => Math.min(Math.max(e, 0), 1), l = (e, t) => {
+  t.bottomSheetState && e.setBottomSheetState(t.bottomSheetState), typeof t.initialProgress == "number" && e.setProgress(u(t.initialProgress));
 }, y = async (e) => {
   const t = await p({
     container: e.container,
@@ -60,11 +60,6 @@ const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
     loop: !0,
     smoothing: 0.16,
     damping: 0.84,
-    loopWhiteAfterEndWindow: 0.14,
-    loopWhiteStartsBeforeEndWindow: 0,
-    loopWhiteFadeOutRevealWindow: 0.12,
-    loopWhiteFadeOutWindow: 0.22,
-    loopProgressAdvanceDuringWhiteFadeOut: 0.18,
     camera: {
       height: 1.72,
       fov: 50,
@@ -287,50 +282,50 @@ const u = (e) => typeof e != "string" ? e : JSON.parse(e), s = (e) => {
   };
 };
 export {
-  T as BottomSheetController,
+  v as BottomSheetController,
   E as CorridorLayout,
   j as GalleryEngine,
   oe as GalleryPlaygroundElement,
   M as GalleryRoomLayout,
   x as InfiniteCorridorLayout,
-  B as JourneyController,
+  I as JourneyController,
   Z as MATERIAL_FAMILY_VALUES,
-  I as Registry,
-  A as RenderScheduler,
-  L as RuntimeManager,
+  B as Registry,
+  L as RenderScheduler,
+  A as RuntimeManager,
   S as ScrollixGallery,
   $ as TEXTURE_FAMILY_OPTIONS,
   ee as TEXTURE_FAMILY_VALUES,
   te as TEXTURE_LIBRARY,
   P as assessFrameBudget,
   C as buildCameraKeyframes,
-  F as buildItemProgressMap,
-  g as clampScrollixProgress,
-  k as composeBottomSheetCamera,
-  G as createArchitecturalBake,
-  q as createBottomSheetView,
-  z as createDefaultLayoutRegistry,
-  O as createDefaultRendererRegistry,
-  W as createDefaultRuntimeManager,
-  D as createDesktopPanelView,
-  U as createLayoutRegistry,
-  _ as createRendererRegistry,
+  k as buildItemProgressMap,
+  u as clampScrollixProgress,
+  G as composeBottomSheetCamera,
+  q as createArchitecturalBake,
+  z as createBottomSheetView,
+  F as createDefaultLayoutRegistry,
+  D as createDefaultRendererRegistry,
+  O as createDefaultRuntimeManager,
+  U as createDesktopPanelView,
+  _ as createLayoutRegistry,
+  J as createRendererRegistry,
   se as defineGalleryPlaygroundElement,
-  J as getAdjacentItemProgress,
-  V as getCameraStateAtProgress,
-  N as getDeviceProfile,
+  V as getAdjacentItemProgress,
+  N as getCameraStateAtProgress,
+  Y as getDeviceProfile,
   h as getFrameBudgetMs,
-  Y as getItemProgress,
+  X as getItemProgress,
   f as getLowerQualityPreset,
   ae as isTexturedMaterialFamily,
   p as mountGalleryRuntime,
   y as mountScrollixGallery,
   s as normalizeScrollixGalleryProject,
-  X as planArchitecturalBake,
+  Q as planArchitecturalBake,
   b as premiumCorridorProject,
-  Q as resolveQuality,
+  K as resolveQuality,
   re as resolveTextureFamily,
-  K as selectTextureSource,
+  W as selectTextureSource,
   o as validateGalleryProject
 };
 //# sourceMappingURL=index.js.map

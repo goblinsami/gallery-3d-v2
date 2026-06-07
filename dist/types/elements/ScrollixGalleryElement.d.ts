@@ -2,7 +2,6 @@ import type { GalleryProject } from "../types/GalleryProject";
 export declare class ScrollixGalleryElement extends HTMLElement {
     static observedAttributes: string[];
     private readonly viewport;
-    private readonly whiteOverlay;
     private readonly progressFill;
     private runtime;
     private bottomSheet;

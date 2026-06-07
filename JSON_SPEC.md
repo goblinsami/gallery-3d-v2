@@ -100,22 +100,13 @@ interface JourneyConfig {
   loop?: boolean;
   smoothing?: number;
   damping?: number;
-  loopWhiteAfterEndWindow?: number;
-  loopWhiteStartsBeforeEndWindow?: number;
-  loopWhiteFadeOutWindow?: number;
-  loopWhiteFadeOutRevealWindow?: number;
-  loopProgressAdvanceDuringWhiteFadeOut?: number;
+  scrollStrength?: number;
   camera?: CameraJourneyConfig;
 }
 ```
 
-When `loop` is enabled, progress can continue past the final keyframe. The runtime fades to white after the end, wraps internally to the start, then fades out from white while revealing the opening corridor again.
-
-- `loopWhiteStartsBeforeEndWindow`: progress window before `1` where white begins to invade.
-- `loopWhiteAfterEndWindow`: scroll distance after `1` used to reach full white before restart.
-- `loopWhiteFadeOutWindow`: scroll distance spent on the restart while the scene begins again behind white.
-- `loopWhiteFadeOutRevealWindow`: early portion of fade-out where white opacity drops and reveals the corridor.
-- `loopProgressAdvanceDuringWhiteFadeOut`: how far into the restarted journey the camera advances while white fades out.
+When `loop` is enabled, progress can continue past the final keyframe and wraps back to the journey start.
+`scrollStrength` multiplies wheel/touch sensitivity; `1` keeps the default runtime feel.
 
 ## Validation
 

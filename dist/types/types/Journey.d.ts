@@ -13,16 +13,12 @@ export interface JourneyConfig {
     loop?: boolean;
     smoothing?: number;
     damping?: number;
+    scrollStrength?: number;
     artworkOverlayFramingMode?: ArtworkOverlayFramingMode;
     artworkOverlayAngleDistanceScale?: number;
     artworkOverlayAngleDistanceMin?: number;
     artworkOverlayAngleDistanceMax?: number;
     artworkOverlayForwardOffset?: number;
-    loopWhiteAfterEndWindow?: number;
-    loopWhiteStartsBeforeEndWindow?: number;
-    loopWhiteFadeOutWindow?: number;
-    loopWhiteFadeOutRevealWindow?: number;
-    loopProgressAdvanceDuringWhiteFadeOut?: number;
     camera?: CameraJourneyConfig;
 }
 export interface CameraKeyframe {

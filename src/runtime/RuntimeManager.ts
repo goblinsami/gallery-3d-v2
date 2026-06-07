@@ -9,15 +9,12 @@ import type { RuntimeState, RuntimeStateListener } from "../types/Runtime";
 import type { RuntimeInstance, RuntimeMountOptions } from "../types/Runtime";
 import { validateGalleryProject } from "../utils/validateGalleryProject";
 
+const BASE_SCROLL_SENSITIVITY = 0.00028;
+
 export interface RuntimeManagerOptions {
   renderers: RendererRegistry;
   layouts: LayoutRegistry;
 }
-
-const getLoopWhiteHoldProgress = (project: ValidatedGalleryProject): number => {
-  const afterEndWindow = project.journey.loopWhiteAfterEndWindow ?? 0.14;
-  return 1 + afterEndWindow;
-};
 
 export class RuntimeManager {
   private readonly renderers: RendererRegistry;
@@ -48,31 +45,6 @@ export class RuntimeManager {
       assetBaseUrl: options.assetBaseUrl,
     });
     await engine.init();
-    const hasHostWhiteOverlay = options.container.dataset.g3dHostWhiteOverlay === "true";
-    const previousContainerPosition = options.container.style.position;
-    const shouldOwnContainerPosition =
-      !hasHostWhiteOverlay && window.getComputedStyle(options.container).position === "static";
-    const whiteOverlay = hasHostWhiteOverlay ? null : document.createElement("div");
-
-    if (shouldOwnContainerPosition) {
-      options.container.style.position = "relative";
-    }
-
-    if (whiteOverlay) {
-      whiteOverlay.setAttribute("aria-hidden", "true");
-      Object.assign(whiteOverlay.style, {
-        position: "absolute",
-        inset: "0",
-        zIndex: "10000",
-        pointerEvents: "none",
-        background: "#ffffff",
-        opacity: "0",
-        transition: "opacity 80ms linear",
-        willChange: "opacity",
-      });
-      options.container.appendChild(whiteOverlay);
-    }
-
     const getSourceItem = (itemId: string | null) =>
       itemId
         ? currentProject.items.find((item) => item.id === itemId.split("__loop_")[0]) ?? null
@@ -100,11 +72,8 @@ export class RuntimeManager {
       return true;
     };
     const syncProgress = (progress: number, whiteMix = 0): void => {
-      const visibleWhiteMix = currentProject.journey.loop ? whiteMix : 0;
+      const visibleWhiteMix = 0;
       const state = engine.setJourneyState(progress, visibleWhiteMix);
-      if (whiteOverlay) {
-        whiteOverlay.style.setProperty("opacity", String(visibleWhiteMix), "important");
-      }
       runtimeState = {
         progress,
         whiteMix: visibleWhiteMix,
@@ -133,12 +102,8 @@ export class RuntimeManager {
         element: options.scrollElement ?? options.container,
         smoothing: project.journey.smoothing,
         damping: project.journey.damping,
+        sensitivity: BASE_SCROLL_SENSITIVITY * (project.journey.scrollStrength ?? 1),
         loop: project.journey.loop,
-        loopWhiteAfterEndWindow: project.journey.loopWhiteAfterEndWindow,
-        loopWhiteStartsBeforeEndWindow: project.journey.loopWhiteStartsBeforeEndWindow,
-        loopWhiteFadeOutWindow: project.journey.loopWhiteFadeOutWindow,
-        loopWhiteFadeOutRevealWindow: project.journey.loopWhiteFadeOutRevealWindow,
-        loopProgressAdvanceDuringWhiteFadeOut: project.journey.loopProgressAdvanceDuringWhiteFadeOut,
         onProgress: (state) => syncProgress(state.progress, state.whiteMix),
       });
     };
@@ -177,7 +142,7 @@ export class RuntimeManager {
       },
       nextItem: () => {
         if (currentProject.journey.loop && runtimeState.progress >= 0.999) {
-          setRuntimeProgress(getLoopWhiteHoldProgress(currentProject));
+          setRuntimeProgress(1);
           return true;
         }
 
@@ -220,10 +185,6 @@ export class RuntimeManager {
       dispose: () => {
         controller?.dispose();
         stateListeners.clear();
-        whiteOverlay?.remove();
-        if (shouldOwnContainerPosition) {
-          options.container.style.position = previousContainerPosition;
-        }
         engine.dispose();
       },
     };

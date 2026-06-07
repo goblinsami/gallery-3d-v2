@@ -37,13 +37,8 @@ export interface GalleryEngineOptions {
 
 const BASE_BACKGROUND_COLOR = "#28251f";
 const BASE_FOG_COLOR = "#28251f";
-const LOOP_WHITE_COLOR = "#ffffff";
 const BASE_FOG_NEAR = 30;
 const BASE_FOG_FAR = 108;
-const LOOP_FOG_NEAR_PULL = 34;
-const LOOP_FOG_FAR_PULL = 46;
-const JOURNEY_PROGRESS_EPSILON = 0.000001;
-const LOOP_WHITE_MIX_EPSILON = 0.000001;
 const JOURNEY_ASPECT_EPSILON = 0.01;
 const MOBILE_BREAKPOINT = 820;
 const DESKTOP_PANEL_MAX_WIDTH = 468;
@@ -75,17 +70,13 @@ export class GalleryEngine {
   private keyframes: CameraKeyframe[] = [];
   private positionedItems: PositionedGalleryItem[] = [];
   private progress = 0;
-  private loopWhiteMix = 0;
   private buildSerial = 0;
   private bottomSheetState: BottomSheetState = "collapsed";
   private disposed = false;
   private baseFogNear = BASE_FOG_NEAR;
   private baseFogFar = BASE_FOG_FAR;
-  private readonly whiteColor = new Color(LOOP_WHITE_COLOR);
   private readonly baseBackgroundColor = new Color(BASE_BACKGROUND_COLOR);
   private readonly baseFogColor = new Color(BASE_FOG_COLOR);
-  private readonly mixedBackgroundColor = new Color(BASE_BACKGROUND_COLOR);
-  private readonly mixedFogColor = new Color(BASE_FOG_COLOR);
   private readonly projectedItemPoint = new Vector3();
   private renderViewport: RenderViewport | null = null;
   private effectiveRenderViewport: RenderViewport | null = null;
@@ -141,7 +132,6 @@ export class GalleryEngine {
     this.assertActive();
     this.project = validateGalleryProject(project);
     this.quality = resolveQuality(this.project.theme.quality, getDeviceProfile());
-    this.loopWhiteMix = 0;
     this.bottomSheetFocusItemId = null;
     this.resetAtmosphereBase();
     await this.rebuildScene();
@@ -155,23 +145,16 @@ export class GalleryEngine {
   }
 
   setProgress(progress: number): CameraState {
-    return this.setJourneyState(progress, this.loopWhiteMix);
+    return this.setJourneyState(progress, 0);
   }
 
-  setJourneyState(progress: number, whiteMix: number): CameraState {
+  setJourneyState(progress: number, _whiteMix: number): CameraState {
     this.assertActive();
     const clampedProgress = clamp(progress, 0, 1);
-    const clampedWhiteMix = this.project.journey.loop ? clamp(whiteMix, 0, 1) : 0;
-    const progressChanged = Math.abs(clampedProgress - this.progress) > JOURNEY_PROGRESS_EPSILON;
-    const whiteMixChanged = Math.abs(clampedWhiteMix - this.loopWhiteMix) > LOOP_WHITE_MIX_EPSILON;
     this.progress = clampedProgress;
-    this.loopWhiteMix = clampedWhiteMix;
     const cameraState = this.getComposedCameraState(clampedProgress);
-    this.applyAtmosphere(clampedWhiteMix);
+    this.applyAtmosphere();
     this.applyCameraState(cameraState);
-    if (whiteMixChanged && !progressChanged) {
-      this.invalidate("loop-white-mix");
-    }
     return cameraState;
   }
 
@@ -367,7 +350,6 @@ export class GalleryEngine {
     this.scheduler = null;
     this.keyframes = [];
     this.positionedItems = [];
-    this.loopWhiteMix = 0;
     this.bottomSheetState = "collapsed";
     this.bottomSheetFocusItemId = null;
     this.renderViewport = null;
@@ -411,6 +393,7 @@ export class GalleryEngine {
       this.quality,
       this.project.theme.materials.primary,
       this.project.theme.lighting?.ceilingLightIntensity,
+      this.getTextureCycleDepth(),
     ));
 
     const itemObjects = await Promise.all(this.positionedItems.map((item) => {
@@ -452,30 +435,24 @@ export class GalleryEngine {
     this.baseFogFar = BASE_FOG_FAR;
   }
 
-  private applyAtmosphere(whiteMix: number): void {
+  private applyAtmosphere(): void {
     if (!this.scene || !this.renderer) {
       return;
     }
 
-    this.mixedBackgroundColor.copy(this.baseBackgroundColor).lerp(this.whiteColor, whiteMix);
-    this.mixedFogColor.copy(this.baseFogColor).lerp(this.whiteColor, whiteMix);
-
     if (this.scene.background instanceof Color) {
-      this.scene.background.copy(this.mixedBackgroundColor);
+      this.scene.background.copy(this.baseBackgroundColor);
     } else {
-      this.scene.background = this.mixedBackgroundColor.clone();
+      this.scene.background = this.baseBackgroundColor.clone();
     }
 
     if (this.scene.fog instanceof Fog) {
-      this.scene.fog.color.copy(this.mixedFogColor);
-      this.scene.fog.near = Math.max(0, this.baseFogNear - whiteMix * LOOP_FOG_NEAR_PULL);
-      this.scene.fog.far = Math.max(
-        this.scene.fog.near + 1,
-        this.baseFogFar - whiteMix * LOOP_FOG_FAR_PULL,
-      );
+      this.scene.fog.color.copy(this.baseFogColor);
+      this.scene.fog.near = this.baseFogNear;
+      this.scene.fog.far = this.baseFogFar;
     }
 
-    this.renderer.setClearColor(this.mixedBackgroundColor, 0);
+    this.renderer.setClearColor(this.baseBackgroundColor, 0);
   }
 
   private getComposedCameraState(progress: number): CameraState {
@@ -501,23 +478,39 @@ export class GalleryEngine {
 
   private rebuildKeyframes(): void {
     const journeyItems = this.getJourneyItemsForKeyframes();
+    const loopSeamItem = this.getLoopSeamItem();
     this.keyframes = buildCameraKeyframes(journeyItems, {
       cameraHeight: this.project.journey.camera?.height ?? 1.7,
       lookAhead: this.project.journey.camera?.lookAhead ?? 2.2,
       fov: this.project.journey.camera?.fov ?? 50,
       viewportAspect: this.journeyViewportAspect,
-    });
+    }, loopSeamItem ? { loopSeamItem } : undefined);
   }
 
   private getJourneyItemsForKeyframes(): PositionedGalleryItem[] {
-    if (!this.project.journey.loop) {
-      return this.positionedItems;
-    }
-
     const firstLoopCloneIndex = this.positionedItems.findIndex((item) => item.id.includes("__loop_"));
     return firstLoopCloneIndex > 0
       ? this.positionedItems.slice(0, firstLoopCloneIndex)
       : this.positionedItems;
+  }
+
+  private getLoopSeamItem(): PositionedGalleryItem | null {
+    if (!this.project.journey.loop) {
+      return null;
+    }
+
+    return this.positionedItems.find((item) => item.id.endsWith("__loop_1")) ?? null;
+  }
+
+  private getTextureCycleDepth(): number | undefined {
+    if (!this.project.journey.loop || this.project.layout.type !== "infinite-corridor") {
+      return undefined;
+    }
+
+    const sourceItemCount = this.getJourneyItemsForKeyframes().length;
+    return sourceItemCount > 0
+      ? sourceItemCount * (this.project.layout.spacing ?? 7)
+      : undefined;
   }
 
   private renderFrame = (): void => {

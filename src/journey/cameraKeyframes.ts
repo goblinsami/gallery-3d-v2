@@ -22,9 +22,14 @@ const getWallFocusDistance = (item: PositionedGalleryItem): number => {
   return Math.max(1.35, bounds.width * 0.6, bounds.height * 0.75);
 };
 
+export interface CameraKeyframeOptions {
+  loopSeamItem?: PositionedGalleryItem;
+}
+
 export const buildCameraKeyframes = (
   items: PositionedGalleryItem[],
   metrics: Partial<JourneyMetrics> = {},
+  options: CameraKeyframeOptions = {},
 ): CameraKeyframe[] => {
   const resolved = { ...DEFAULT_METRICS, ...metrics };
 
@@ -124,15 +129,27 @@ export const buildCameraKeyframes = (
     });
   });
 
-  const last = items[items.length - 1];
-  const endTailDistance = resolved.focusDistance * 2.35;
-  frames.push({
-    progress: 1,
-    position: { x: 0, y: resolved.cameraHeight, z: last.position.z - endTailDistance },
-    lookAt: add(last.focusTarget, 0, 0, -resolved.lookAhead * 4),
-    activeItemId: null,
-    label: "empty-corridor-tail",
-  });
+  if (options.loopSeamItem) {
+    const first = items[0];
+    const loopOffsetZ = options.loopSeamItem.position.z - first.position.z;
+    frames.push({
+      progress: 1,
+      position: { x: 0, y: resolved.cameraHeight, z: 0.9 + loopOffsetZ },
+      lookAt: add(options.loopSeamItem.focusTarget, 0, 0, -resolved.lookAhead),
+      activeItemId: null,
+      label: "loop-seam",
+    });
+  } else {
+    const last = items[items.length - 1];
+    const endTailDistance = resolved.focusDistance * 2.35;
+    frames.push({
+      progress: 1,
+      position: { x: 0, y: resolved.cameraHeight, z: last.position.z - endTailDistance },
+      lookAt: add(last.focusTarget, 0, 0, -resolved.lookAhead * 4),
+      activeItemId: null,
+      label: "empty-corridor-tail",
+    });
+  }
 
   return frames.sort((a, b) => a.progress - b.progress);
 };

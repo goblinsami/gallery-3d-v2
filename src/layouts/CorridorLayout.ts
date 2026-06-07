@@ -16,7 +16,17 @@ export class CorridorLayout implements LayoutStrategy {
 
     return project.items.map((item, index) => ({
       ...item,
-      ...this.placeItem(item, index, spacing, width, height, depth, context.qualityScale, wallInset),
+      ...this.placeItem(
+        item,
+        index,
+        spacing,
+        width,
+        height,
+        depth,
+        context.qualityScale,
+        wallInset,
+        context.architecturalCycleDepth,
+      ),
     }));
   }
 
@@ -29,13 +39,14 @@ export class CorridorLayout implements LayoutStrategy {
     depth: number,
     qualityScale: number,
     wallInset: number,
+    architecturalCycleDepth: number | undefined,
   ): Omit<PositionedGalleryItem, keyof typeof item> {
     const side = item.placement.side === "right" ? "right" : item.placement.side === "center" ? "center" : "left";
     const bounds = getItemBounds(item);
     const baseZ = -(index + 1) * spacing;
     const z = side === "center"
       ? baseZ
-      : snapZToArchitecturalModuleCenter(depth, qualityScale, baseZ);
+      : snapZToArchitecturalModuleCenter(depth, qualityScale, baseZ, architecturalCycleDepth);
     const y = Math.min(height - bounds.height * 0.5 - 0.25, 1.65);
 
     if (side === "center") {

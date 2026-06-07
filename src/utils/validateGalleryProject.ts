@@ -18,7 +18,7 @@ import type { QualityPreset } from "../types/Quality";
 import { MATERIAL_FAMILY_VALUES } from "../config/architecturalTextureCatalog";
 import { clamp } from "./clamp";
 
-const QUALITY_PRESETS: Array<QualityPreset | "auto"> = ["low", "medium", "high", "ultra", "auto"];
+const QUALITY_PRESETS: Array<QualityPreset | "auto"> = ["auto", "low", "medium", "high", "ultra"];
 const TEXTURE_QUALITIES: Array<QualityPreset | "fallback"> = ["low", "medium", "high", "ultra", "fallback"];
 const PLACEMENT_SIDES: PlacementSide[] = ["left", "right", "center", "auto"];
 const JOURNEY_MODES: JourneyMode[] = ["scroll", "manual"];
@@ -144,22 +144,12 @@ const validateJourney = (source: Record<string, unknown>): GalleryProject["journ
     loop: getBoolean(source, "loop", false),
     smoothing: getNumber(source, "smoothing", 0.18, 0.04, 1),
     damping: getNumber(source, "damping", 0.86, 0.2, 0.98),
+    scrollStrength: getNumber(source, "scrollStrength", 1, 0.25, 6),
     artworkOverlayFramingMode,
     artworkOverlayAngleDistanceScale: overlayPreset.scale,
     artworkOverlayAngleDistanceMin: overlayPreset.min,
     artworkOverlayAngleDistanceMax: overlayPreset.max,
     artworkOverlayForwardOffset: overlayPreset.forwardOffset,
-    loopWhiteAfterEndWindow: getNumber(source, "loopWhiteAfterEndWindow", 0.14, 0.02, 0.45),
-    loopWhiteStartsBeforeEndWindow: getNumber(source, "loopWhiteStartsBeforeEndWindow", 0, 0, 0.45),
-    loopWhiteFadeOutWindow: getNumber(source, "loopWhiteFadeOutWindow", 0.22, 0.05, 0.6),
-    loopWhiteFadeOutRevealWindow: getNumber(source, "loopWhiteFadeOutRevealWindow", 0.12, 0.03, 0.45),
-    loopProgressAdvanceDuringWhiteFadeOut: getNumber(
-      source,
-      "loopProgressAdvanceDuringWhiteFadeOut",
-      0.18,
-      0,
-      0.45,
-    ),
     camera: {
       height: getNumber(camera, "height", undefined, 0.8, 4),
       fov: getNumber(camera, "fov", undefined, 28, 82),

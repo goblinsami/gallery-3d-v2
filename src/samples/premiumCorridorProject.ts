@@ -30,11 +30,6 @@ export const premiumCorridorProject: GalleryProject = {
     loop: true,
     smoothing: 0.16,
     damping: 0.84,
-    loopWhiteAfterEndWindow: 0.14,
-    loopWhiteStartsBeforeEndWindow: 0,
-    loopWhiteFadeOutRevealWindow: 0.12,
-    loopWhiteFadeOutWindow: 0.22,
-    loopProgressAdvanceDuringWhiteFadeOut: 0.18,
     camera: {
       height: 1.72,
       fov: 50,

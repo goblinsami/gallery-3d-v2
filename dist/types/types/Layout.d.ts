@@ -3,6 +3,7 @@ import type { PositionedGalleryItem } from "./GalleryItem";
 export interface LayoutContext {
     viewportAspect: number;
     qualityScale: number;
+    architecturalCycleDepth?: number;
 }
 export interface LayoutStrategy {
     readonly type: string;

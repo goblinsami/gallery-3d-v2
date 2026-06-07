@@ -37,36 +37,37 @@ describe("JourneyController", () => {
     ]);
   });
 
-  it("adds a white transition after the final loop progress", () => {
+  it("keeps the final loop progress stable until scroll continues past it", () => {
     const emitted: Array<{ progress: number; whiteMix: number }> = [];
     const controller = new JourneyController({
       element,
       loop: true,
-      loopWhiteAfterEndWindow: 0.2,
-      loopWhiteStartsBeforeEndWindow: 0.1,
-      loopWhiteFadeOutWindow: 0.3,
-      loopWhiteFadeOutRevealWindow: 0.15,
-      loopProgressAdvanceDuringWhiteFadeOut: 0.2,
       onProgress: (state) => emitted.push(state),
     });
 
-    controller.setProgress(0.95);
-    controller.setProgress(1.1);
-    controller.setProgress(1.25);
-    controller.setProgress(1.425);
+    controller.setProgress(0.98);
+    controller.setProgress(1);
+    controller.setProgress(1.08);
 
-    expect(emitted[0].progress).toBeCloseTo(0.95);
-    expect(emitted[0].whiteMix).toBeGreaterThan(0);
-    expect(emitted[0].whiteMix).toBeLessThan(1);
-    expect(emitted[1].progress).toBe(1);
-    expect(emitted[1].whiteMix).toBeGreaterThan(emitted[0].whiteMix);
-    expect(emitted[2].progress).toBeGreaterThan(0);
-    expect(emitted[2].progress).toBeLessThanOrEqual(0.2);
-    expect(emitted[2].whiteMix).toBeGreaterThan(0);
-    expect(emitted[2].whiteMix).toBeLessThan(1);
-    expect(emitted[3].progress).toBeGreaterThan(emitted[2].progress);
-    expect(emitted[3].progress).toBeLessThanOrEqual(0.2);
-    expect(emitted[3].whiteMix).toBe(0);
+    expect(emitted[0]).toEqual({ progress: 0.98, whiteMix: 0 });
+    expect(emitted[1]).toEqual({ progress: 1, whiteMix: 0 });
+    expect(emitted[2].progress).toBeCloseTo(0.08);
+    expect(emitted[2].whiteMix).toBe(0);
+  });
+
+  it("always emits zero white mix in loop journeys", () => {
+    const emitted: Array<{ progress: number; whiteMix: number }> = [];
+    const controller = new JourneyController({
+      element,
+      loop: true,
+      onProgress: (state) => emitted.push(state),
+    });
+
+    controller.setProgress(0.5);
+    controller.setProgress(1);
+    controller.setProgress(1.5);
+
+    expect(emitted.every((state) => state.whiteMix === 0)).toBe(true);
   });
 
   it("ignores wheel interactions while interaction is disabled", () => {

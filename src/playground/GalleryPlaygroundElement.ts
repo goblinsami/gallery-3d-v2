@@ -3,6 +3,7 @@ import type { ArtworkOverlayFramingMode } from "../types/Journey";
 import { TEXTURE_FAMILY_OPTIONS } from "../config/architecturalTextureCatalog";
 
 type ControlName =
+  | "template"
   | "primary"
   | "quality"
   | "overlayFramingMode"
@@ -16,10 +17,15 @@ type ControlName =
   | "cameraHeight"
   | "lookAhead"
   | "smoothing"
+  | "scrollStrength"
   | "loop"
   | "forceMobile";
 
+export type PlaygroundTemplate = "default" | "reduced";
+export type PlaygroundScrollStrength = "auto" | 0.5 | 0.75 | 1 | 1.5 | 2 | 3 | 4 | 5;
+
 export interface GalleryPlaygroundValues {
+  template: PlaygroundTemplate;
   primary: MaterialFamily;
   quality: GalleryProject["theme"]["quality"];
   overlayFramingMode: ArtworkOverlayFramingMode;
@@ -33,6 +39,7 @@ export interface GalleryPlaygroundValues {
   cameraHeight: number;
   lookAhead: number;
   smoothing: number;
+  scrollStrength: PlaygroundScrollStrength;
   loop: boolean;
   forceMobile: boolean;
 }
@@ -232,6 +239,14 @@ playgroundTemplate.innerHTML = `
     </div>
     <div class="grid">
       <label class="field">
+        <span class="field__label">Template <span class="field__value" data-value="template">default</span></span>
+        <span class="field__hint">Usa el recorrido completo o una version reducida de 3 items para depurar la journey.</span>
+        <select data-control="template">
+          <option value="default">Default</option>
+          <option value="reduced">Reduced debug</option>
+        </select>
+      </label>
+      <label class="field">
         <span class="field__label">Texture <span class="field__value" data-value="primary">Legacy stone</span></span>
         <span class="field__hint">Cambia el material arquitectónico base de paredes, suelo y atmósfera.</span>
         <select data-control="primary">
@@ -243,10 +258,10 @@ playgroundTemplate.innerHTML = `
         <span class="field__hint">Ajusta el preset visual usado por geometría, sombras y coste de render.</span>
         <select data-control="quality">
           <option value="auto">Auto</option>
+          <option value="low">Low</option>
           <option value="medium">Medium</option>
           <option value="high">High</option>
           <option value="ultra">Ultra</option>
-          <option value="low">Low</option>
         </select>
       </label>
       <label class="field">
@@ -310,6 +325,21 @@ playgroundTemplate.innerHTML = `
         <span class="field__hint">Suaviza la respuesta al scroll: más valor, movimiento más elástico.</span>
         <input data-control="smoothing" type="range" min="0.04" max="0.4" step="0.01" />
       </label>
+      <label class="field">
+        <span class="field__label">Scroll strength <span class="field__value" data-value="scrollStrength">auto</span></span>
+        <span class="field__hint">Multiplica la fuerza del scroll. Auto mantiene el ritmo al usar templates reducidos.</span>
+        <select data-control="scrollStrength">
+          <option value="auto">Auto</option>
+          <option value="0.5">0.5x</option>
+          <option value="0.75">0.75x</option>
+          <option value="1">1x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+          <option value="3">3x</option>
+          <option value="4">4x</option>
+          <option value="5">5x</option>
+        </select>
+      </label>
       <label class="toggle">
         <span>
           Infinite loop
@@ -336,6 +366,20 @@ const getNumber = (input: HTMLInputElement, fallback: number): number => {
 const formatNumber = (value: number): string =>
   Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, "");
 
+const parseScrollStrength = (value: string): PlaygroundScrollStrength => {
+  if (value === "auto") {
+    return "auto";
+  }
+
+  const parsed = Number(value);
+  return ([0.5, 0.75, 1, 1.5, 2, 3, 4, 5] as const).includes(parsed as Exclude<PlaygroundScrollStrength, "auto">)
+    ? parsed as PlaygroundScrollStrength
+    : "auto";
+};
+
+const formatScrollStrength = (value: PlaygroundScrollStrength): string =>
+  value === "auto" ? "auto" : `${formatNumber(value)}x`;
+
 export class GalleryPlaygroundElement extends HTMLElement {
   static observedAttributes = ["project"];
 
@@ -345,6 +389,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
   private readonly controls: Record<ControlName, HTMLInputElement | HTMLSelectElement>;
   private readonly valueLabels: Partial<Record<ControlName, HTMLElement>>;
   private currentProject: GalleryProject | null = null;
+  private templateSourceItems: GalleryProject["items"] = [];
+  private currentTemplate: PlaygroundTemplate = "default";
 
   constructor() {
     super();
@@ -366,6 +412,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.summary = summary;
     this.panelToggle = panelToggle;
     this.controls = {
+      template: this.getControl("template", HTMLSelectElement),
       primary: this.getControl("primary", HTMLSelectElement),
       quality: this.getControl("quality", HTMLSelectElement),
       overlayFramingMode: this.getControl("overlayFramingMode", HTMLSelectElement),
@@ -379,10 +426,12 @@ export class GalleryPlaygroundElement extends HTMLElement {
       cameraHeight: this.getControl("cameraHeight", HTMLInputElement),
       lookAhead: this.getControl("lookAhead", HTMLInputElement),
       smoothing: this.getControl("smoothing", HTMLInputElement),
+      scrollStrength: this.getControl("scrollStrength", HTMLSelectElement),
       loop: this.getControl("loop", HTMLInputElement),
       forceMobile: this.getControl("forceMobile", HTMLInputElement),
     };
     this.valueLabels = {
+      template: this.getValueLabel("template"),
       primary: this.getValueLabel("primary"),
       quality: this.getValueLabel("quality"),
       overlayFramingMode: this.getValueLabel("overlayFramingMode"),
@@ -395,11 +444,14 @@ export class GalleryPlaygroundElement extends HTMLElement {
       cameraHeight: this.getValueLabel("cameraHeight"),
       lookAhead: this.getValueLabel("lookAhead"),
       smoothing: this.getValueLabel("smoothing"),
+      scrollStrength: this.getValueLabel("scrollStrength"),
     };
   }
 
   set project(project: GalleryProject | null) {
     this.currentProject = project;
+    this.templateSourceItems = project?.items ?? [];
+    this.currentTemplate = "default";
     this.syncControlsFromProject();
   }
 
@@ -409,6 +461,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
 
   connectedCallback(): void {
     this.currentProject = this.currentProject ?? this.parseProjectAttribute();
+    this.templateSourceItems = this.currentProject?.items ?? [];
     this.panelToggle.addEventListener("click", this.handlePanelToggleClick);
     this.form.addEventListener("input", this.handleControlsChange);
     this.form.addEventListener("change", this.handleControlsChange);
@@ -427,6 +480,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
     }
 
     this.currentProject = this.parseProjectAttribute();
+    this.templateSourceItems = this.currentProject?.items ?? [];
+    this.currentTemplate = "default";
     this.syncControlsFromProject();
   }
 
@@ -460,6 +515,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
 
   private getValuesFromProject(project: GalleryProject): GalleryPlaygroundValues {
     return {
+      template: this.currentTemplate,
       primary: project.theme.materials.primary,
       quality: project.theme.quality,
       overlayFramingMode: project.journey.artworkOverlayFramingMode ?? "balanced",
@@ -473,12 +529,14 @@ export class GalleryPlaygroundElement extends HTMLElement {
       cameraHeight: project.journey.camera?.height ?? 1.72,
       lookAhead: project.journey.camera?.lookAhead ?? 3.2,
       smoothing: project.journey.smoothing ?? 0.16,
+      scrollStrength: project.journey.scrollStrength ? parseScrollStrength(String(project.journey.scrollStrength)) : "auto",
       loop: project.journey.loop ?? false,
       forceMobile: (this.controls.forceMobile as HTMLInputElement).checked,
     };
   }
 
   private writeValuesToControls(values: GalleryPlaygroundValues): void {
+    this.controls.template.value = values.template;
     this.controls.primary.value = values.primary;
     this.controls.quality.value = values.quality;
     this.controls.overlayFramingMode.value = values.overlayFramingMode;
@@ -492,12 +550,14 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.controls.cameraHeight.value = String(values.cameraHeight);
     this.controls.lookAhead.value = String(values.lookAhead);
     this.controls.smoothing.value = String(values.smoothing);
+    this.controls.scrollStrength.value = String(values.scrollStrength);
     (this.controls.loop as HTMLInputElement).checked = values.loop;
     (this.controls.forceMobile as HTMLInputElement).checked = values.forceMobile;
   }
 
   private readValuesFromControls(): GalleryPlaygroundValues {
     return {
+      template: this.controls.template.value as PlaygroundTemplate,
       primary: this.controls.primary.value as MaterialFamily,
       quality: this.controls.quality.value as GalleryProject["theme"]["quality"],
       overlayFramingMode: this.controls.overlayFramingMode.value as ArtworkOverlayFramingMode,
@@ -511,6 +571,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
       cameraHeight: getNumber(this.controls.cameraHeight as HTMLInputElement, 1.72),
       lookAhead: getNumber(this.controls.lookAhead as HTMLInputElement, 3.2),
       smoothing: getNumber(this.controls.smoothing as HTMLInputElement, 0.16),
+      scrollStrength: parseScrollStrength(this.controls.scrollStrength.value),
       loop: (this.controls.loop as HTMLInputElement).checked,
       forceMobile: (this.controls.forceMobile as HTMLInputElement).checked,
     };
@@ -521,6 +582,14 @@ export class GalleryPlaygroundElement extends HTMLElement {
     if (!project) {
       return null;
     }
+
+    const sourceItems = this.templateSourceItems.length > 0 ? this.templateSourceItems : project.items;
+    const items = values.template === "reduced"
+      ? sourceItems.slice(0, 3)
+      : sourceItems;
+    const scrollStrength = values.scrollStrength === "auto"
+      ? Math.min(6, Math.max(0.25, sourceItems.length / Math.max(1, items.length)))
+      : values.scrollStrength;
 
     return {
       ...project,
@@ -555,6 +624,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
         artworkOverlayFramingMode: values.overlayFramingMode,
         loop: values.loop,
         smoothing: values.smoothing,
+        scrollStrength,
         camera: {
           ...project.journey.camera,
           fov: values.fov,
@@ -562,10 +632,12 @@ export class GalleryPlaygroundElement extends HTMLElement {
           lookAhead: values.lookAhead,
         },
       },
+      items,
     };
   }
 
   private renderValues(values: GalleryPlaygroundValues, itemCount: number): void {
+    this.valueLabels.template!.textContent = values.template;
     this.valueLabels.primary!.textContent = getTextureLabel(values.primary);
     this.valueLabels.quality!.textContent = values.quality;
     this.valueLabels.overlayFramingMode!.textContent = values.overlayFramingMode;
@@ -578,6 +650,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.valueLabels.cameraHeight!.textContent = formatNumber(values.cameraHeight);
     this.valueLabels.lookAhead!.textContent = formatNumber(values.lookAhead);
     this.valueLabels.smoothing!.textContent = formatNumber(values.smoothing);
+    this.valueLabels.scrollStrength!.textContent = formatScrollStrength(values.scrollStrength);
     this.summary.textContent = `${itemCount} items · ${getTextureLabel(values.primary)} · ${values.overlayFramingMode} · ${values.loop ? "loop" : "linear"}`;
   }
 
@@ -608,6 +681,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
     }
 
     this.currentProject = project;
+    this.currentTemplate = values.template;
     this.renderValues(values, project.items.length);
     this.dispatchEvent(new CustomEvent<GalleryPlaygroundChangeDetail>(
       "gallery-playground-change",
@@ -637,3 +711,4 @@ declare global {
     "gallery-playground-change": CustomEvent<GalleryPlaygroundChangeDetail>;
   }
 }
+

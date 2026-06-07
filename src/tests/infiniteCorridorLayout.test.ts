@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { GalleryProject } from "../types/GalleryProject";
 import { InfiniteCorridorLayout } from "../layouts/InfiniteCorridorLayout";
+import { snapZToArchitecturalModuleCenter } from "../utils/architecturalModules";
 
 const project: GalleryProject = {
   theme: {
@@ -13,6 +14,9 @@ const project: GalleryProject = {
   layout: {
     type: "infinite-corridor",
     spacing: 5,
+    bounds: {
+      depth: 44,
+    },
   },
   journey: {
     mode: "scroll",
@@ -46,5 +50,17 @@ describe("InfiniteCorridorLayout", () => {
     expect(layout).toHaveLength(6);
     expect(layout[2].id).toBe("intro__loop_1");
     expect(layout[2].position.z).toBeLessThan(layout[0].position.z);
+  });
+
+  it("centers wall items against the cycle-aligned LED module pattern", () => {
+    const layout = new InfiniteCorridorLayout().layout(project, project.layout, {
+      viewportAspect: 16 / 9,
+      qualityScale: 1,
+    });
+    const cycleDepth = project.items.length * (project.layout.spacing ?? 7);
+    const expectedFirstCycleZ = snapZToArchitecturalModuleCenter(44, 1, -5, cycleDepth);
+
+    expect(layout[0].position.z).toBeCloseTo(expectedFirstCycleZ);
+    expect(layout[2].position.z).toBeCloseTo(expectedFirstCycleZ - cycleDepth);
   });
 });

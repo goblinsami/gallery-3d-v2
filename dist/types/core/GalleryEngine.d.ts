@@ -24,17 +24,13 @@ export declare class GalleryEngine {
     private keyframes;
     private positionedItems;
     private progress;
-    private loopWhiteMix;
     private buildSerial;
     private bottomSheetState;
     private disposed;
     private baseFogNear;
     private baseFogFar;
-    private readonly whiteColor;
     private readonly baseBackgroundColor;
     private readonly baseFogColor;
-    private readonly mixedBackgroundColor;
-    private readonly mixedFogColor;
     private readonly projectedItemPoint;
     private renderViewport;
     private effectiveRenderViewport;
@@ -47,7 +43,7 @@ export declare class GalleryEngine {
     updateProject(project: GalleryProject): Promise<void>;
     applyJourneyState(state: JourneyState): void;
     setProgress(progress: number): CameraState;
-    setJourneyState(progress: number, whiteMix: number): CameraState;
+    setJourneyState(progress: number, _whiteMix: number): CameraState;
     setBottomSheetState(state: BottomSheetState): CameraState;
     setBottomSheetFocus(itemId: string | null, state: BottomSheetState): CameraState;
     getClosestItemIdFromClientPoint(clientX: number, clientY: number): string | null;
@@ -63,6 +59,8 @@ export declare class GalleryEngine {
     private findPositionedItemById;
     private rebuildKeyframes;
     private getJourneyItemsForKeyframes;
+    private getLoopSeamItem;
+    private getTextureCycleDepth;
     private renderFrame;
     private resize;
     private getViewportAspect;

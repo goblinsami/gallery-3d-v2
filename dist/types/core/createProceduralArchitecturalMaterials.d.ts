@@ -15,5 +15,5 @@ export interface ProceduralArchitecturalMaterials {
     fixtureTrim: MeshStandardMaterial;
     fixtureCore: MeshBasicMaterial;
 }
-export declare const createProceduralArchitecturalMaterials: (quality: QualitySettings, depth: number, materialFamily: MaterialFamily, ceilingLightIntensity?: number) => Promise<ProceduralArchitecturalMaterials>;
+export declare const createProceduralArchitecturalMaterials: (quality: QualitySettings, depth: number, materialFamily: MaterialFamily, ceilingLightIntensity?: number, textureCycleDepth?: number) => Promise<ProceduralArchitecturalMaterials>;
 //# sourceMappingURL=createProceduralArchitecturalMaterials.d.ts.map

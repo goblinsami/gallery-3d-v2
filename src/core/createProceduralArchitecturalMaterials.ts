@@ -116,11 +116,25 @@ const createTexturedMaterial = (
   emissiveIntensity,
 });
 
+const alignRepeatToCycle = (
+  repeat: number,
+  depth: number,
+  cycleDepth: number | undefined,
+): number => {
+  if (!cycleDepth || !Number.isFinite(cycleDepth) || cycleDepth <= 0 || cycleDepth > depth) {
+    return repeat;
+  }
+
+  const repeatsPerCycle = Math.max(1, Math.round(repeat * (cycleDepth / depth)));
+  return repeatsPerCycle * (depth / cycleDepth);
+};
+
 export const createProceduralArchitecturalMaterials = (
   quality: QualitySettings,
   depth: number,
   materialFamily: MaterialFamily,
   ceilingLightIntensity = 1,
+  textureCycleDepth?: number,
 ): Promise<ProceduralArchitecturalMaterials> => {
   const lightScale = Math.max(0, ceilingLightIntensity);
   const textureSize = textureSizeForQuality(quality);
@@ -140,12 +154,12 @@ export const createProceduralArchitecturalMaterials = (
     loadTextureOrFallback(loader, config.colorUrl, fallbackColor),
     loadTextureOrFallback(loader, config.normalUrl, fallbackNormal),
   ]).then(([colorTexture, normalTexture]) => {
-    const wallRepeatX = depthRepeat * config.wallRepeatScale;
+    const wallRepeatX = alignRepeatToCycle(depthRepeat * config.wallRepeatScale, depth, textureCycleDepth);
     const wallRepeatY = family === "brick" ? 3.2 : family === "wood" ? 2.4 : 2;
     const floorRepeatX = 8;
-    const floorRepeatY = depthRepeat * config.floorRepeatScale;
+    const floorRepeatY = alignRepeatToCycle(depthRepeat * config.floorRepeatScale, depth, textureCycleDepth);
     const ceilingRepeatX = 8;
-    const ceilingRepeatY = depthRepeat * config.ceilingRepeatScale;
+    const ceilingRepeatY = alignRepeatToCycle(depthRepeat * config.ceilingRepeatScale, depth, textureCycleDepth);
 
     return {
       wall: createTexturedMaterial(

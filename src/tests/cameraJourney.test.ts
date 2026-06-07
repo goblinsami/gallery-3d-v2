@@ -71,4 +71,16 @@ describe("camera journey", () => {
     expect((mobileFocus?.position.x ?? 0) - wall.focusTarget.x)
       .toBeGreaterThan((desktopFocus?.position.x ?? 0) - wall.focusTarget.x);
   });
+
+  it("builds a loop seam toward the first cloned item", () => {
+    const first = item("one", -4);
+    const second = item("two", -10);
+    const firstClone = item("one__loop_1", -16);
+    const keyframes = buildCameraKeyframes([first, second], {}, { loopSeamItem: firstClone });
+    const last = keyframes[keyframes.length - 1];
+
+    expect(last.label).toBe("loop-seam");
+    expect(last.position.z).toBeCloseTo(0.9 + firstClone.position.z - first.position.z);
+    expect(last.lookAt.z).toBeCloseTo(firstClone.focusTarget.z - 2.2);
+  });
 });

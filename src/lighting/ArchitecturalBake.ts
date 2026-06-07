@@ -14,9 +14,7 @@ import {
 } from "three";
 import type { QualitySettings } from "../types/Quality";
 import {
-  getArchitecturalModuleCount,
-  getArchitecturalModuleSegmentDepth,
-  getArchitecturalModuleZ,
+  getArchitecturalModulePattern,
 } from "../utils/architecturalModules";
 
 type GradientAxis = "x" | "y";
@@ -134,10 +132,12 @@ export const createArchitecturalBake = (
   height: number,
   quality: QualitySettings,
   ceilingLightIntensity = 1,
+  textureCycleDepth?: number,
 ): Group => {
   const root = new Group();
-  const count = getArchitecturalModuleCount(depth, quality.geometryDetail);
-  const segmentDepth = getArchitecturalModuleSegmentDepth(depth, count);
+  const modulePattern = getArchitecturalModulePattern(depth, quality.geometryDetail, textureCycleDepth);
+  const moduleZs = modulePattern.positions;
+  const segmentDepth = modulePattern.segmentDepth;
   const surfaceOffset = 0.018;
   const wallX = width / 2 - surfaceOffset;
   const floorGlowWidth = Math.min(1.42, width / 2);
@@ -153,41 +153,40 @@ export const createArchitecturalBake = (
   const floorLeft = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
     createBakeMaterial("x", "start", baseOpacity),
-    count,
+    moduleZs.length,
   );
   const floorRight = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
     createBakeMaterial("x", "end", baseOpacity),
-    count,
+    moduleZs.length,
   );
   const ceilingLeft = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
     createBakeMaterial("x", "start", ceilingOpacity),
-    count,
+    moduleZs.length,
   );
   const ceilingRight = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
     createBakeMaterial("x", "end", ceilingOpacity),
-    count,
+    moduleZs.length,
   );
   const wallLower = new InstancedMesh(
     new PlaneGeometry(segmentDepth, wallEdgeHeight),
     createBakeMaterial("y", "start", baseOpacity * 0.62),
-    count * 2,
+    moduleZs.length * 2,
   );
   const wallUpper = new InstancedMesh(
     new PlaneGeometry(segmentDepth, wallEdgeHeight),
     createBakeMaterial("y", "end", baseOpacity * 0.52),
-    count * 2,
+    moduleZs.length * 2,
   );
   const wallVertical = new InstancedMesh(
     new PlaneGeometry(verticalGlowWidth, verticalGlowHeight),
     createBakeMaterial("x", "center", baseOpacity * 0.96),
-    count * 2,
+    moduleZs.length * 2,
   );
 
-  for (let index = 0; index < count; index += 1) {
-    const z = getArchitecturalModuleZ(depth, count, index);
+  moduleZs.forEach((z, index) => {
     const zCenter = z - segmentDepth * 0.5;
 
     floorLeft.setMatrixAt(
@@ -224,7 +223,7 @@ export const createArchitecturalBake = (
     );
     wallVertical.setMatrixAt(index * 2, createTransform(-wallX, verticalGlowCenter, z, 0, Math.PI / 2));
     wallVertical.setMatrixAt(index * 2 + 1, createTransform(wallX, verticalGlowCenter, z, 0, -Math.PI / 2));
-  }
+  });
 
   [floorLeft, floorRight, ceilingLeft, ceilingRight, wallLower, wallUpper, wallVertical].forEach((mesh) => {
     mesh.instanceMatrix.needsUpdate = true;

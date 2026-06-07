@@ -15,20 +15,27 @@ import type { QualitySettings } from "../types/Quality";
 import { createArchitecturalBake } from "../lighting/ArchitecturalBake";
 import type { ProceduralArchitecturalMaterials } from "./createProceduralArchitecturalMaterials";
 import { createProceduralArchitecturalMaterials } from "./createProceduralArchitecturalMaterials";
-import { getArchitecturalModuleCount, getArchitecturalModuleZ } from "../utils/architecturalModules";
+import { getArchitecturalModulePattern } from "../utils/architecturalModules";
 
 export const createArchitectureShell = async (
   layout: LayoutConfig,
   quality: QualitySettings,
   materialFamily: MaterialFamily,
   ceilingLightIntensity = 1,
+  textureCycleDepth?: number,
 ): Promise<Group> => {
   const root = new Group();
   const width = layout.bounds?.width ?? 5.4;
   const height = layout.bounds?.height ?? 3.4;
   const depth = Math.max(layout.bounds?.depth ?? 44, 20);
   const lightScale = Math.max(0, ceilingLightIntensity);
-  const materials = await createProceduralArchitecturalMaterials(quality, depth, materialFamily, lightScale);
+  const materials = await createProceduralArchitecturalMaterials(
+    quality,
+    depth,
+    materialFamily,
+    lightScale,
+    textureCycleDepth,
+  );
   const floor = new Mesh(new PlaneGeometry(width, depth), materials.floor);
   const floorBase = new Mesh(new BoxGeometry(width, 0.04, depth), materials.trim);
   const ceiling = new Mesh(new PlaneGeometry(width, depth), materials.ceiling);
@@ -58,10 +65,10 @@ export const createArchitectureShell = async (
   root.add(floorBase, floor, ceiling, leftWall, rightWall, ambient, hemisphere, key);
   root.add(createLongLeds(width, depth, height, materials));
   root.add(createFloorLeds(width, depth, materials));
-  root.add(createWallLeds(width, depth, height, materials, quality));
-  root.add(createCeilingGrid(width, depth, height, materials, quality));
-  root.add(createCeilingDownlights(width, depth, height, materials, quality));
-  root.add(createArchitecturalBake(width, depth, height, quality, lightScale));
+  root.add(createWallLeds(width, depth, height, materials, quality, textureCycleDepth));
+  root.add(createCeilingGrid(width, depth, height, materials, quality, textureCycleDepth));
+  root.add(createCeilingDownlights(width, depth, height, materials, quality, textureCycleDepth));
+  root.add(createArchitecturalBake(width, depth, height, quality, lightScale, textureCycleDepth));
 
   return root;
 };
@@ -75,10 +82,12 @@ const createCeilingGrid = (
   height: number,
   materials: ProceduralArchitecturalMaterials,
   quality: QualitySettings,
+  textureCycleDepth?: number,
 ): Group => {
   const root = new Group();
   const railWidth = 0.035;
-  const crossCount = getArchitecturalModuleCount(depth, quality.geometryDetail);
+  const modulePattern = getArchitecturalModulePattern(depth, quality.geometryDetail, textureCycleDepth);
+  const moduleZs = modulePattern.positions;
   const longitudinalXs = getLightGridXs(width);
   const [leftWallLedX, rightWallLedX] = getWallLedXs(width);
   const [leftGridX, , rightGridX] = longitudinalXs;
@@ -90,7 +99,7 @@ const createCeilingGrid = (
   const crossRails = new InstancedMesh(
     new BoxGeometry(crossRailWidth, railWidth, railWidth),
     materials.trim,
-    crossCount,
+    moduleZs.length,
   );
   const longitudinalRails = new InstancedMesh(
     new BoxGeometry(railWidth, railWidth, depth),
@@ -100,27 +109,25 @@ const createCeilingGrid = (
   const sideConnectors = new InstancedMesh(
     new BoxGeometry(sideConnectorWidth, railWidth, railWidth),
     materials.trim,
-    crossCount * 2,
+    moduleZs.length * 2,
   );
 
-  for (let index = 0; index < crossCount; index += 1) {
-    const z = getArchitecturalModuleZ(depth, crossCount, index);
+  moduleZs.forEach((z, index) => {
     matrix.makeTranslation(crossRailCenterX, gridY, z);
     crossRails.setMatrixAt(index, matrix);
-  }
+  });
 
   longitudinalXs.forEach((x, index) => {
     matrix.makeTranslation(x, gridY, -depth / 2);
     longitudinalRails.setMatrixAt(index, matrix);
   });
 
-  for (let index = 0; index < crossCount; index += 1) {
-    const z = getArchitecturalModuleZ(depth, crossCount, index);
+  moduleZs.forEach((z, index) => {
     matrix.makeTranslation((leftWallLedX + leftGridX) / 2, gridY, z);
     sideConnectors.setMatrixAt(index * 2, matrix);
     matrix.makeTranslation((rightWallLedX + rightGridX) / 2, gridY, z);
     sideConnectors.setMatrixAt(index * 2 + 1, matrix);
-  }
+  });
 
   crossRails.instanceMatrix.needsUpdate = true;
   longitudinalRails.instanceMatrix.needsUpdate = true;
@@ -187,9 +194,10 @@ const createWallLeds = (
   height: number,
   materials: ProceduralArchitecturalMaterials,
   quality: QualitySettings,
+  textureCycleDepth?: number,
 ): Group => {
   const root = new Group();
-  const count = getArchitecturalModuleCount(depth, quality.geometryDetail);
+  const moduleZs = getArchitecturalModulePattern(depth, quality.geometryDetail, textureCycleDepth).positions;
   const matrix = new Matrix4();
   const bottomY = 0;
   const topY = height;
@@ -198,17 +206,16 @@ const createWallLeds = (
   const strip = new InstancedMesh(
     new BoxGeometry(0.032, stripHeight, 0.032),
     materials.led,
-    count * 2,
+    moduleZs.length * 2,
   );
   const centerY = bottomY + stripHeight / 2;
 
-  for (let index = 0; index < count; index += 1) {
-    const z = getArchitecturalModuleZ(depth, count, index);
+  moduleZs.forEach((z, index) => {
     matrix.makeTranslation(leftX, centerY, z);
     strip.setMatrixAt(index * 2, matrix);
     matrix.makeTranslation(rightX, centerY, z);
     strip.setMatrixAt(index * 2 + 1, matrix);
-  }
+  });
 
   strip.instanceMatrix.needsUpdate = true;
   root.name = "wall-led-strips";
@@ -222,24 +229,24 @@ const createCeilingDownlights = (
   height: number,
   materials: ProceduralArchitecturalMaterials,
   quality: QualitySettings,
+  textureCycleDepth?: number,
 ): Group => {
   const root = new Group();
-  const countZ = getArchitecturalModuleCount(depth, quality.geometryDetail);
+  const moduleZs = getArchitecturalModulePattern(depth, quality.geometryDetail, textureCycleDepth).positions;
   const xPositions = getLightGridXs(width);
-  const total = xPositions.length * countZ;
+  const total = xPositions.length * moduleZs.length;
   const trim = new InstancedMesh(new CylinderGeometry(0.095, 0.095, 0.033, 20), materials.fixtureTrim, total);
   const core = new InstancedMesh(new CylinderGeometry(0.052, 0.052, 0.037, 16), materials.fixtureCore, total);
   const matrix = new Matrix4();
 
   xPositions.forEach((x, rowIndex) => {
-    for (let index = 0; index < countZ; index += 1) {
-      const z = getArchitecturalModuleZ(depth, countZ, index);
-      const instance = rowIndex * countZ + index;
+    moduleZs.forEach((z, index) => {
+      const instance = rowIndex * moduleZs.length + index;
       matrix.makeTranslation(x, height - 0.072, z);
       trim.setMatrixAt(instance, matrix);
       matrix.makeTranslation(x, height - 0.096, z);
       core.setMatrixAt(instance, matrix);
-    }
+    });
   });
 
   trim.instanceMatrix.needsUpdate = true;
