@@ -93,7 +93,7 @@ export class AssetManager implements RenderAssets {
   }
 
   private resolveUrl(src: string): string {
-    if (!this.assetBaseUrl || /^https?:\/\//.test(src) || src.startsWith("data:") || src.startsWith("/")) {
+    if (!this.assetBaseUrl || /^https?:\/\//.test(src) || src.startsWith("data:")) {
       return src;
     }
 

@@ -1,258 +1,12 @@
-import { m as o, c as n, a } from "./mountGalleryRuntime-Di_qbToc.js";
-const p = `
-  :host {
-    display: block;
-    position: relative;
-    contain: layout paint size;
-    min-height: 420px;
-    overflow: hidden;
-    background: #1f211d;
-  }
-
-  .viewport {
-    position: absolute;
-    inset: 0;
-    min-width: 1px;
-    min-height: 1px;
-    touch-action: none;
-  }
-
-  .progress {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    z-index: 5;
-    height: 2px;
-    overflow: hidden;
-    background: rgba(244, 239, 230, 0.12);
-  }
-
-  .progress__fill {
-    width: 100%;
-    height: 100%;
-    background: rgba(244, 239, 230, 0.72);
-    transform: scaleX(0);
-    transform-origin: left center;
-    transition: transform 120ms ease;
-  }
-
-  .g3d-sheet {
-    position: absolute;
-    left: max(10px, env(safe-area-inset-left));
-    right: max(10px, env(safe-area-inset-right));
-    bottom: max(10px, env(safe-area-inset-bottom));
-    z-index: 4;
-    min-height: 76px;
-    max-height: min(82%, 620px);
-    padding: 10px 16px 16px;
-    overflow: hidden;
-    color: #f4efe6;
-    background: rgba(23, 23, 21, 0.82);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 18px 18px 8px 8px;
-    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(18px);
-    transform: translateY(0);
-    transition: min-height 220ms ease, max-height 220ms ease, background 220ms ease;
-  }
-
-  .g3d-sheet[data-state="half"] {
-    min-height: 0;
-  }
-
-  .g3d-sheet[data-state="full"] {
-    min-height: calc(100% - max(10px, env(safe-area-inset-top)));
-    max-height: calc(100% - max(10px, env(safe-area-inset-top)));
-    border-radius: 18px 18px 0 0;
-  }
-
-  .g3d-sheet__handle {
-    display: grid;
-    place-items: center;
-    width: 100%;
-    height: 22px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  .g3d-sheet__grip {
-    width: 42px;
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(244, 239, 230, 0.42);
-  }
-
-  .g3d-sheet__summary {
-    cursor: pointer;
-  }
-
-  .g3d-sheet__eyebrow {
-    margin: 8px 0 4px;
-    font: 600 11px/1.2 system-ui, sans-serif;
-    letter-spacing: 0;
-    text-transform: uppercase;
-    opacity: 0.68;
-  }
-
-  .g3d-sheet__title {
-    margin: 0;
-    font: 650 18px/1.16 system-ui, sans-serif;
-    letter-spacing: 0;
-  }
-
-  .g3d-sheet__body {
-    margin-top: 16px;
-    overflow: auto;
-    max-height: calc(100% - 86px);
-  }
-
-  .g3d-sheet__description {
-    margin: 0;
-    font: 400 14px/1.55 system-ui, sans-serif;
-    color: rgba(244, 239, 230, 0.76);
-  }
-
-  .g3d-sheet__actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 14px;
-  }
-
-  .g3d-sheet__nav {
-    flex: 1;
-    min-height: 36px;
-    border: 1px solid rgba(244, 239, 230, 0.18);
-    border-radius: 8px;
-    color: #f4efe6;
-    background: rgba(255, 255, 255, 0.08);
-    font: 600 13px/1 system-ui, sans-serif;
-    cursor: pointer;
-  }
-
-  .g3d-panel {
-    display: none;
-  }
-
-  @media (min-width: 860px) {
-    .g3d-sheet {
-      display: none;
-    }
-
-    .g3d-panel {
-      display: block;
-      position: absolute;
-      left: max(4px, env(safe-area-inset-left));
-      top: max(8px, env(safe-area-inset-top));
-      bottom: max(8px, env(safe-area-inset-bottom));
-      z-index: 4;
-      width: clamp(360px, 25.5vw, 468px);
-      max-width: calc(100% - 72px);
-      padding: 42px 18px 18px;
-      overflow: auto;
-      color: #f4efe6;
-      background: rgba(4, 7, 13, 0.9);
-      border: 1px solid rgba(201, 211, 232, 0.16);
-      border-radius: 18px;
-      box-shadow: 0 18px 70px rgba(0, 0, 0, 0.34);
-      backdrop-filter: blur(16px);
-      transform: translateX(0);
-    }
-
-    .g3d-panel[data-state="collapsed"] {
-      display: none;
-    }
-
-    .g3d-panel__grip {
-      width: 44px;
-      height: 4px;
-      margin: -24px auto 18px;
-      border-radius: 999px;
-      background: rgba(201, 211, 232, 0.72);
-    }
-
-    .g3d-panel__close {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      display: grid;
-      place-items: center;
-      width: 32px;
-      height: 32px;
-      padding: 0;
-      border: 1px solid rgba(201, 211, 232, 0.22);
-      border-radius: 999px;
-      color: #f4efe6;
-      background: rgba(255, 255, 255, 0.08);
-      font: 700 24px/1 system-ui, sans-serif;
-      cursor: pointer;
-    }
-
-    .g3d-panel__eyebrow {
-      margin: 0 0 4px;
-      font: 600 11px/1.2 system-ui, sans-serif;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: rgba(217, 225, 242, 0.72);
-    }
-
-    .g3d-panel__title {
-      margin: 0;
-      font: 750 17px/1.14 system-ui, sans-serif;
-    }
-
-    .g3d-panel__description {
-      margin: 28px 0 0;
-      padding-top: 28px;
-      border-top: 1px solid rgba(201, 211, 232, 0.14);
-      font: 400 16px/1.55 system-ui, sans-serif;
-      color: rgba(244, 239, 230, 0.9);
-    }
-
-    .g3d-panel__actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 28px;
-    }
-
-    .g3d-panel__nav {
-      flex: 1;
-      min-height: 34px;
-      border: 1px solid rgba(244, 239, 230, 0.18);
-      border-radius: 7px;
-      color: #f4efe6;
-      background: rgba(255, 255, 255, 0.08);
-      font: 600 11px/1 system-ui, sans-serif;
-      cursor: pointer;
-    }
-  }
-
-  :host([force-mobile]) .g3d-sheet {
-    display: block;
-  }
-
-  :host([force-mobile]) .g3d-panel {
-    display: none;
-  }
-
-  :host([force-mobile]) {
-    width: min(390px, calc(100vw - 24px)) !important;
-    height: min(844px, calc(100dvh - 24px)) !important;
-    min-height: 0;
-    margin: 12px auto;
-    border: 1px solid rgba(244, 239, 230, 0.18);
-    border-radius: 30px;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
-  }
-`, s = document.createElement("template");
+import { m as n, c as o, a as l } from "./mountGalleryRuntime-BaidRSMr.js";
+import { s as c } from "./scrollixGalleryStyles-CDojAq-C.js";
+const s = document.createElement("template");
 s.innerHTML = `
-  <style>${p}</style>
+  <style>${c}</style>
   <div class="viewport"></div>
   <div class="progress" aria-hidden="true"><div class="progress__fill"></div></div>
 `;
-class l extends HTMLElement {
+class a extends HTMLElement {
   static observedAttributes = ["project"];
   viewport;
   progressFill;
@@ -263,15 +17,15 @@ class l extends HTMLElement {
   currentProject = null;
   constructor() {
     super();
-    const e = this.attachShadow({ mode: "open" });
-    e.appendChild(s.content.cloneNode(!0));
-    const r = e.querySelector(".viewport"), i = e.querySelector(".progress__fill");
+    const t = this.attachShadow({ mode: "open" });
+    t.appendChild(s.content.cloneNode(!0));
+    const r = t.querySelector(".viewport"), i = t.querySelector(".progress__fill");
     if (!(r instanceof HTMLElement) || !(i instanceof HTMLElement))
       throw new Error("ScrollixGalleryElement template was not created.");
     this.viewport = r, this.progressFill = i;
   }
-  set project(e) {
-    this.currentProject = e, this.syncRuntime();
+  set project(t) {
+    this.currentProject = t, this.syncRuntime();
   }
   get project() {
     return this.currentProject;
@@ -282,8 +36,8 @@ class l extends HTMLElement {
   disconnectedCallback() {
     this.removeEventListener("keydown", this.handleKeydown), this.viewport.removeEventListener("click", this.handleViewportClick), this.bottomSheet?.dispose(), this.bottomSheet = null, this.desktopPanel?.dispose(), this.desktopPanel = null, this.unsubscribeState?.(), this.unsubscribeState = null, this.runtime?.dispose(), this.runtime = null;
   }
-  attributeChangedCallback(e) {
-    e === "project" && (this.currentProject = this.parseProjectAttribute(), this.syncRuntime());
+  attributeChangedCallback(t) {
+    t === "project" && (this.currentProject = this.parseProjectAttribute(), this.syncRuntime());
   }
   async syncRuntime() {
     if (!(!this.isConnected || !this.currentProject)) {
@@ -291,41 +45,41 @@ class l extends HTMLElement {
         await this.runtime.updateProject(this.currentProject);
         return;
       }
-      this.runtime = await o({
+      this.runtime = await n({
         container: this.viewport,
         project: this.currentProject,
         scrollElement: this
-      }), this.unsubscribeState = this.runtime.subscribeState((e) => {
-        this.progressFill.style.transform = `scaleX(${e.progress})`;
-      }), this.bottomSheet = n(this.runtime), this.desktopPanel = a(this.runtime), this.shadowRoot?.appendChild(this.bottomSheet.element), this.shadowRoot?.appendChild(this.desktopPanel.element);
+      }), this.unsubscribeState = this.runtime.subscribeState((t) => {
+        this.progressFill.style.transform = `scaleX(${t.progress})`;
+      }), this.bottomSheet = o(this.runtime), this.desktopPanel = l(this.runtime), this.shadowRoot?.appendChild(this.bottomSheet.element), this.shadowRoot?.appendChild(this.desktopPanel.element);
     }
   }
   parseProjectAttribute() {
-    const e = this.getAttribute("project");
-    return e ? JSON.parse(e) : null;
+    const t = this.getAttribute("project");
+    return t ? JSON.parse(t) : null;
   }
-  handleKeydown = (e) => {
+  handleKeydown = (t) => {
     if (this.runtime) {
-      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-        e.preventDefault(), this.runtime.nextItem();
+      if (t.key === "ArrowDown" || t.key === "ArrowRight") {
+        t.preventDefault(), this.runtime.nextItem();
         return;
       }
-      if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-        e.preventDefault(), this.runtime.previousItem();
+      if (t.key === "ArrowUp" || t.key === "ArrowLeft") {
+        t.preventDefault(), this.runtime.previousItem();
         return;
       }
-      e.key === "Escape" && (e.preventDefault(), this.runtime.setBottomSheetState("collapsed"));
+      t.key === "Escape" && (t.preventDefault(), this.runtime.setBottomSheetState("collapsed"));
     }
   };
-  handleViewportClick = (e) => {
-    !this.runtime || e.button !== 0 || this.runtime.getContentSurface().state === "collapsed" && this.runtime.selectItemAtClientPoint(e.clientX, e.clientY);
+  handleViewportClick = (t) => {
+    !this.runtime || t.button !== 0 || this.runtime.getContentSurface().state === "collapsed" && this.runtime.selectItemAtClientPoint(t.clientX, t.clientY);
   };
 }
-const h = (t = "scrollix-gallery") => {
-  customElements.get(t) || customElements.define(t, l);
+const d = (e = "scrollix-gallery") => {
+  customElements.get(e) || customElements.define(e, a);
 };
 export {
-  l as ScrollixGalleryElement,
-  h as defineScrollixGalleryElement
+  a as ScrollixGalleryElement,
+  d as defineScrollixGalleryElement
 };
 //# sourceMappingURL=element.js.map

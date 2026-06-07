@@ -95,6 +95,14 @@ const loadTextureOrFallback = async (
   }
 };
 
+const resolveAssetUrl = (url: string, assetBaseUrl?: string): string => {
+  if (!assetBaseUrl || /^https?:\/\//.test(url) || url.startsWith("data:")) {
+    return url;
+  }
+
+  return `${assetBaseUrl.replace(/\/$/, "")}/${url.replace(/^\//, "")}`;
+};
+
 const createTexturedMaterial = (
   color: string,
   roughness: number,
@@ -135,6 +143,7 @@ export const createProceduralArchitecturalMaterials = (
   materialFamily: MaterialFamily,
   ceilingLightIntensity = 1,
   textureCycleDepth?: number,
+  assetBaseUrl?: string,
 ): Promise<ProceduralArchitecturalMaterials> => {
   const lightScale = Math.max(0, ceilingLightIntensity);
   const textureSize = textureSizeForQuality(quality);
@@ -151,8 +160,8 @@ export const createProceduralArchitecturalMaterials = (
   const loader = new TextureLoader();
 
   return Promise.all([
-    loadTextureOrFallback(loader, config.colorUrl, fallbackColor),
-    loadTextureOrFallback(loader, config.normalUrl, fallbackNormal),
+    loadTextureOrFallback(loader, resolveAssetUrl(config.colorUrl, assetBaseUrl), fallbackColor),
+    loadTextureOrFallback(loader, resolveAssetUrl(config.normalUrl, assetBaseUrl), fallbackNormal),
   ]).then(([colorTexture, normalTexture]) => {
     const wallRepeatX = alignRepeatToCycle(depthRepeat * config.wallRepeatScale, depth, textureCycleDepth);
     const wallRepeatY = family === "brick" ? 3.2 : family === "wood" ? 2.4 : 2;

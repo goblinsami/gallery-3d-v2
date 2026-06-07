@@ -394,6 +394,7 @@ export class GalleryEngine {
       this.project.theme.materials.primary,
       this.project.theme.lighting?.ceilingLightIntensity,
       this.getTextureCycleDepth(),
+      this.assetBaseUrl,
     ));
 
     const itemObjects = await Promise.all(this.positionedItems.map((item) => {

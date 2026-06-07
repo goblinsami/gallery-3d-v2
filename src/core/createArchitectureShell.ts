@@ -23,6 +23,7 @@ export const createArchitectureShell = async (
   materialFamily: MaterialFamily,
   ceilingLightIntensity = 1,
   textureCycleDepth?: number,
+  assetBaseUrl?: string,
 ): Promise<Group> => {
   const root = new Group();
   const width = layout.bounds?.width ?? 5.4;
@@ -35,6 +36,7 @@ export const createArchitectureShell = async (
     materialFamily,
     lightScale,
     textureCycleDepth,
+    assetBaseUrl,
   );
   const floor = new Mesh(new PlaneGeometry(width, depth), materials.floor);
   const floorBase = new Mesh(new BoxGeometry(width, 0.04, depth), materials.trim);
