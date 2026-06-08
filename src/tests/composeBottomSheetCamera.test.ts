@@ -57,6 +57,19 @@ describe("composeBottomSheetCamera", () => {
     expect(mobile.lookAt).toEqual(item.focusTarget);
   });
 
+  it("applies framing distance when opening an item", () => {
+    const defaultFrame = composeBottomSheetCamera(camera, item, "full", {
+      viewportAspect: 16 / 9,
+    });
+    const pulledBackFrame = composeBottomSheetCamera(camera, item, "full", {
+      viewportAspect: 16 / 9,
+      framingDistance: 1.25,
+    });
+
+    expect(pulledBackFrame.position.x - item.focusTarget.x)
+      .toBeGreaterThan(defaultFrame.position.x - item.focusTarget.x);
+  });
+
   it("uses overlay framing preset values for wall item targets", () => {
     const frontal = composeBottomSheetCamera(camera, item, "full", {
       viewportAspect: 16 / 9,

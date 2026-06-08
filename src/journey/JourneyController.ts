@@ -1,4 +1,5 @@
 import { clamp } from "../utils/clamp";
+import { LOOP_RESTART_PROGRESS } from "./loopProgress";
 
 export interface JourneyControllerOptions {
   element: HTMLElement;
@@ -12,6 +13,7 @@ export interface JourneyControllerOptions {
 
 export interface JourneyProgressState {
   progress: number;
+  sequenceProgress: number;
   whiteMix: number;
 }
 
@@ -287,14 +289,26 @@ export class JourneyController {
     if (!this.loop) {
       return {
         progress: clamp(rawProgress, 0, 1),
+        sequenceProgress: clamp(rawProgress, 0, 1),
         whiteMix: 0,
       };
     }
 
+    const sequenceProgress = this.hasCompletedInitialLoop
+      ? this.wrap(rawProgress, 1)
+      : clamp(rawProgress, 0, 1);
+
     return {
-      progress: this.hasCompletedInitialLoop ? this.wrap(rawProgress, 1) : clamp(rawProgress, 0, 1),
+      progress: this.hasCompletedInitialLoop
+        ? this.mapLoopRestartProgress(this.wrap(rawProgress, 1))
+        : clamp(rawProgress, 0, 1),
+      sequenceProgress,
       whiteMix: 0,
     };
+  }
+
+  private mapLoopRestartProgress(progress: number): number {
+    return clamp(LOOP_RESTART_PROGRESS + progress * (1 - LOOP_RESTART_PROGRESS), 0, 1);
   }
 
   private wrap(value: number, modulus: number): number {

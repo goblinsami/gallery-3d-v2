@@ -54,6 +54,13 @@ interface RenderViewport {
   aspect: number;
 }
 
+interface ScreenBounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
 export class GalleryEngine {
   private readonly container: HTMLElement;
   private readonly renderers: RendererRegistry;
@@ -78,6 +85,7 @@ export class GalleryEngine {
   private readonly baseBackgroundColor = new Color(BASE_BACKGROUND_COLOR);
   private readonly baseFogColor = new Color(BASE_FOG_COLOR);
   private readonly projectedItemPoint = new Vector3();
+  private readonly cameraSpaceItemPoint = new Vector3();
   private renderViewport: RenderViewport | null = null;
   private effectiveRenderViewport: RenderViewport | null = null;
   private journeyViewportAspect = 16 / 9;
@@ -210,11 +218,17 @@ export class GalleryEngine {
       const projected = this.projectedItemPoint
         .set(item.focusTarget.x, item.focusTarget.y, item.focusTarget.z)
         .project(this.camera);
+      const cameraSpacePoint = this.cameraSpaceItemPoint
+        .set(item.focusTarget.x, item.focusTarget.y, item.focusTarget.z)
+        .applyMatrix4(this.camera.matrixWorldInverse);
+      const viewDepth = -cameraSpacePoint.z;
 
       if (
         !Number.isFinite(projected.x) ||
         !Number.isFinite(projected.y) ||
         !Number.isFinite(projected.z) ||
+        !Number.isFinite(viewDepth) ||
+        viewDepth <= 0.18 ||
         projected.z < -1 ||
         projected.z > 1
       ) {
@@ -227,15 +241,29 @@ export class GalleryEngine {
       const dy = localY - screenY;
       const centerDistanceSq = dx * dx + dy * dy;
       const artworkScreenBounds = this.getProjectedItemScreenBounds(item, viewport);
-      const distanceSq = artworkScreenBounds
-        ? this.getDistanceToScreenBoundsSq(localX, localY, artworkScreenBounds)
+      const usableScreenBounds = artworkScreenBounds &&
+        artworkScreenBounds.maxX - artworkScreenBounds.minX <= viewport.width * 0.82 &&
+        artworkScreenBounds.maxY - artworkScreenBounds.minY <= viewport.height * 0.82
+        ? artworkScreenBounds
+        : null;
+      const distanceSq = usableScreenBounds
+        ? this.getDistanceToScreenBoundsSq(localX, localY, usableScreenBounds)
         : centerDistanceSq;
-      const captureRadiusSq = artworkScreenBounds ? 28 * 28 : maxDistancePx * maxDistancePx;
+      const captureRadiusSq = usableScreenBounds ? 28 * 28 : maxDistancePx * maxDistancePx;
       if (distanceSq > captureRadiusSq && centerDistanceSq > maxDistancePx * maxDistancePx) {
         continue;
       }
 
-      const score = (distanceSq + centerDistanceSq * 0.02) * (1 + Math.max(0, projected.z) * 0.35);
+      const activeSourceId = this.bottomSheetFocusItemId?.split("__loop_")[0] ?? null;
+      const itemSourceId = item.id.split("__loop_")[0];
+      if (activeSourceId === itemSourceId && !usableScreenBounds && centerDistanceSq > 48 * 48) {
+        continue;
+      }
+
+      const depthPenalty = viewDepth < 0.75 ? 3 : 1;
+      const score = (distanceSq + centerDistanceSq * 0.02) *
+        (1 + Math.max(0, projected.z) * 0.35) *
+        depthPenalty;
       if (score < closestScore) {
         closestScore = score;
         closestItemId = item.id.split("__loop_")[0];
@@ -248,7 +276,7 @@ export class GalleryEngine {
   private getProjectedItemScreenBounds(
     item: PositionedGalleryItem,
     viewport: RenderViewport,
-  ): { minX: number; maxX: number; minY: number; maxY: number } | null {
+  ): ScreenBounds | null {
     if (!this.camera || !item.bounds) {
       return null;
     }
@@ -311,7 +339,7 @@ export class GalleryEngine {
   private getDistanceToScreenBoundsSq(
     x: number,
     y: number,
-    bounds: { minX: number; maxX: number; minY: number; maxY: number },
+    bounds: ScreenBounds,
   ): number {
     const dx = x < bounds.minX ? bounds.minX - x : x > bounds.maxX ? x - bounds.maxX : 0;
     const dy = y < bounds.minY ? bounds.minY - y : y > bounds.maxY ? y - bounds.maxY : 0;
@@ -393,8 +421,10 @@ export class GalleryEngine {
       this.quality,
       this.project.theme.materials.primary,
       this.project.theme.lighting?.ceilingLightIntensity,
+      this.project.theme.lighting?.ceilingLightRadius,
       this.getTextureCycleDepth(),
       this.assetBaseUrl,
+      this.project.theme.materials.textureTiling,
     ));
 
     const itemObjects = await Promise.all(this.positionedItems.map((item) => {
@@ -462,13 +492,22 @@ export class GalleryEngine {
       ? baseState.activeItemId
       : this.bottomSheetFocusItemId ?? baseState.activeItemId;
     const activeItem = focusItemId ? this.findPositionedItemById(focusItemId) : null;
+    const camera = this.project.journey.camera;
+    const isMobile = this.isMobileViewport();
+    const isStation = activeItem?.placement.side === "center";
+    const framingDistance = isMobile
+      ? isStation
+        ? camera?.mobileStationFramingDistance ?? 1.35
+        : camera?.mobileFramingDistance ?? 1
+      : camera?.desktopFramingDistance ?? 1.18;
     return composeBottomSheetCamera(baseState, activeItem, this.bottomSheetState, {
-      fov: this.project.journey.camera?.fov ?? 50,
+      fov: camera?.fov ?? 50,
       viewportAspect: this.effectiveRenderViewport?.aspect ?? this.journeyViewportAspect,
       overlayDistanceScale: this.project.journey.artworkOverlayAngleDistanceScale,
       overlayDistanceMin: this.project.journey.artworkOverlayAngleDistanceMin,
       overlayDistanceMax: this.project.journey.artworkOverlayAngleDistanceMax,
       overlayForwardOffset: this.project.journey.artworkOverlayForwardOffset,
+      framingDistance,
     });
   }
 
@@ -480,11 +519,21 @@ export class GalleryEngine {
   private rebuildKeyframes(): void {
     const journeyItems = this.getJourneyItemsForKeyframes();
     const loopSeamItem = this.getLoopSeamItem();
+    const camera = this.project.journey.camera;
+    const isMobile = this.isMobileViewport();
+    const framingDistance = isMobile
+      ? camera?.mobileFramingDistance ?? 1
+      : camera?.desktopFramingDistance ?? 1.18;
+    const stationFramingDistance = isMobile
+      ? camera?.mobileStationFramingDistance ?? 1.35
+      : framingDistance;
     this.keyframes = buildCameraKeyframes(journeyItems, {
-      cameraHeight: this.project.journey.camera?.height ?? 1.7,
-      lookAhead: this.project.journey.camera?.lookAhead ?? 2.2,
-      fov: this.project.journey.camera?.fov ?? 50,
+      cameraHeight: camera?.height ?? 1.7,
+      lookAhead: camera?.lookAhead ?? 2.2,
+      fov: camera?.fov ?? 50,
       viewportAspect: this.journeyViewportAspect,
+      framingDistance,
+      stationFramingDistance,
     }, loopSeamItem ? { loopSeamItem } : undefined);
   }
 
@@ -633,7 +682,7 @@ export class GalleryEngine {
     }
 
     if (this.bottomSheetState === "half") {
-      return isMobileViewport ? 0.82 : 1;
+      return isMobileViewport ? 0.48 : 1;
     }
 
     return 1;

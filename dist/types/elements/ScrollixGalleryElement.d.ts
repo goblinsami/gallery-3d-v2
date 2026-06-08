@@ -8,6 +8,8 @@ export declare class ScrollixGalleryElement extends HTMLElement {
     private desktopPanel;
     private unsubscribeState;
     private currentProject;
+    private mountedAssetBaseUrl;
+    private mountedAutoStartJourney;
     constructor();
     set project(project: GalleryProject | null);
     get project(): GalleryProject | null;
@@ -16,11 +18,23 @@ export declare class ScrollixGalleryElement extends HTMLElement {
     attributeChangedCallback(name: string): void;
     private syncRuntime;
     private parseProjectAttribute;
+    private getAssetBaseUrl;
+    private getAutoStartJourney;
+    private getInitialProgress;
+    private applyRuntimeState;
+    private disposeRuntime;
     private handleKeydown;
     private handleViewportClick;
 }
 export declare const defineScrollixGalleryElement: (tagName?: string) => void;
+export declare const registerScrollixGalleryRuntime: (tagName?: string) => void;
 declare global {
+    interface Window {
+        ScrollixGalleryRuntime?: {
+            init(tagName?: string): void;
+            registerWebComponents(tagName?: string): void;
+        };
+    }
     interface HTMLElementTagNameMap {
         "scrollix-gallery": ScrollixGalleryElement;
     }

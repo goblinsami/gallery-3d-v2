@@ -23,6 +23,7 @@ const TEXTURE_QUALITIES: Array<QualityPreset | "fallback"> = ["low", "medium", "
 const PLACEMENT_SIDES: PlacementSide[] = ["left", "right", "center", "auto"];
 const JOURNEY_MODES: JourneyMode[] = ["scroll", "manual"];
 const ARTWORK_OVERLAY_FRAMING_MODES: ArtworkOverlayFramingMode[] = ["frontal", "balanced", "cinematic"];
+const TEXTURE_TILING_DEFORMATIONS = ["stretched", "square"] as const;
 const TEXTURE_FORMATS: TextureFormat[] = ["ktx2", "webp", "jpg", "png"];
 const ARTWORK_OVERLAY_FRAMING_PRESETS: Record<ArtworkOverlayFramingMode, {
   scale: number;
@@ -95,6 +96,7 @@ const resolveEnum = <T extends string>(
 
 const validateTheme = (source: Record<string, unknown>): GalleryProject["theme"] => {
   const materials = getRecord(source, "materials");
+  const textureTiling = getRecord(materials, "textureTiling");
   const lighting = getRecord(source, "lighting");
   const items = getRecord(source, "items");
   return {
@@ -105,9 +107,18 @@ const validateTheme = (source: Record<string, unknown>): GalleryProject["theme"]
       accent: materials.accent
         ? resolveEnum(materials.accent, MATERIAL_FAMILY_VALUES, "metal")
         : undefined,
+      textureTiling: {
+        wall: getNumber(textureTiling, "wall", 1, 0.25, 4),
+        floor: getNumber(textureTiling, "floor", 1, 0.25, 4),
+        ceiling: getNumber(textureTiling, "ceiling", 1, 0.25, 4),
+        wallDeformation: resolveEnum(textureTiling.wallDeformation, TEXTURE_TILING_DEFORMATIONS, "stretched"),
+        floorDeformation: resolveEnum(textureTiling.floorDeformation, TEXTURE_TILING_DEFORMATIONS, "stretched"),
+        ceilingDeformation: resolveEnum(textureTiling.ceilingDeformation, TEXTURE_TILING_DEFORMATIONS, "stretched"),
+      },
     },
     lighting: {
       ceilingLightIntensity: getNumber(lighting, "ceilingLightIntensity", 1, 0, 2.5),
+      ceilingLightRadius: getNumber(lighting, "ceilingLightRadius", 0.095, 0.04, 0.22),
     },
     items: {
       showBorders: getBoolean(items, "showBorders", true),
@@ -154,6 +165,9 @@ const validateJourney = (source: Record<string, unknown>): GalleryProject["journ
       height: getNumber(camera, "height", undefined, 0.8, 4),
       fov: getNumber(camera, "fov", undefined, 28, 82),
       lookAhead: getNumber(camera, "lookAhead", undefined, 0.2, 12),
+      desktopFramingDistance: getNumber(camera, "desktopFramingDistance", 1.18, 0.75, 2.5),
+      mobileFramingDistance: getNumber(camera, "mobileFramingDistance", 1, 0.75, 2.5),
+      mobileStationFramingDistance: getNumber(camera, "mobileStationFramingDistance", 1.35, 0.75, 3),
     },
   };
 };

@@ -12,10 +12,20 @@ type ControlName =
   | "width"
   | "height"
   | "depth"
+  | "wallTextureTiling"
+  | "floorTextureTiling"
+  | "ceilingTextureTiling"
+  | "wallTextureDeformation"
+  | "floorTextureDeformation"
+  | "ceilingTextureDeformation"
   | "ceilingLightIntensity"
+  | "ceilingLightRadius"
   | "fov"
   | "cameraHeight"
   | "lookAhead"
+  | "desktopFramingDistance"
+  | "mobileFramingDistance"
+  | "mobileStationFramingDistance"
   | "smoothing"
   | "scrollStrength"
   | "loop"
@@ -34,10 +44,20 @@ export interface GalleryPlaygroundValues {
   width: number;
   height: number;
   depth: number;
+  wallTextureTiling: number;
+  floorTextureTiling: number;
+  ceilingTextureTiling: number;
+  wallTextureDeformation: NonNullable<GalleryProject["theme"]["materials"]["textureTiling"]>["wallDeformation"];
+  floorTextureDeformation: NonNullable<GalleryProject["theme"]["materials"]["textureTiling"]>["floorDeformation"];
+  ceilingTextureDeformation: NonNullable<GalleryProject["theme"]["materials"]["textureTiling"]>["ceilingDeformation"];
   ceilingLightIntensity: number;
+  ceilingLightRadius: number;
   fov: number;
   cameraHeight: number;
   lookAhead: number;
+  desktopFramingDistance: number;
+  mobileFramingDistance: number;
+  mobileStationFramingDistance: number;
   smoothing: number;
   scrollStrength: PlaygroundScrollStrength;
   loop: boolean;
@@ -301,9 +321,53 @@ playgroundTemplate.innerHTML = `
         <input data-control="depth" type="range" min="120" max="400" step="10" />
       </label>
       <label class="field">
+        <span class="field__label">Wall tile <span class="field__value" data-value="wallTextureTiling">1</span></span>
+        <span class="field__hint">Multiplica el tileado de la textura de las paredes.</span>
+        <input data-control="wallTextureTiling" type="range" min="0.25" max="4" step="0.05" />
+      </label>
+      <label class="field">
+        <span class="field__label">Wall shape <span class="field__value" data-value="wallTextureDeformation">stretched</span></span>
+        <span class="field__hint">Elige si el tileado de pared se estira o conserva proporcion cuadrada.</span>
+        <select data-control="wallTextureDeformation">
+          <option value="stretched">Stretched</option>
+          <option value="square">Square</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="field__label">Floor tile <span class="field__value" data-value="floorTextureTiling">1</span></span>
+        <span class="field__hint">Multiplica el tileado de la textura del suelo.</span>
+        <input data-control="floorTextureTiling" type="range" min="0.25" max="4" step="0.05" />
+      </label>
+      <label class="field">
+        <span class="field__label">Floor shape <span class="field__value" data-value="floorTextureDeformation">stretched</span></span>
+        <span class="field__hint">Elige si el tileado del suelo se estira o conserva proporcion cuadrada.</span>
+        <select data-control="floorTextureDeformation">
+          <option value="stretched">Stretched</option>
+          <option value="square">Square</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="field__label">Ceiling tile <span class="field__value" data-value="ceilingTextureTiling">1</span></span>
+        <span class="field__hint">Multiplica el tileado de la textura del techo.</span>
+        <input data-control="ceilingTextureTiling" type="range" min="0.25" max="4" step="0.05" />
+      </label>
+      <label class="field">
+        <span class="field__label">Ceiling shape <span class="field__value" data-value="ceilingTextureDeformation">stretched</span></span>
+        <span class="field__hint">Elige si el tileado del techo se estira o conserva proporcion cuadrada.</span>
+        <select data-control="ceilingTextureDeformation">
+          <option value="stretched">Stretched</option>
+          <option value="square">Square</option>
+        </select>
+      </label>
+      <label class="field">
         <span class="field__label">Ceiling light <span class="field__value" data-value="ceilingLightIntensity">1</span></span>
         <span class="field__hint">Regula la intensidad de downlights, glow y rebote superior del techo.</span>
         <input data-control="ceilingLightIntensity" type="range" min="0" max="2.5" step="0.05" />
+      </label>
+      <label class="field">
+        <span class="field__label">Light radius <span class="field__value" data-value="ceilingLightRadius">0.095</span></span>
+        <span class="field__hint">Ajusta el tamano fisico del aro y nucleo de las luces superiores.</span>
+        <input data-control="ceilingLightRadius" type="range" min="0.04" max="0.22" step="0.005" />
       </label>
       <label class="field">
         <span class="field__label">FOV <span class="field__value" data-value="fov">50</span></span>
@@ -319,6 +383,21 @@ playgroundTemplate.innerHTML = `
         <span class="field__label">Look ahead <span class="field__value" data-value="lookAhead">3.2</span></span>
         <span class="field__hint">Decide cuánto anticipa la cámara el siguiente punto de interés.</span>
         <input data-control="lookAhead" type="range" min="0.8" max="7" step="0.1" />
+      </label>
+      <label class="field">
+        <span class="field__label">Desktop frame <span class="field__value" data-value="desktopFramingDistance">1.18</span></span>
+        <span class="field__hint">Aleja el encuadre desktop para incluir mas arquitectura y marcos de luz.</span>
+        <input data-control="desktopFramingDistance" type="range" min="0.75" max="2.5" step="0.01" />
+      </label>
+      <label class="field">
+        <span class="field__label">Mobile frame <span class="field__value" data-value="mobileFramingDistance">1</span></span>
+        <span class="field__hint">Ajusta el encuadre mobile general de items de pared.</span>
+        <input data-control="mobileFramingDistance" type="range" min="0.75" max="2.5" step="0.01" />
+      </label>
+      <label class="field">
+        <span class="field__label">Mobile station <span class="field__value" data-value="mobileStationFramingDistance">1.35</span></span>
+        <span class="field__hint">Aleja solo las estaciones centradas en mobile para evitar zoom excesivo.</span>
+        <input data-control="mobileStationFramingDistance" type="range" min="0.75" max="3" step="0.01" />
       </label>
       <label class="field">
         <span class="field__label">Smoothing <span class="field__value" data-value="smoothing">0.16</span></span>
@@ -421,10 +500,20 @@ export class GalleryPlaygroundElement extends HTMLElement {
       width: this.getControl("width", HTMLInputElement),
       height: this.getControl("height", HTMLInputElement),
       depth: this.getControl("depth", HTMLInputElement),
+      wallTextureTiling: this.getControl("wallTextureTiling", HTMLInputElement),
+      floorTextureTiling: this.getControl("floorTextureTiling", HTMLInputElement),
+      ceilingTextureTiling: this.getControl("ceilingTextureTiling", HTMLInputElement),
+      wallTextureDeformation: this.getControl("wallTextureDeformation", HTMLSelectElement),
+      floorTextureDeformation: this.getControl("floorTextureDeformation", HTMLSelectElement),
+      ceilingTextureDeformation: this.getControl("ceilingTextureDeformation", HTMLSelectElement),
       ceilingLightIntensity: this.getControl("ceilingLightIntensity", HTMLInputElement),
+      ceilingLightRadius: this.getControl("ceilingLightRadius", HTMLInputElement),
       fov: this.getControl("fov", HTMLInputElement),
       cameraHeight: this.getControl("cameraHeight", HTMLInputElement),
       lookAhead: this.getControl("lookAhead", HTMLInputElement),
+      desktopFramingDistance: this.getControl("desktopFramingDistance", HTMLInputElement),
+      mobileFramingDistance: this.getControl("mobileFramingDistance", HTMLInputElement),
+      mobileStationFramingDistance: this.getControl("mobileStationFramingDistance", HTMLInputElement),
       smoothing: this.getControl("smoothing", HTMLInputElement),
       scrollStrength: this.getControl("scrollStrength", HTMLSelectElement),
       loop: this.getControl("loop", HTMLInputElement),
@@ -439,10 +528,20 @@ export class GalleryPlaygroundElement extends HTMLElement {
       width: this.getValueLabel("width"),
       height: this.getValueLabel("height"),
       depth: this.getValueLabel("depth"),
+      wallTextureTiling: this.getValueLabel("wallTextureTiling"),
+      floorTextureTiling: this.getValueLabel("floorTextureTiling"),
+      ceilingTextureTiling: this.getValueLabel("ceilingTextureTiling"),
+      wallTextureDeformation: this.getValueLabel("wallTextureDeformation"),
+      floorTextureDeformation: this.getValueLabel("floorTextureDeformation"),
+      ceilingTextureDeformation: this.getValueLabel("ceilingTextureDeformation"),
       ceilingLightIntensity: this.getValueLabel("ceilingLightIntensity"),
+      ceilingLightRadius: this.getValueLabel("ceilingLightRadius"),
       fov: this.getValueLabel("fov"),
       cameraHeight: this.getValueLabel("cameraHeight"),
       lookAhead: this.getValueLabel("lookAhead"),
+      desktopFramingDistance: this.getValueLabel("desktopFramingDistance"),
+      mobileFramingDistance: this.getValueLabel("mobileFramingDistance"),
+      mobileStationFramingDistance: this.getValueLabel("mobileStationFramingDistance"),
       smoothing: this.getValueLabel("smoothing"),
       scrollStrength: this.getValueLabel("scrollStrength"),
     };
@@ -524,10 +623,20 @@ export class GalleryPlaygroundElement extends HTMLElement {
       width: project.layout.bounds?.width ?? 8,
       height: project.layout.bounds?.height ?? 4.2,
       depth: project.layout.bounds?.depth ?? 360,
+      wallTextureTiling: project.theme.materials.textureTiling?.wall ?? 1,
+      floorTextureTiling: project.theme.materials.textureTiling?.floor ?? 1,
+      ceilingTextureTiling: project.theme.materials.textureTiling?.ceiling ?? 1,
+      wallTextureDeformation: project.theme.materials.textureTiling?.wallDeformation ?? "stretched",
+      floorTextureDeformation: project.theme.materials.textureTiling?.floorDeformation ?? "stretched",
+      ceilingTextureDeformation: project.theme.materials.textureTiling?.ceilingDeformation ?? "stretched",
       ceilingLightIntensity: project.theme.lighting?.ceilingLightIntensity ?? 1,
+      ceilingLightRadius: project.theme.lighting?.ceilingLightRadius ?? 0.095,
       fov: project.journey.camera?.fov ?? 50,
       cameraHeight: project.journey.camera?.height ?? 1.72,
       lookAhead: project.journey.camera?.lookAhead ?? 3.2,
+      desktopFramingDistance: project.journey.camera?.desktopFramingDistance ?? 1.18,
+      mobileFramingDistance: project.journey.camera?.mobileFramingDistance ?? 1,
+      mobileStationFramingDistance: project.journey.camera?.mobileStationFramingDistance ?? 1.35,
       smoothing: project.journey.smoothing ?? 0.16,
       scrollStrength: project.journey.scrollStrength ? parseScrollStrength(String(project.journey.scrollStrength)) : "auto",
       loop: project.journey.loop ?? false,
@@ -545,10 +654,20 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.controls.width.value = String(values.width);
     this.controls.height.value = String(values.height);
     this.controls.depth.value = String(values.depth);
+    this.controls.wallTextureTiling.value = String(values.wallTextureTiling);
+    this.controls.floorTextureTiling.value = String(values.floorTextureTiling);
+    this.controls.ceilingTextureTiling.value = String(values.ceilingTextureTiling);
+    this.controls.wallTextureDeformation.value = values.wallTextureDeformation ?? "stretched";
+    this.controls.floorTextureDeformation.value = values.floorTextureDeformation ?? "stretched";
+    this.controls.ceilingTextureDeformation.value = values.ceilingTextureDeformation ?? "stretched";
     this.controls.ceilingLightIntensity.value = String(values.ceilingLightIntensity);
+    this.controls.ceilingLightRadius.value = String(values.ceilingLightRadius);
     this.controls.fov.value = String(values.fov);
     this.controls.cameraHeight.value = String(values.cameraHeight);
     this.controls.lookAhead.value = String(values.lookAhead);
+    this.controls.desktopFramingDistance.value = String(values.desktopFramingDistance);
+    this.controls.mobileFramingDistance.value = String(values.mobileFramingDistance);
+    this.controls.mobileStationFramingDistance.value = String(values.mobileStationFramingDistance);
     this.controls.smoothing.value = String(values.smoothing);
     this.controls.scrollStrength.value = String(values.scrollStrength);
     (this.controls.loop as HTMLInputElement).checked = values.loop;
@@ -566,10 +685,20 @@ export class GalleryPlaygroundElement extends HTMLElement {
       width: getNumber(this.controls.width as HTMLInputElement, 8),
       height: getNumber(this.controls.height as HTMLInputElement, 4.2),
       depth: getNumber(this.controls.depth as HTMLInputElement, 360),
+      wallTextureTiling: getNumber(this.controls.wallTextureTiling as HTMLInputElement, 1),
+      floorTextureTiling: getNumber(this.controls.floorTextureTiling as HTMLInputElement, 1),
+      ceilingTextureTiling: getNumber(this.controls.ceilingTextureTiling as HTMLInputElement, 1),
+      wallTextureDeformation: this.controls.wallTextureDeformation.value === "square" ? "square" : "stretched",
+      floorTextureDeformation: this.controls.floorTextureDeformation.value === "square" ? "square" : "stretched",
+      ceilingTextureDeformation: this.controls.ceilingTextureDeformation.value === "square" ? "square" : "stretched",
       ceilingLightIntensity: getNumber(this.controls.ceilingLightIntensity as HTMLInputElement, 1),
+      ceilingLightRadius: getNumber(this.controls.ceilingLightRadius as HTMLInputElement, 0.095),
       fov: getNumber(this.controls.fov as HTMLInputElement, 50),
       cameraHeight: getNumber(this.controls.cameraHeight as HTMLInputElement, 1.72),
       lookAhead: getNumber(this.controls.lookAhead as HTMLInputElement, 3.2),
+      desktopFramingDistance: getNumber(this.controls.desktopFramingDistance as HTMLInputElement, 1.18),
+      mobileFramingDistance: getNumber(this.controls.mobileFramingDistance as HTMLInputElement, 1),
+      mobileStationFramingDistance: getNumber(this.controls.mobileStationFramingDistance as HTMLInputElement, 1.35),
       smoothing: getNumber(this.controls.smoothing as HTMLInputElement, 0.16),
       scrollStrength: parseScrollStrength(this.controls.scrollStrength.value),
       loop: (this.controls.loop as HTMLInputElement).checked,
@@ -599,10 +728,20 @@ export class GalleryPlaygroundElement extends HTMLElement {
         materials: {
           ...project.theme.materials,
           primary: values.primary,
+          textureTiling: {
+            ...project.theme.materials.textureTiling,
+            wall: values.wallTextureTiling,
+            floor: values.floorTextureTiling,
+            ceiling: values.ceilingTextureTiling,
+            wallDeformation: values.wallTextureDeformation,
+            floorDeformation: values.floorTextureDeformation,
+            ceilingDeformation: values.ceilingTextureDeformation,
+          },
         },
         lighting: {
           ...project.theme.lighting,
           ceilingLightIntensity: values.ceilingLightIntensity,
+          ceilingLightRadius: values.ceilingLightRadius,
         },
         items: {
           ...project.theme.items,
@@ -630,6 +769,9 @@ export class GalleryPlaygroundElement extends HTMLElement {
           fov: values.fov,
           height: values.cameraHeight,
           lookAhead: values.lookAhead,
+          desktopFramingDistance: values.desktopFramingDistance,
+          mobileFramingDistance: values.mobileFramingDistance,
+          mobileStationFramingDistance: values.mobileStationFramingDistance,
         },
       },
       items,
@@ -645,10 +787,20 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.valueLabels.width!.textContent = formatNumber(values.width);
     this.valueLabels.height!.textContent = formatNumber(values.height);
     this.valueLabels.depth!.textContent = formatNumber(values.depth);
+    this.valueLabels.wallTextureTiling!.textContent = formatNumber(values.wallTextureTiling);
+    this.valueLabels.floorTextureTiling!.textContent = formatNumber(values.floorTextureTiling);
+    this.valueLabels.ceilingTextureTiling!.textContent = formatNumber(values.ceilingTextureTiling);
+    this.valueLabels.wallTextureDeformation!.textContent = values.wallTextureDeformation ?? "stretched";
+    this.valueLabels.floorTextureDeformation!.textContent = values.floorTextureDeformation ?? "stretched";
+    this.valueLabels.ceilingTextureDeformation!.textContent = values.ceilingTextureDeformation ?? "stretched";
     this.valueLabels.ceilingLightIntensity!.textContent = formatNumber(values.ceilingLightIntensity);
+    this.valueLabels.ceilingLightRadius!.textContent = formatNumber(values.ceilingLightRadius);
     this.valueLabels.fov!.textContent = formatNumber(values.fov);
     this.valueLabels.cameraHeight!.textContent = formatNumber(values.cameraHeight);
     this.valueLabels.lookAhead!.textContent = formatNumber(values.lookAhead);
+    this.valueLabels.desktopFramingDistance!.textContent = formatNumber(values.desktopFramingDistance);
+    this.valueLabels.mobileFramingDistance!.textContent = formatNumber(values.mobileFramingDistance);
+    this.valueLabels.mobileStationFramingDistance!.textContent = formatNumber(values.mobileStationFramingDistance);
     this.valueLabels.smoothing!.textContent = formatNumber(values.smoothing);
     this.valueLabels.scrollStrength!.textContent = formatScrollStrength(values.scrollStrength);
     this.summary.textContent = `${itemCount} items · ${getTextureLabel(values.primary)} · ${values.overlayFramingMode} · ${values.loop ? "loop" : "linear"}`;

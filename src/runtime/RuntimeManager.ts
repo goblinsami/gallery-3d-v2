@@ -1,6 +1,11 @@
 import { GalleryEngine } from "../core/GalleryEngine";
 import { JourneyController } from "../journey/JourneyController";
-import { buildItemProgressMap, getAdjacentItemProgress, getItemProgress } from "../journey/itemProgress";
+import {
+  buildItemProgressMap,
+  getAdjacentItemProgress,
+  getItemProgress,
+  getSequentialActiveItemId,
+} from "../journey/itemProgress";
 import { BottomSheetController } from "./BottomSheetController";
 import type { LayoutRegistry, RendererRegistry } from "../core/Registry";
 import type { GalleryProject, ValidatedGalleryProject } from "../types/GalleryProject";
@@ -49,6 +54,19 @@ export class RuntimeManager {
       itemId
         ? currentProject.items.find((item) => item.id === itemId.split("__loop_")[0]) ?? null
         : null;
+    const getSourceItemIndex = (itemId: string | null): number | undefined => {
+      const sourceId = itemId?.split("__loop_")[0];
+      if (!sourceId) {
+        return undefined;
+      }
+
+      const index = currentProject.items.findIndex((item) => item.id === sourceId);
+      return index >= 0 ? index : undefined;
+    };
+    const setBottomSheetItem = (itemId: string | null): void => {
+      const sourceItem = getSourceItem(itemId);
+      bottomSheet.setActiveItem(sourceItem, getSourceItemIndex(itemId), currentProject.items.length);
+    };
     const getSelectedItem = () => getSourceItem(selectedSourceItemId);
     const syncBottomSheetFocus = (): void => {
       controller?.setInteractionEnabled(bottomSheet.getModel().state === "collapsed");
@@ -61,7 +79,7 @@ export class RuntimeManager {
       }
 
       selectedSourceItemId = sourceItem.id;
-      bottomSheet.setActiveItem(sourceItem);
+      bottomSheet.setActiveItem(sourceItem, getSourceItemIndex(sourceItem.id), currentProject.items.length);
       bottomSheet.setState(state);
       syncBottomSheetFocus();
       runtimeState = {
@@ -71,19 +89,19 @@ export class RuntimeManager {
       stateListeners.forEach((listener) => listener(runtimeState));
       return true;
     };
-    const syncProgress = (progress: number, whiteMix = 0): void => {
+    const syncProgress = (progress: number, whiteMix = 0, sequenceProgress = progress): void => {
       const visibleWhiteMix = 0;
-      const state = engine.setJourneyState(progress, visibleWhiteMix);
+      engine.setJourneyState(progress, visibleWhiteMix);
+      const activeSourceId = getSequentialActiveItemId(itemProgress, sequenceProgress);
       runtimeState = {
         progress,
         whiteMix: visibleWhiteMix,
-        activeItemId: state.activeItemId,
+        activeItemId: activeSourceId,
       };
-      const activeSourceId = state.activeItemId?.split("__loop_")[0] ?? null;
       if (activeSourceId) {
         selectedSourceItemId = activeSourceId;
       }
-      bottomSheet.setActiveItem(getSourceItem(activeSourceId) ?? getSelectedItem());
+      setBottomSheetItem(activeSourceId ?? getSelectedItem()?.id ?? null);
       syncBottomSheetFocus();
       stateListeners.forEach((listener) => listener(runtimeState));
     };
@@ -104,7 +122,7 @@ export class RuntimeManager {
         damping: project.journey.damping,
         sensitivity: BASE_SCROLL_SENSITIVITY * (project.journey.scrollStrength ?? 1),
         loop: project.journey.loop,
-        onProgress: (state) => syncProgress(state.progress, state.whiteMix),
+        onProgress: (state) => syncProgress(state.progress, state.whiteMix, state.sequenceProgress),
       });
     };
     const resetJourneyController = (project: ValidatedGalleryProject): void => {

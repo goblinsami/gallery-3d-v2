@@ -38,6 +38,7 @@ const placementOptions = ["station", "wall-left", "wall-right", "wall-auto"];
 const sizeOptions = ["small", "medium", "large"];
 const lightingOptions = ["none", "subtle", "featured"];
 const scrollStrengthOptions = ["auto", 0.5, 0.75, 1, 1.5, 2, 3, 4, 5];
+const textureDeformationOptions = ["stretched", "square"];
 
 const getShadowParts = (host: HTMLElement): ShadowParts => {
   const root = host.shadowRoot ?? host.attachShadow({ mode: "open" });
@@ -261,10 +262,35 @@ addPropertyControls(ScrollixGalleryFramer, {
   width: { type: ControlType.Number, title: "Width", min: 5, max: 14, step: 0.25 },
   height: { type: ControlType.Number, title: "Height", min: 3, max: 7, step: 0.1 },
   depth: { type: ControlType.Number, title: "Depth", min: 120, max: 400, step: 10 },
+  wallTextureTiling: { type: ControlType.Number, title: "Wall Tile", min: 0.25, max: 4, step: 0.05 },
+  floorTextureTiling: { type: ControlType.Number, title: "Floor Tile", min: 0.25, max: 4, step: 0.05 },
+  ceilingTextureTiling: { type: ControlType.Number, title: "Ceiling Tile", min: 0.25, max: 4, step: 0.05 },
+  wallTextureDeformation: {
+    type: ControlType.Enum,
+    title: "Wall Shape",
+    options: textureDeformationOptions,
+    optionTitles: ["Stretched", "Square"],
+  },
+  floorTextureDeformation: {
+    type: ControlType.Enum,
+    title: "Floor Shape",
+    options: textureDeformationOptions,
+    optionTitles: ["Stretched", "Square"],
+  },
+  ceilingTextureDeformation: {
+    type: ControlType.Enum,
+    title: "Ceil Shape",
+    options: textureDeformationOptions,
+    optionTitles: ["Stretched", "Square"],
+  },
   ceilingLightIntensity: { type: ControlType.Number, title: "Ceiling", min: 0, max: 2.5, step: 0.05 },
+  ceilingLightRadius: { type: ControlType.Number, title: "Light Radius", min: 0.04, max: 0.22, step: 0.005 },
   fov: { type: ControlType.Number, title: "FOV", min: 36, max: 68, step: 1 },
   cameraHeight: { type: ControlType.Number, title: "Camera", min: 1.2, max: 2.3, step: 0.01 },
   lookAhead: { type: ControlType.Number, title: "Look Ahead", min: 0.8, max: 7, step: 0.1 },
+  desktopFramingDistance: { type: ControlType.Number, title: "Desktop Frame", min: 0.75, max: 2.5, step: 0.01 },
+  mobileFramingDistance: { type: ControlType.Number, title: "Mobile Frame", min: 0.75, max: 2.5, step: 0.01 },
+  mobileStationFramingDistance: { type: ControlType.Number, title: "Mobile Station", min: 0.75, max: 3, step: 0.01 },
   smoothing: { type: ControlType.Number, title: "Smoothing", min: 0.04, max: 0.4, step: 0.01 },
   damping: { type: ControlType.Number, title: "Damping", min: 0.2, max: 0.98, step: 0.01 },
   scrollStrength: {

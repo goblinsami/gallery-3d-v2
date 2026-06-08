@@ -4,6 +4,7 @@ import {
   buildItemProgressMap,
   getAdjacentItemProgress,
   getItemProgress,
+  getSequentialActiveItemId,
 } from "../journey/itemProgress";
 
 const item = (id: string): GalleryItem => ({
@@ -37,5 +38,16 @@ describe("itemProgress", () => {
     expect(getAdjacentItemProgress(entries, "two", 1)?.itemId).toBe("three");
     expect(getAdjacentItemProgress(entries, "two", -1)?.itemId).toBe("one");
     expect(getAdjacentItemProgress(entries, "three", 1)).toBeNull();
+  });
+
+  it("resolves the active item as a strict sequential counter", () => {
+    const entries = buildItemProgressMap([item("one"), item("two"), item("three")]);
+
+    expect(getSequentialActiveItemId(entries, 0)).toBe("one");
+    expect(getSequentialActiveItemId(entries, 0.32)).toBe("one");
+    expect(getSequentialActiveItemId(entries, 1 / 3)).toBe("two");
+    expect(getSequentialActiveItemId(entries, 0.67)).toBe("three");
+    expect(getSequentialActiveItemId(entries, 1)).toBe("three");
+    expect(getSequentialActiveItemId(entries, 0)).toBe("one");
   });
 });

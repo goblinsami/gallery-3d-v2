@@ -8,8 +8,19 @@ const project = {
     theme: {
         quality: "auto",
         atmosphere: "calm",
-        materials: { primary: "stone", accent: "metal" },
-        lighting: { ceilingLightIntensity: 1 },
+        materials: {
+            primary: "stone",
+            accent: "metal",
+            textureTiling: {
+                wall: 1,
+                floor: 1,
+                ceiling: 1,
+                wallDeformation: "stretched",
+                floorDeformation: "stretched",
+                ceilingDeformation: "stretched",
+            },
+        },
+        lighting: { ceilingLightIntensity: 1, ceilingLightRadius: 0.095 },
         items: { showBorders: true },
     },
     layout: {
@@ -24,7 +35,14 @@ const project = {
         smoothing: 0.16,
         damping: 0.84,
         scrollStrength: 1,
-        camera: { height: 1.72, fov: 50, lookAhead: 3.2 },
+        camera: {
+            height: 1.72,
+            fov: 50,
+            lookAhead: 3.2,
+            desktopFramingDistance: 1.18,
+            mobileFramingDistance: 1,
+            mobileStationFramingDistance: 1.35,
+        },
     },
     items: [
         {
@@ -44,9 +62,16 @@ const project = {
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function waitForAnyTag() {
-    for (const tag of TAGS) {
-        window.ScrollixGalleryRuntime?.init?.(tag)
-        window.ScrollixGalleryRuntime?.registerWebComponents?.(tag)
+    const existingTag = TAGS.find((name) => customElements.get(name))
+    if (existingTag) return existingTag
+
+    try {
+        window.ScrollixGalleryRuntime?.init?.("scrollix-gallery")
+        window.ScrollixGalleryRuntime?.registerWebComponents?.("scrollix-gallery")
+    } catch (error) {
+        const recoveredTag = TAGS.find((name) => customElements.get(name))
+        if (recoveredTag) return recoveredTag
+        throw error
     }
 
     for (let i = 0; i < 80; i++) {

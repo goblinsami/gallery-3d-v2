@@ -9,6 +9,7 @@ export interface JourneyControllerOptions {
 }
 export interface JourneyProgressState {
     progress: number;
+    sequenceProgress: number;
     whiteMix: number;
 }
 export declare class JourneyController {
@@ -47,6 +48,7 @@ export declare class JourneyController {
     private normalizeProgress;
     private getLoopCycleLength;
     private resolveProgressState;
+    private mapLoopRestartProgress;
     private wrap;
 }
 //# sourceMappingURL=JourneyController.d.ts.map

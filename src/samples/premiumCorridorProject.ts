@@ -7,9 +7,18 @@ export const premiumCorridorProject: GalleryProject = {
     materials: {
       primary: "stone",
       accent: "metal",
+      textureTiling: {
+        wall: 1,
+        floor: 1,
+        ceiling: 1,
+        wallDeformation: "stretched",
+        floorDeformation: "stretched",
+        ceilingDeformation: "stretched",
+      },
     },
     lighting: {
       ceilingLightIntensity: 1,
+      ceilingLightRadius: 0.095,
     },
     items: {
       showBorders: true,
@@ -34,6 +43,9 @@ export const premiumCorridorProject: GalleryProject = {
       height: 1.72,
       fov: 50,
       lookAhead: 3.2,
+      desktopFramingDistance: 1.18,
+      mobileFramingDistance: 1,
+      mobileStationFramingDistance: 1.35,
     },
   },
   items: [

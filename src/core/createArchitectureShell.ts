@@ -9,21 +9,28 @@ import {
   Matrix4,
   Mesh,
   PlaneGeometry,
+  RectAreaLight,
 } from "three";
-import type { LayoutConfig, MaterialFamily } from "../types/GalleryProject";
+import type { LayoutConfig, MaterialFamily, TextureTilingConfig } from "../types/GalleryProject";
 import type { QualitySettings } from "../types/Quality";
 import { createArchitecturalBake } from "../lighting/ArchitecturalBake";
 import type { ProceduralArchitecturalMaterials } from "./createProceduralArchitecturalMaterials";
 import { createProceduralArchitecturalMaterials } from "./createProceduralArchitecturalMaterials";
 import { getArchitecturalModulePattern } from "../utils/architecturalModules";
 
+const CEILING_FILL_LIGHT_WIDTH_SCALE = 0.92;
+const CEILING_FILL_LIGHT_DEPTH_SCALE = 1.04;
+const CEILING_FILL_LIGHT_INSET = 0.38;
+
 export const createArchitectureShell = async (
   layout: LayoutConfig,
   quality: QualitySettings,
   materialFamily: MaterialFamily,
   ceilingLightIntensity = 1,
+  ceilingLightRadius = 0.095,
   textureCycleDepth?: number,
   assetBaseUrl?: string,
+  textureTiling?: TextureTilingConfig,
 ): Promise<Group> => {
   const root = new Group();
   const width = layout.bounds?.width ?? 5.4;
@@ -37,6 +44,8 @@ export const createArchitectureShell = async (
     lightScale,
     textureCycleDepth,
     assetBaseUrl,
+    textureTiling,
+    { width, height },
   );
   const floor = new Mesh(new PlaneGeometry(width, depth), materials.floor);
   const floorBase = new Mesh(new BoxGeometry(width, 0.04, depth), materials.trim);
@@ -65,11 +74,15 @@ export const createArchitectureShell = async (
 
   root.name = "architecture-shell";
   root.add(floorBase, floor, ceiling, leftWall, rightWall, ambient, hemisphere, key);
+  const ceilingFill = createCeilingFillLight(width, depth, height, lightScale);
+  if (ceilingFill) {
+    root.add(ceilingFill);
+  }
   root.add(createLongLeds(width, depth, height, materials));
   root.add(createFloorLeds(width, depth, materials));
   root.add(createWallLeds(width, depth, height, materials, quality, textureCycleDepth));
   root.add(createCeilingGrid(width, depth, height, materials, quality, textureCycleDepth));
-  root.add(createCeilingDownlights(width, depth, height, materials, quality, textureCycleDepth));
+  root.add(createCeilingDownlights(width, depth, height, materials, quality, ceilingLightRadius, textureCycleDepth));
   root.add(createArchitecturalBake(width, depth, height, quality, lightScale, textureCycleDepth));
 
   return root;
@@ -77,6 +90,30 @@ export const createArchitectureShell = async (
 
 const getWallLedXs = (width: number): [number, number] => [-width / 2 + 0.028, width / 2 - 0.028];
 const getLightGridXs = (width: number): [number, number, number] => [-width * 0.43, 0, width * 0.43];
+
+const createCeilingFillLight = (
+  width: number,
+  depth: number,
+  height: number,
+  lightScale: number,
+): RectAreaLight | null => {
+  if (lightScale <= 0) {
+    return null;
+  }
+
+  const [leftGridX, , rightGridX] = getLightGridXs(width);
+  const gridWidth = rightGridX - leftGridX;
+  const light = new RectAreaLight(
+    "#fff0c6",
+    lightScale * 0.65,
+    gridWidth * CEILING_FILL_LIGHT_WIDTH_SCALE,
+    depth * CEILING_FILL_LIGHT_DEPTH_SCALE,
+  );
+  light.name = "ceiling-fill-light";
+  light.position.set(0, height - CEILING_FILL_LIGHT_INSET, -depth / 2);
+  light.lookAt(0, height, -depth / 2);
+  return light;
+};
 
 const createCeilingGrid = (
   width: number,
@@ -231,14 +268,17 @@ const createCeilingDownlights = (
   height: number,
   materials: ProceduralArchitecturalMaterials,
   quality: QualitySettings,
+  ceilingLightRadius: number,
   textureCycleDepth?: number,
 ): Group => {
   const root = new Group();
   const moduleZs = getArchitecturalModulePattern(depth, quality.geometryDetail, textureCycleDepth).positions;
   const xPositions = getLightGridXs(width);
   const total = xPositions.length * moduleZs.length;
-  const trim = new InstancedMesh(new CylinderGeometry(0.095, 0.095, 0.033, 20), materials.fixtureTrim, total);
-  const core = new InstancedMesh(new CylinderGeometry(0.052, 0.052, 0.037, 16), materials.fixtureCore, total);
+  const trimRadius = Math.max(0.04, ceilingLightRadius);
+  const coreRadius = trimRadius * (0.052 / 0.095);
+  const trim = new InstancedMesh(new CylinderGeometry(trimRadius, trimRadius, 0.033, 20), materials.fixtureTrim, total);
+  const core = new InstancedMesh(new CylinderGeometry(coreRadius, coreRadius, 0.037, 16), materials.fixtureCore, total);
   const matrix = new Matrix4();
 
   xPositions.forEach((x, rowIndex) => {

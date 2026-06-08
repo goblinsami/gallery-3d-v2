@@ -8,5 +8,6 @@ export declare const composeBottomSheetCamera: (camera: CameraState, item: Posit
     overlayDistanceMin?: number;
     overlayDistanceMax?: number;
     overlayForwardOffset?: number;
+    framingDistance?: number;
 }) => CameraState;
 //# sourceMappingURL=composeBottomSheetCamera.d.ts.map

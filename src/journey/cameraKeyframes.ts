@@ -1,6 +1,8 @@
 import type { PositionedGalleryItem, Vec3 } from "../types/GalleryItem";
 import type { CameraKeyframe, JourneyMetrics } from "../types/Journey";
 import { getFramedFocusDistance, getItemFramingBounds } from "./framing";
+import { getCameraStateAtProgress } from "./getCameraStateAtProgress";
+import { LOOP_RESTART_PROGRESS } from "./loopProgress";
 
 const DEFAULT_METRICS: JourneyMetrics = {
   cameraHeight: 1.7,
@@ -9,6 +11,8 @@ const DEFAULT_METRICS: JourneyMetrics = {
   fov: 50,
   viewportAspect: 16 / 9,
   focusFill: 0.74,
+  framingDistance: 1,
+  stationFramingDistance: 1,
 };
 
 const add = (value: Vec3, x: number, y: number, z: number): Vec3 => ({
@@ -16,6 +20,8 @@ const add = (value: Vec3, x: number, y: number, z: number): Vec3 => ({
   y: value.y + y,
   z: value.z + z,
 });
+
+const offsetZ = (value: Vec3, z: number): Vec3 => add(value, 0, 0, z);
 
 const getWallFocusDistance = (item: PositionedGalleryItem): number => {
   const bounds = getItemFramingBounds(item);
@@ -69,7 +75,7 @@ export const buildCameraKeyframes = (
         viewportAspect: resolved.viewportAspect,
         fill: resolved.focusFill,
         minDistance: 1.35,
-      });
+      }) * resolved.stationFramingDistance;
 
       frames.push({
         progress: approach,
@@ -80,7 +86,7 @@ export const buildCameraKeyframes = (
       });
       frames.push({
         progress: passThrough,
-        position: { x: 0, y: resolved.cameraHeight, z: item.position.z - resolved.focusDistance * 0.28 },
+        position: { x: 0, y: resolved.cameraHeight, z: item.position.z - focusDistance * 0.28 },
         lookAt: add(item.focusTarget, 0, 0, -resolved.lookAhead * 1.8),
         activeItemId: item.id,
         label: `${item.id}:pass-through`,
@@ -94,7 +100,7 @@ export const buildCameraKeyframes = (
       viewportAspect: resolved.viewportAspect,
       fill: resolved.focusFill,
       minDistance: getWallFocusDistance(item),
-    });
+    }) * resolved.framingDistance;
     const centerPosition = {
       x: 0,
       y: resolved.cameraHeight,
@@ -132,10 +138,14 @@ export const buildCameraKeyframes = (
   if (options.loopSeamItem) {
     const first = items[0];
     const loopOffsetZ = options.loopSeamItem.position.z - first.position.z;
+    const restartState = getCameraStateAtProgress(
+      [...frames].sort((a, b) => a.progress - b.progress),
+      LOOP_RESTART_PROGRESS,
+    );
     frames.push({
       progress: 1,
-      position: { x: 0, y: resolved.cameraHeight, z: 0.9 + loopOffsetZ },
-      lookAt: add(options.loopSeamItem.focusTarget, 0, 0, -resolved.lookAhead),
+      position: offsetZ(restartState.position, loopOffsetZ),
+      lookAt: offsetZ(restartState.lookAt, loopOffsetZ),
       activeItemId: null,
       label: "loop-seam",
     });

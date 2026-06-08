@@ -7,6 +7,9 @@ export interface CameraJourneyConfig {
     fov?: number;
     startPosition?: Vec3;
     lookAhead?: number;
+    desktopFramingDistance?: number;
+    mobileFramingDistance?: number;
+    mobileStationFramingDistance?: number;
 }
 export interface JourneyConfig {
     mode: JourneyMode;
@@ -51,5 +54,7 @@ export interface JourneyMetrics {
     fov: number;
     viewportAspect: number;
     focusFill: number;
+    framingDistance: number;
+    stationFramingDistance: number;
 }
 //# sourceMappingURL=Journey.d.ts.map

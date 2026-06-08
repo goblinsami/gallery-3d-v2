@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PlacementSide, PositionedGalleryItem } from "../types/GalleryItem";
 import { buildCameraKeyframes } from "../journey/cameraKeyframes";
 import { getCameraStateAtProgress } from "../journey/getCameraStateAtProgress";
+import { LOOP_RESTART_PROGRESS } from "../journey/loopProgress";
 
 const item = (id: string, z: number, side?: PlacementSide): PositionedGalleryItem => ({
   id,
@@ -41,6 +42,19 @@ describe("camera journey", () => {
     expect(passThrough?.position.z).toBeLessThan(center.position.z);
   });
 
+  it("pulls center items back with station framing distance", () => {
+    const center = item("station", -6, "center");
+    const defaultFocus = buildCameraKeyframes([center])
+      .find((frame) => frame.label === "station:approach");
+    const framedFocus = buildCameraKeyframes([center], { stationFramingDistance: 1.4 })
+      .find((frame) => frame.label === "station:approach");
+
+    expect(defaultFocus).toBeDefined();
+    expect(framedFocus).toBeDefined();
+    expect((framedFocus?.position.z ?? 0) - center.position.z)
+      .toBeGreaterThan((defaultFocus?.position.z ?? 0) - center.position.z);
+  });
+
   it("offsets the camera to focus wall items", () => {
     const wall = {
       ...item("wall", -6, "left"),
@@ -72,15 +86,48 @@ describe("camera journey", () => {
       .toBeGreaterThan((desktopFocus?.position.x ?? 0) - wall.focusTarget.x);
   });
 
+  it("pulls wall items back with framing distance", () => {
+    const wall = {
+      ...item("wall", -6, "left"),
+      position: { x: -3, y: 1.6, z: -6 },
+      focusTarget: { x: -3, y: 1.6, z: -6 },
+    };
+    const defaultFocus = buildCameraKeyframes([wall])
+      .find((frame) => frame.label === "wall:focus");
+    const framedFocus = buildCameraKeyframes([wall], { framingDistance: 1.25 })
+      .find((frame) => frame.label === "wall:focus");
+
+    expect(defaultFocus).toBeDefined();
+    expect(framedFocus).toBeDefined();
+    expect((framedFocus?.position.x ?? 0) - wall.focusTarget.x)
+      .toBeGreaterThan((defaultFocus?.position.x ?? 0) - wall.focusTarget.x);
+  });
+
   it("builds a loop seam toward the first cloned item", () => {
     const first = item("one", -4);
     const second = item("two", -10);
     const firstClone = item("one__loop_1", -16);
+    const baseKeyframes = buildCameraKeyframes([first, second]);
+    const restartState = getCameraStateAtProgress(baseKeyframes, LOOP_RESTART_PROGRESS);
     const keyframes = buildCameraKeyframes([first, second], {}, { loopSeamItem: firstClone });
     const last = keyframes[keyframes.length - 1];
+    const loopOffsetZ = firstClone.position.z - first.position.z;
 
     expect(last.label).toBe("loop-seam");
-    expect(last.position.z).toBeCloseTo(0.9 + firstClone.position.z - first.position.z);
-    expect(last.lookAt.z).toBeCloseTo(firstClone.focusTarget.z - 2.2);
+    expect(last.position.z).toBeCloseTo(restartState.position.z + loopOffsetZ);
+    expect(last.lookAt.z).toBeCloseTo(restartState.lookAt.z + loopOffsetZ);
+  });
+
+  it("keeps the final loop seam moving forward after the last item", () => {
+    const first = item("one", -4, "center");
+    const second = item("two", -10, "center");
+    const firstClone = item("one__loop_1", -16, "center");
+    const keyframes = buildCameraKeyframes([first, second], {}, { loopSeamItem: firstClone });
+    const lastPassThrough = keyframes.find((frame) => frame.label === "two:pass-through");
+    const seam = keyframes[keyframes.length - 1];
+
+    expect(lastPassThrough).toBeDefined();
+    expect(seam.label).toBe("loop-seam");
+    expect(seam.position.z).toBeLessThanOrEqual(lastPassThrough?.position.z ?? 0);
   });
 });

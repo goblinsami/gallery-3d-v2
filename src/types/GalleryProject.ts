@@ -6,6 +6,16 @@ import type { MaterialFamily } from "../config/architecturalTextureCatalog";
 export type { MaterialFamily };
 export type LayoutType = "corridor" | "infinite-corridor" | "gallery-room" | string;
 export type AtmospherePreset = "calm" | "bright" | "nocturne" | "neutral" | string;
+export type TextureTilingDeformation = "stretched" | "square";
+
+export interface TextureTilingConfig {
+  wall?: number;
+  floor?: number;
+  ceiling?: number;
+  wallDeformation?: TextureTilingDeformation;
+  floorDeformation?: TextureTilingDeformation;
+  ceilingDeformation?: TextureTilingDeformation;
+}
 
 export interface ThemeConfig {
   quality: QualityPreset | "auto";
@@ -13,9 +23,11 @@ export interface ThemeConfig {
   materials: {
     primary: MaterialFamily;
     accent?: MaterialFamily;
+    textureTiling?: TextureTilingConfig;
   };
   lighting?: {
     ceilingLightIntensity?: number;
+    ceilingLightRadius?: number;
   };
   items?: {
     showBorders?: boolean;

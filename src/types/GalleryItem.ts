@@ -41,7 +41,20 @@ export interface AppearanceConfig {
 export interface GalleryAction {
   label: string;
   href?: string;
+  url?: string;
   intent?: "primary" | "secondary" | "neutral";
+}
+
+export interface GalleryContentSection {
+  id: string;
+  title: string;
+  lines: string[];
+}
+
+export interface GalleryContentLink {
+  label: string;
+  url: string;
+  icon?: string;
 }
 
 export interface GalleryContentProjection {
@@ -50,9 +63,14 @@ export interface GalleryContentProjection {
   subtitle?: string;
   description?: string;
   body?: string;
-  metadata?: Record<string, string>;
+  metadata?: Record<string, string | string[]>;
   actions?: GalleryAction[];
   media?: MediaReference[];
+  thumbnailUrl?: string;
+  sections?: GalleryContentSection[];
+  socialLinks?: GalleryContentLink[];
+  cta?: GalleryAction;
+  progressLabel?: string;
 }
 
 export interface GalleryItem {

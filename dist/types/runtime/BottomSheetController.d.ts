@@ -4,8 +4,10 @@ import type { ContentSurfaceController, ContentSurfaceListener, ContentSurfaceMo
 export declare class BottomSheetController implements ContentSurfaceController {
     private state;
     private item;
+    private itemIndex;
+    private itemTotal;
     private readonly listeners;
-    setActiveItem(item: GalleryItem | null): void;
+    setActiveItem(item: GalleryItem | null, index?: number, total?: number): void;
     setState(state: BottomSheetState): void;
     expand(): void;
     collapse(): void;

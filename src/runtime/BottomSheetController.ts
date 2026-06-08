@@ -11,14 +11,18 @@ import { projectItemContent } from "../utils/contentProjection";
 export class BottomSheetController implements ContentSurfaceController {
   private state: BottomSheetState = "collapsed";
   private item: GalleryItem | null = null;
+  private itemIndex: number | undefined;
+  private itemTotal: number | undefined;
   private readonly listeners = new Set<ContentSurfaceListener>();
 
-  setActiveItem(item: GalleryItem | null): void {
-    if (this.item === item) {
+  setActiveItem(item: GalleryItem | null, index?: number, total?: number): void {
+    if (this.item === item && this.itemIndex === index && this.itemTotal === total) {
       return;
     }
 
     this.item = item;
+    this.itemIndex = index;
+    this.itemTotal = total;
     this.notify();
   }
 
@@ -44,7 +48,7 @@ export class BottomSheetController implements ContentSurfaceController {
       state: this.state,
       activeItemId: this.item?.id ?? null,
       item: this.item,
-      content: this.item ? projectItemContent(this.item) : null,
+      content: this.item ? projectItemContent(this.item, this.itemIndex, this.itemTotal) : null,
     };
   }
 

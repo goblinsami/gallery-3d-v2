@@ -1,0 +1,1 @@
+export const LOOP_RESTART_PROGRESS = 0.08;

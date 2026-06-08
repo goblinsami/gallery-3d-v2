@@ -7,3 +7,6 @@
 - When investigating regressions, interaction feel, scroll behavior, layout decisions, or rendering polish, check the legacy project as historical context before inventing a new approach.
 - Treat legacy code as reference material, not as a direct source to copy blindly: adapt ideas to the current architecture and keep changes focused.
 
+## Specialized Agents
+
+- `.agents/TextureMappingAgent.md` owns the workflow for new folders in `public/textures`, including catalog sync, selector exposure, tuning, and verification.

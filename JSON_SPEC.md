@@ -75,6 +75,22 @@ Appearance describes renderer hints shared across item types.
 - `lighting`: item-level lighting emphasis.
 - `media`: optional texture/video source references.
 
+## Theme Materials
+
+`theme.materials.textureTiling` controls texture repeat multipliers while preserving each material family's base scale.
+
+- `wall`: wall texture tiling multiplier.
+- `floor`: floor texture tiling multiplier.
+- `ceiling`: ceiling texture tiling multiplier.
+- `wallDeformation`, `floorDeformation`, `ceilingDeformation`: `stretched` keeps the family repeat proportions; `square` adjusts the secondary axis so tiles keep a more physical square proportion on that surface.
+
+## Theme Lighting
+
+`theme.lighting` controls global architectural light treatment.
+
+- `ceilingLightIntensity`: intensity multiplier for ceiling downlights, glow and upper bounce.
+- `ceilingLightRadius`: physical radius of the upper downlight fixture ring; the lit core scales with it.
+
 ## Content
 
 `content` is intentionally open, but adapters should project it through shared content helpers before displaying it in panels.
@@ -103,10 +119,20 @@ interface JourneyConfig {
   scrollStrength?: number;
   camera?: CameraJourneyConfig;
 }
+
+interface CameraJourneyConfig {
+  height?: number;
+  fov?: number;
+  lookAhead?: number;
+  desktopFramingDistance?: number;
+  mobileFramingDistance?: number;
+  mobileStationFramingDistance?: number;
+}
 ```
 
 When `loop` is enabled, progress can continue past the final keyframe and wraps back to the journey start.
 `scrollStrength` multiplies wheel/touch sensitivity; `1` keeps the default runtime feel.
+`desktopFramingDistance`, `mobileFramingDistance`, and `mobileStationFramingDistance` multiply the computed item framing distance. Use `1` for the original framing, and larger values to pull the camera back.
 
 ## Validation
 

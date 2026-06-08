@@ -27,6 +27,19 @@ export const getItemProgress = (
 ): number | null =>
   entries.find((entry) => entry.itemId === itemId || entry.sourceItemId === itemId)?.progress ?? null;
 
+export const getSequentialActiveItemId = (
+  entries: ItemProgressEntry[],
+  progress: number,
+): string | null => {
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const clampedProgress = Math.min(1, Math.max(0, Number.isFinite(progress) ? progress : 0));
+  const index = Math.min(entries.length - 1, Math.floor(clampedProgress * entries.length));
+  return entries[index].sourceItemId;
+};
+
 export const getAdjacentItemProgress = (
   entries: ItemProgressEntry[],
   activeItemId: string | null,

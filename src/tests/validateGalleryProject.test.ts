@@ -73,6 +73,38 @@ describe("validateGalleryProject", () => {
     expect(validated.theme.materials.primary).toBe("brick");
   });
 
+  it("validates texture tiling with per-surface defaults", () => {
+    const defaultProject = validateGalleryProject(createProject());
+    const customProject = createProject();
+    customProject.theme.materials.textureTiling = {
+      wall: 6,
+      floor: 0.1,
+      ceiling: 1.75,
+      wallDeformation: "square",
+      floorDeformation: "not-real" as never,
+      ceilingDeformation: "square",
+    };
+
+    const custom = validateGalleryProject(customProject);
+
+    expect(defaultProject.theme.materials.textureTiling).toEqual({
+      wall: 1,
+      floor: 1,
+      ceiling: 1,
+      wallDeformation: "stretched",
+      floorDeformation: "stretched",
+      ceilingDeformation: "stretched",
+    });
+    expect(custom.theme.materials.textureTiling).toEqual({
+      wall: 4,
+      floor: 0.25,
+      ceiling: 1.75,
+      wallDeformation: "square",
+      floorDeformation: "stretched",
+      ceilingDeformation: "square",
+    });
+  });
+
   it("validates item border visibility with a true default", () => {
     const defaultProject = validateGalleryProject(createProject());
     const hiddenBordersProject = createProject();
@@ -84,6 +116,20 @@ describe("validateGalleryProject", () => {
 
     expect(defaultProject.theme.items?.showBorders).toBe(true);
     expect(hiddenBorders.theme.items?.showBorders).toBe(false);
+  });
+
+  it("validates ceiling light radius with a fixture-sized default", () => {
+    const defaultProject = validateGalleryProject(createProject());
+    const oversizedProject = createProject();
+    oversizedProject.theme.lighting = {
+      ceilingLightIntensity: 1,
+      ceilingLightRadius: 1,
+    };
+
+    const oversized = validateGalleryProject(oversizedProject);
+
+    expect(defaultProject.theme.lighting?.ceilingLightRadius).toBe(0.095);
+    expect(oversized.theme.lighting?.ceilingLightRadius).toBe(0.22);
   });
 
   it("preserves validated media texture sources", () => {
@@ -126,6 +172,21 @@ describe("validateGalleryProject", () => {
     expect(validated.journey.artworkOverlayAngleDistanceMin).toBe(1.1);
     expect(validated.journey.artworkOverlayAngleDistanceMax).toBe(2.2);
     expect(validated.journey.artworkOverlayForwardOffset).toBe(0.2);
+  });
+
+  it("validates camera framing distances", () => {
+    const project = createProject();
+    project.journey.camera = {
+      desktopFramingDistance: 99,
+      mobileFramingDistance: 0.1,
+      mobileStationFramingDistance: 1.7,
+    };
+
+    const validated = validateGalleryProject(project);
+
+    expect(validated.journey.camera?.desktopFramingDistance).toBe(2.5);
+    expect(validated.journey.camera?.mobileFramingDistance).toBe(0.75);
+    expect(validated.journey.camera?.mobileStationFramingDistance).toBe(1.7);
   });
 
   it("accepts the legacy root overlay framing mode shape", () => {

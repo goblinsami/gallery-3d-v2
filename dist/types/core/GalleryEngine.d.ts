@@ -32,6 +32,7 @@ export declare class GalleryEngine {
     private readonly baseBackgroundColor;
     private readonly baseFogColor;
     private readonly projectedItemPoint;
+    private readonly cameraSpaceItemPoint;
     private renderViewport;
     private effectiveRenderViewport;
     private journeyViewportAspect;

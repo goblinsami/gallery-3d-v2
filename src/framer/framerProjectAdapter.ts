@@ -10,6 +10,7 @@ export type FramerContentSource = "controls" | "projectJson";
 export type FramerGalleryItemType = "statement" | "artwork" | "quote" | "profile" | "image" | "video" | "cta";
 export type FramerPlacementMode = "station" | "wall-left" | "wall-right" | "wall-auto";
 export type FramerScrollStrength = "auto" | 0.5 | 0.75 | 1 | 1.5 | 2 | 3 | 4 | 5;
+export type FramerTextureTilingDeformation = "stretched" | "square";
 
 export interface ScrollixGalleryFramerItemInput {
   id?: string;
@@ -48,10 +49,20 @@ export interface ScrollixGalleryFramerProps {
   width: number;
   height: number;
   depth: number;
+  wallTextureTiling: number;
+  floorTextureTiling: number;
+  ceilingTextureTiling: number;
+  wallTextureDeformation: FramerTextureTilingDeformation;
+  floorTextureDeformation: FramerTextureTilingDeformation;
+  ceilingTextureDeformation: FramerTextureTilingDeformation;
   ceilingLightIntensity: number;
+  ceilingLightRadius: number;
   fov: number;
   cameraHeight: number;
   lookAhead: number;
+  desktopFramingDistance: number;
+  mobileFramingDistance: number;
+  mobileStationFramingDistance: number;
   smoothing: number;
   damping: number;
   scrollStrength: FramerScrollStrength;
@@ -222,10 +233,20 @@ export const scrollixGalleryFramerDefaults: ScrollixGalleryFramerProps = {
   width: 8,
   height: 4.2,
   depth: 360,
+  wallTextureTiling: 1,
+  floorTextureTiling: 1,
+  ceilingTextureTiling: 1,
+  wallTextureDeformation: "stretched",
+  floorTextureDeformation: "stretched",
+  ceilingTextureDeformation: "stretched",
   ceilingLightIntensity: 1,
+  ceilingLightRadius: 0.095,
   fov: 50,
   cameraHeight: 1.72,
   lookAhead: 3.2,
+  desktopFramingDistance: 1.18,
+  mobileFramingDistance: 1,
+  mobileStationFramingDistance: 1.35,
   smoothing: 0.16,
   damping: 0.84,
   scrollStrength: "auto",
@@ -264,10 +285,20 @@ export const buildScrollixGalleryFramerProject = (
         ...sourceProject.theme.materials,
         primary: props.primary,
         accent: props.accent,
+        textureTiling: {
+          ...sourceProject.theme.materials.textureTiling,
+          wall: props.wallTextureTiling,
+          floor: props.floorTextureTiling,
+          ceiling: props.ceilingTextureTiling,
+          wallDeformation: props.wallTextureDeformation,
+          floorDeformation: props.floorTextureDeformation,
+          ceilingDeformation: props.ceilingTextureDeformation,
+        },
       },
       lighting: {
         ...sourceProject.theme.lighting,
         ceilingLightIntensity: props.ceilingLightIntensity,
+        ceilingLightRadius: props.ceilingLightRadius,
       },
       items: {
         ...sourceProject.theme.items,
@@ -296,6 +327,9 @@ export const buildScrollixGalleryFramerProject = (
         fov: props.fov,
         height: props.cameraHeight,
         lookAhead: props.lookAhead,
+        desktopFramingDistance: props.desktopFramingDistance,
+        mobileFramingDistance: props.mobileFramingDistance,
+        mobileStationFramingDistance: props.mobileStationFramingDistance,
       },
     },
     items: visibleItems,

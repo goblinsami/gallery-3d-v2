@@ -52,10 +52,20 @@ describe("framer adapter", () => {
       width: 10,
       height: 5,
       depth: 240,
+      wallTextureTiling: 1.4,
+      floorTextureTiling: 0.8,
+      ceilingTextureTiling: 2.2,
+      wallTextureDeformation: "square",
+      floorTextureDeformation: "stretched",
+      ceilingTextureDeformation: "square",
       ceilingLightIntensity: 1.6,
+      ceilingLightRadius: 0.14,
       fov: 58,
       cameraHeight: 1.9,
       lookAhead: 4.5,
+      desktopFramingDistance: 1.3,
+      mobileFramingDistance: 1.05,
+      mobileStationFramingDistance: 1.6,
       smoothing: 0.22,
       scrollStrength: 2,
       loop: false,
@@ -68,11 +78,21 @@ describe("framer adapter", () => {
     expect(project.layout.bounds?.width).toBe(10);
     expect(project.layout.bounds?.height).toBe(5);
     expect(project.layout.bounds?.depth).toBe(240);
+    expect(project.theme.materials.textureTiling?.wall).toBe(1.4);
+    expect(project.theme.materials.textureTiling?.floor).toBe(0.8);
+    expect(project.theme.materials.textureTiling?.ceiling).toBe(2.2);
+    expect(project.theme.materials.textureTiling?.wallDeformation).toBe("square");
+    expect(project.theme.materials.textureTiling?.floorDeformation).toBe("stretched");
+    expect(project.theme.materials.textureTiling?.ceilingDeformation).toBe("square");
     expect(project.theme.lighting?.ceilingLightIntensity).toBe(1.6);
+    expect(project.theme.lighting?.ceilingLightRadius).toBe(0.14);
     expect(project.journey.artworkOverlayFramingMode).toBe("cinematic");
     expect(project.journey.camera?.fov).toBe(58);
     expect(project.journey.camera?.height).toBe(1.9);
     expect(project.journey.camera?.lookAhead).toBe(4.5);
+    expect(project.journey.camera?.desktopFramingDistance).toBe(1.3);
+    expect(project.journey.camera?.mobileFramingDistance).toBe(1.05);
+    expect(project.journey.camera?.mobileStationFramingDistance).toBe(1.6);
     expect(project.journey.smoothing).toBe(0.22);
     expect(project.journey.scrollStrength).toBe(2);
     expect(project.journey.loop).toBe(false);

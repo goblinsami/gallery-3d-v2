@@ -30,6 +30,7 @@ export const composeBottomSheetCamera = (
     overlayDistanceMin?: number;
     overlayDistanceMax?: number;
     overlayForwardOffset?: number;
+    framingDistance?: number;
   } = {},
 ): CameraState => {
   const mix = getSheetMix(sheetState);
@@ -55,7 +56,7 @@ export const composeBottomSheetCamera = (
     Math.max(minDistance, baseDistance * overlayDistanceScale),
   );
   const framingExpansion = 1 + Math.max(0, overlayDistanceScale - 0.62) * 0.75;
-  const focusDistance = Math.max(baseDistance * framingExpansion, presetDistance);
+  const focusDistance = Math.max(baseDistance * framingExpansion, presetDistance) * (options.framingDistance ?? 1);
   const forwardOffset = options.overlayForwardOffset ?? 0;
   const normalX = side === "left" ? 1 : -1;
   const targetPosition: Vec3 = isWallItem

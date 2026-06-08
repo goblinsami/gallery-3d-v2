@@ -38,6 +38,7 @@
   "scripts": {
     "build": "node ./node_modules/vite/bin/vite.js build && node ./node_modules/typescript/bin/tsc -p tsconfig.build.json",
     "dev:demo": "vite --host 0.0.0.0",
+    "textures:sync": "node ./scripts/sync-texture-catalog.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest --run"
   },

@@ -13,7 +13,7 @@ import {
   type Texture,
 } from "three";
 import type { QualitySettings } from "../types/Quality";
-import type { MaterialFamily } from "../types/GalleryProject";
+import type { MaterialFamily, TextureTilingConfig } from "../types/GalleryProject";
 import {
   TEXTURE_LIBRARY,
   drawBrickColorTexture,
@@ -36,6 +36,11 @@ export interface ProceduralArchitecturalMaterials {
   wallWash: MeshBasicMaterial;
   fixtureTrim: MeshStandardMaterial;
   fixtureCore: MeshBasicMaterial;
+}
+
+export interface ArchitecturalMaterialSurfaceSize {
+  width: number;
+  height: number;
 }
 
 const textureSizeForQuality = (quality: QualitySettings): number => {
@@ -137,6 +142,12 @@ const alignRepeatToCycle = (
   return repeatsPerCycle * (depth / cycleDepth);
 };
 
+const squareRepeatForSize = (
+  fixedAxisRepeat: number,
+  fixedAxisSize: number,
+  adjustedAxisSize: number,
+): number => fixedAxisRepeat * (adjustedAxisSize / Math.max(0.001, fixedAxisSize));
+
 export const createProceduralArchitecturalMaterials = (
   quality: QualitySettings,
   depth: number,
@@ -144,6 +155,8 @@ export const createProceduralArchitecturalMaterials = (
   ceilingLightIntensity = 1,
   textureCycleDepth?: number,
   assetBaseUrl?: string,
+  textureTiling?: TextureTilingConfig,
+  surfaceSize: ArchitecturalMaterialSurfaceSize = { width: 5.4, height: 3.4 },
 ): Promise<ProceduralArchitecturalMaterials> => {
   const lightScale = Math.max(0, ceilingLightIntensity);
   const textureSize = textureSizeForQuality(quality);
@@ -163,12 +176,28 @@ export const createProceduralArchitecturalMaterials = (
     loadTextureOrFallback(loader, resolveAssetUrl(config.colorUrl, assetBaseUrl), fallbackColor),
     loadTextureOrFallback(loader, resolveAssetUrl(config.normalUrl, assetBaseUrl), fallbackNormal),
   ]).then(([colorTexture, normalTexture]) => {
-    const wallRepeatX = alignRepeatToCycle(depthRepeat * config.wallRepeatScale, depth, textureCycleDepth);
-    const wallRepeatY = family === "brick" ? 3.2 : family === "wood" ? 2.4 : 2;
-    const floorRepeatX = 8;
-    const floorRepeatY = alignRepeatToCycle(depthRepeat * config.floorRepeatScale, depth, textureCycleDepth);
-    const ceilingRepeatX = 8;
-    const ceilingRepeatY = alignRepeatToCycle(depthRepeat * config.ceilingRepeatScale, depth, textureCycleDepth);
+    const wallTiling = textureTiling?.wall ?? 1;
+    const floorTiling = textureTiling?.floor ?? 1;
+    const ceilingTiling = textureTiling?.ceiling ?? 1;
+    const wallDeformation = textureTiling?.wallDeformation ?? "stretched";
+    const floorDeformation = textureTiling?.floorDeformation ?? "stretched";
+    const ceilingDeformation = textureTiling?.ceilingDeformation ?? "stretched";
+    const wallRepeatX = alignRepeatToCycle(depthRepeat * config.wallRepeatScale * wallTiling, depth, textureCycleDepth);
+    const wallRepeatY = wallDeformation === "square"
+      ? squareRepeatForSize(wallRepeatX, depth, surfaceSize.height)
+      : (family === "brick" ? 3.2 : family === "wood" ? 2.4 : 2) * wallTiling;
+    const floorRepeatY = alignRepeatToCycle(depthRepeat * config.floorRepeatScale * floorTiling, depth, textureCycleDepth);
+    const floorRepeatX = floorDeformation === "square"
+      ? squareRepeatForSize(floorRepeatY, depth, surfaceSize.width)
+      : 8 * floorTiling;
+    const ceilingRepeatY = alignRepeatToCycle(
+      depthRepeat * config.ceilingRepeatScale * ceilingTiling,
+      depth,
+      textureCycleDepth,
+    );
+    const ceilingRepeatX = ceilingDeformation === "square"
+      ? squareRepeatForSize(ceilingRepeatY, depth, surfaceSize.width)
+      : 8 * ceilingTiling;
 
     return {
       wall: createTexturedMaterial(
