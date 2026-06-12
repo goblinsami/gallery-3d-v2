@@ -28,6 +28,7 @@ type ControlName =
   | "mobileStationFramingDistance"
   | "smoothing"
   | "scrollStrength"
+  | "mobileScrollStrength"
   | "loop"
   | "forceMobile";
 
@@ -60,6 +61,7 @@ export interface GalleryPlaygroundValues {
   mobileStationFramingDistance: number;
   smoothing: number;
   scrollStrength: PlaygroundScrollStrength;
+  mobileScrollStrength: number;
   loop: boolean;
   forceMobile: boolean;
 }
@@ -419,6 +421,11 @@ playgroundTemplate.innerHTML = `
           <option value="5">5x</option>
         </select>
       </label>
+      <label class="field">
+        <span class="field__label">Mobile scroll <span class="field__value" data-value="mobileScrollStrength">1.8</span></span>
+        <span class="field__hint">Multiplica solo el gesto táctil en mobile para avanzar con menos arrastre.</span>
+        <input data-control="mobileScrollStrength" type="range" min="0.5" max="4" step="0.1" />
+      </label>
       <label class="toggle">
         <span>
           Infinite loop
@@ -516,6 +523,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
       mobileStationFramingDistance: this.getControl("mobileStationFramingDistance", HTMLInputElement),
       smoothing: this.getControl("smoothing", HTMLInputElement),
       scrollStrength: this.getControl("scrollStrength", HTMLSelectElement),
+      mobileScrollStrength: this.getControl("mobileScrollStrength", HTMLInputElement),
       loop: this.getControl("loop", HTMLInputElement),
       forceMobile: this.getControl("forceMobile", HTMLInputElement),
     };
@@ -544,6 +552,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
       mobileStationFramingDistance: this.getValueLabel("mobileStationFramingDistance"),
       smoothing: this.getValueLabel("smoothing"),
       scrollStrength: this.getValueLabel("scrollStrength"),
+      mobileScrollStrength: this.getValueLabel("mobileScrollStrength"),
     };
   }
 
@@ -639,6 +648,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
       mobileStationFramingDistance: project.journey.camera?.mobileStationFramingDistance ?? 1.55,
       smoothing: project.journey.smoothing ?? 0.16,
       scrollStrength: project.journey.scrollStrength ? parseScrollStrength(String(project.journey.scrollStrength)) : "auto",
+      mobileScrollStrength: project.journey.mobileScrollStrength ?? 1.8,
       loop: project.journey.loop ?? false,
       forceMobile: (this.controls.forceMobile as HTMLInputElement).checked,
     };
@@ -670,6 +680,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.controls.mobileStationFramingDistance.value = String(values.mobileStationFramingDistance);
     this.controls.smoothing.value = String(values.smoothing);
     this.controls.scrollStrength.value = String(values.scrollStrength);
+    this.controls.mobileScrollStrength.value = String(values.mobileScrollStrength);
     (this.controls.loop as HTMLInputElement).checked = values.loop;
     (this.controls.forceMobile as HTMLInputElement).checked = values.forceMobile;
   }
@@ -701,6 +712,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
       mobileStationFramingDistance: getNumber(this.controls.mobileStationFramingDistance as HTMLInputElement, 1.55),
       smoothing: getNumber(this.controls.smoothing as HTMLInputElement, 0.16),
       scrollStrength: parseScrollStrength(this.controls.scrollStrength.value),
+      mobileScrollStrength: getNumber(this.controls.mobileScrollStrength as HTMLInputElement, 1.8),
       loop: (this.controls.loop as HTMLInputElement).checked,
       forceMobile: (this.controls.forceMobile as HTMLInputElement).checked,
     };
@@ -764,6 +776,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
         loop: values.loop,
         smoothing: values.smoothing,
         scrollStrength,
+        mobileScrollStrength: values.mobileScrollStrength,
         camera: {
           ...project.journey.camera,
           fov: values.fov,
@@ -803,6 +816,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.valueLabels.mobileStationFramingDistance!.textContent = formatNumber(values.mobileStationFramingDistance);
     this.valueLabels.smoothing!.textContent = formatNumber(values.smoothing);
     this.valueLabels.scrollStrength!.textContent = formatScrollStrength(values.scrollStrength);
+    this.valueLabels.mobileScrollStrength!.textContent = formatNumber(values.mobileScrollStrength);
     this.summary.textContent = `${itemCount} items · ${getTextureLabel(values.primary)} · ${values.overlayFramingMode} · ${values.loop ? "loop" : "linear"}`;
   }
 

@@ -15,6 +15,7 @@ import type { RuntimeInstance, RuntimeMountOptions } from "../types/Runtime";
 import { validateGalleryProject } from "../utils/validateGalleryProject";
 
 const BASE_SCROLL_SENSITIVITY = 0.00028;
+const MOBILE_SCROLL_BREAKPOINT = 820;
 
 export interface RuntimeManagerOptions {
   renderers: RendererRegistry;
@@ -111,16 +112,27 @@ export class RuntimeManager {
         syncProgress(progress);
       }
     };
+    const isMobileScrollViewport = (): boolean => {
+      const scrollElement = options.scrollElement ?? options.container;
+      return options.container.clientWidth <= MOBILE_SCROLL_BREAKPOINT ||
+        scrollElement.clientWidth <= MOBILE_SCROLL_BREAKPOINT ||
+        scrollElement.hasAttribute("force-mobile");
+    };
     const createJourneyController = (project: ValidatedGalleryProject): JourneyController | null => {
       if (project.journey.mode !== "scroll" || options.autoStartJourney === false) {
         return null;
       }
+
+      const mobileScrollStrength = isMobileScrollViewport()
+        ? project.journey.mobileScrollStrength ?? 1.8
+        : 1;
 
       return new JourneyController({
         element: options.scrollElement ?? options.container,
         smoothing: project.journey.smoothing,
         damping: project.journey.damping,
         sensitivity: BASE_SCROLL_SENSITIVITY * (project.journey.scrollStrength ?? 1),
+        touchSensitivityMultiplier: mobileScrollStrength,
         loop: project.journey.loop,
         onProgress: (state) => syncProgress(state.progress, state.whiteMix, state.sequenceProgress),
       });

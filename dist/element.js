@@ -1,4 +1,4 @@
-import { m as l, c as u, a } from "./mountGalleryRuntime-BHGBFAHu.js";
+import { m as l, c as u, a } from "./mountGalleryRuntime-DN09aB1N.js";
 import { s as h } from "./scrollixGalleryStyles-C4smxMtI.js";
 const n = document.createElement("template");
 n.innerHTML = `

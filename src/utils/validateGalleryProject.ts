@@ -156,6 +156,7 @@ const validateJourney = (source: Record<string, unknown>): GalleryProject["journ
     smoothing: getNumber(source, "smoothing", 0.18, 0.04, 1),
     damping: getNumber(source, "damping", 0.86, 0.2, 0.98),
     scrollStrength: getNumber(source, "scrollStrength", 1, 0.25, 6),
+    mobileScrollStrength: getNumber(source, "mobileScrollStrength", 1.8, 0.5, 4),
     artworkOverlayFramingMode,
     artworkOverlayAngleDistanceScale: overlayPreset.scale,
     artworkOverlayAngleDistanceMin: overlayPreset.min,

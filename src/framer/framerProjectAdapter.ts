@@ -66,6 +66,7 @@ export interface ScrollixGalleryFramerProps {
   smoothing: number;
   damping: number;
   scrollStrength: FramerScrollStrength;
+  mobileScrollStrength: number;
   loop: boolean;
   forceMobile: boolean;
   autoStartJourney: boolean;
@@ -250,6 +251,7 @@ export const scrollixGalleryFramerDefaults: ScrollixGalleryFramerProps = {
   smoothing: 0.16,
   damping: 0.84,
   scrollStrength: "auto",
+  mobileScrollStrength: 1.8,
   loop: true,
   forceMobile: false,
   autoStartJourney: true,
@@ -322,6 +324,7 @@ export const buildScrollixGalleryFramerProject = (
       smoothing: props.smoothing,
       damping: props.damping,
       scrollStrength,
+      mobileScrollStrength: props.mobileScrollStrength,
       camera: {
         ...sourceProject.journey.camera,
         fov: props.fov,

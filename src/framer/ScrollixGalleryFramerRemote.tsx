@@ -34,6 +34,7 @@ const project = {
         loop: true,
         smoothing: 0.16,
         damping: 0.84,
+        mobileScrollStrength: 1.8,
         scrollStrength: 1,
         camera: {
             height: 1.72,

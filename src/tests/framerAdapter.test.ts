@@ -68,6 +68,7 @@ describe("framer adapter", () => {
       mobileStationFramingDistance: 1.6,
       smoothing: 0.22,
       scrollStrength: 2,
+      mobileScrollStrength: 2.2,
       loop: false,
     }));
 
@@ -95,6 +96,7 @@ describe("framer adapter", () => {
     expect(project.journey.camera?.mobileStationFramingDistance).toBe(1.6);
     expect(project.journey.smoothing).toBe(0.22);
     expect(project.journey.scrollStrength).toBe(2);
+    expect(project.journey.mobileScrollStrength).toBe(2.2);
     expect(project.journey.loop).toBe(false);
   });
 

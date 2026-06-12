@@ -104,4 +104,37 @@ describe("JourneyController", () => {
 
     expect(emitted).toEqual([{ progress: 0, sequenceProgress: 0, whiteMix: 0 }]);
   });
+
+  it("applies the touch sensitivity multiplier to touch movement", () => {
+    const emitted: Array<{ progress: number; sequenceProgress: number; whiteMix: number }> = [];
+    const target = interactiveElement();
+    const frameCallbacks: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", vi.fn((callback: FrameRequestCallback) => {
+      frameCallbacks.push(callback);
+      return 1;
+    }));
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    const controller = new JourneyController({
+      element: target.element,
+      sensitivity: 0.001,
+      smoothing: 1,
+      touchSensitivityMultiplier: 2,
+      onProgress: (state) => emitted.push(state),
+    });
+
+    controller.start();
+    target.emit("touchstart", {
+      touches: [{ identifier: 1, clientY: 100 }],
+    });
+    target.emit("touchmove", {
+      touches: [{ identifier: 1, clientY: 0 }],
+      cancelable: true,
+      preventDefault: vi.fn(),
+    });
+    frameCallbacks[0]?.(0);
+
+    expect(emitted.at(-1)?.progress).toBeCloseTo(0.002);
+    controller.dispose();
+    vi.unstubAllGlobals();
+  });
 });

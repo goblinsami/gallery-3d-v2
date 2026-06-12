@@ -39,6 +39,7 @@ export const premiumCorridorProject: GalleryProject = {
     loop: true,
     smoothing: 0.16,
     damping: 0.84,
+    mobileScrollStrength: 1.8,
     camera: {
       height: 1.72,
       fov: 50,

@@ -5,6 +5,7 @@ export interface JourneyControllerOptions {
   element: HTMLElement;
   initialProgress?: number;
   sensitivity?: number;
+  touchSensitivityMultiplier?: number;
   smoothing?: number;
   damping?: number;
   loop?: boolean;
@@ -26,6 +27,7 @@ export class JourneyController {
   private readonly smoothing: number;
   private readonly damping: number;
   private readonly loop: boolean;
+  private readonly touchSensitivityMultiplier: number;
   private sensitivity: number;
   private progress: number;
   private targetProgress: number;
@@ -41,6 +43,7 @@ export class JourneyController {
     this.element = options.element;
     this.onProgress = options.onProgress;
     this.sensitivity = clamp(options.sensitivity ?? 0.00028, 0.00005, 0.01);
+    this.touchSensitivityMultiplier = clamp(options.touchSensitivityMultiplier ?? 1, 0.5, 4);
     this.smoothing = clamp(options.smoothing ?? 0.18, 0.04, 1);
     this.damping = clamp(options.damping ?? 0.86, 0.2, 0.98);
     this.loop = options.loop ?? false;
@@ -153,7 +156,7 @@ export class JourneyController {
     const pixelDelta = this.lastTouchY - touch.clientY;
     this.lastTouchY = touch.clientY;
     this.activeTouchId = touch.identifier;
-    this.velocity += this.normalizePixelDelta(pixelDelta) * this.sensitivity;
+    this.velocity += this.normalizePixelDelta(pixelDelta) * this.sensitivity * this.touchSensitivityMultiplier;
     this.requestTick();
   };
 

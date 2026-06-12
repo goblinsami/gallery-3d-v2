@@ -37,6 +37,7 @@ interface Props {
     spacing: number
     corridorWidth: number
     corridorHeight: number
+    mobileScrollStrength: number
     contentSource: "controls" | "json"
     projectJson?: string
     items: FramerItem[]
@@ -155,6 +156,7 @@ const DEFAULTS: Props = {
     spacing: 14,
     corridorWidth: 8,
     corridorHeight: 4.2,
+    mobileScrollStrength: 1.8,
     contentSource: "controls",
     projectJson: "",
     items: DEFAULT_ITEMS,
@@ -294,6 +296,7 @@ function buildProject(props: Props) {
             smoothing: 0.16,
             damping: 0.84,
             scrollStrength: 1,
+            mobileScrollStrength: props.mobileScrollStrength,
             camera: {
                 height: 1.72,
                 fov: 50,
@@ -438,6 +441,13 @@ addPropertyControls(ScrollixBridge, {
         title: "Height",
         min: 3,
         max: 7,
+        step: 0.1,
+    },
+    mobileScrollStrength: {
+        type: ControlType.Number,
+        title: "Mobile Scroll",
+        min: 0.5,
+        max: 4,
         step: 0.1,
     },
     contentSource: {

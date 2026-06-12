@@ -299,6 +299,7 @@ addPropertyControls(ScrollixGalleryFramer, {
     options: scrollStrengthOptions,
     optionTitles: ["Auto", "0.5x", "0.75x", "1x", "1.5x", "2x", "3x", "4x", "5x"],
   },
+  mobileScrollStrength: { type: ControlType.Number, title: "Mobile Scroll", min: 0.5, max: 4, step: 0.1 },
   loop: { type: ControlType.Boolean, title: "Loop" },
   forceMobile: { type: ControlType.Boolean, title: "Mobile UI" },
   autoStartJourney: { type: ControlType.Boolean, title: "Auto Scroll" },

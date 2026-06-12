@@ -2,6 +2,7 @@ export interface JourneyControllerOptions {
     element: HTMLElement;
     initialProgress?: number;
     sensitivity?: number;
+    touchSensitivityMultiplier?: number;
     smoothing?: number;
     damping?: number;
     loop?: boolean;
@@ -18,6 +19,7 @@ export declare class JourneyController {
     private readonly smoothing;
     private readonly damping;
     private readonly loop;
+    private readonly touchSensitivityMultiplier;
     private sensitivity;
     private progress;
     private targetProgress;

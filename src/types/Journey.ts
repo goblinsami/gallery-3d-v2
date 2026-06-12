@@ -20,6 +20,7 @@ export interface JourneyConfig {
   smoothing?: number;
   damping?: number;
   scrollStrength?: number;
+  mobileScrollStrength?: number;
   artworkOverlayFramingMode?: ArtworkOverlayFramingMode;
   artworkOverlayAngleDistanceScale?: number;
   artworkOverlayAngleDistanceMin?: number;
