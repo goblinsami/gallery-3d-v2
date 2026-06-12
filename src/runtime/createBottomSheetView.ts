@@ -138,9 +138,7 @@ export const createBottomSheetView = (
   const grip = createElement("span", "g3d-sheet__grip");
   const closeTemplate = document.createElement("template");
   closeTemplate.innerHTML = `
-    <button type="button" class="g3d-sheet__close" aria-label="Close content">
-      x
-    </button>
+    <button type="button" class="g3d-sheet__close" aria-label="Close content"></button>
   `;
   const close = closeTemplate.content.firstElementChild as HTMLButtonElement;
   const summary = createElement("button", "g3d-sheet__summary");

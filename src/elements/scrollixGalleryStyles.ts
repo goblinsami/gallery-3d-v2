@@ -40,6 +40,7 @@ export const scrollixGalleryStyles = `
     position: absolute;
     left: max(18px, env(safe-area-inset-left, 0px));
     right: max(18px, env(safe-area-inset-right, 0px));
+    top: auto;
     bottom: max(18px, env(safe-area-inset-bottom, 0px));
     z-index: 4;
     display: flex;
@@ -70,9 +71,12 @@ export const scrollixGalleryStyles = `
   }
 
   .g3d-sheet[data-state="full"] {
-    height: calc(100% - max(10px, env(safe-area-inset-top, 0px)));
-    max-height: calc(100% - max(10px, env(safe-area-inset-top, 0px)));
-    border-radius: 22px 22px 0 0;
+    top: max(18px, env(safe-area-inset-top, 0px));
+    height: auto;
+    max-height: none;
+    border-radius: 22px;
+    --g3d-close-top: 8px;
+    --g3d-close-right: 12px;
   }
 
   .g3d-sheet[data-state="half"] .g3d-sheet__summary,
@@ -111,15 +115,57 @@ export const scrollixGalleryStyles = `
   .g3d-panel__close {
     position: absolute;
     right: var(--g3d-close-right, 10px);
-    top: var(--g3d-close-top, 2px);
-    padding: var(--g3d-close-padding, 4px);
-    border: var(--g3d-close-border, 1px solid rgba(221, 231, 250, 0.22));
-    border-radius: var(--g3d-close-radius, 50%);
-    color: var(--g3d-close-color, #f2f6ff);
-    background: var(--g3d-close-background, radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)));
-    font: var(--g3d-close-font, 800 18px/1 system-ui, sans-serif);
-    letter-spacing: 0;
+    top: var(--g3d-close-top, 10px);
+    box-sizing: border-box;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid rgba(221, 231, 250, 0.2);
+    border-radius: 50%;
+    appearance: none;
+    color: #f2f6ff;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
+      rgba(11, 15, 24, 0.72);
+    box-shadow:
+      0 10px 24px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    font-size: 0;
+    line-height: 0;
     cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .g3d-sheet__close::before,
+  .g3d-sheet__close::after,
+  .g3d-panel__close::before,
+  .g3d-panel__close::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 14px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    transform-origin: center;
+  }
+
+  .g3d-sheet__close::before,
+  .g3d-panel__close::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .g3d-sheet__close::after,
+  .g3d-panel__close::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+
+  .g3d-sheet__close:hover,
+  .g3d-panel__close:hover {
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06)),
+      rgba(16, 22, 34, 0.84);
   }
 
   .g3d-sheet__close[hidden] {
@@ -398,9 +444,10 @@ export const scrollixGalleryStyles = `
 
   :host([force-mobile]) .g3d-sheet[data-state="full"] {
     display: flex;
-    height: calc(100% - max(10px, env(safe-area-inset-top, 0px)));
-    max-height: calc(100% - max(10px, env(safe-area-inset-top, 0px)));
-    border-radius: 22px 22px 0 0;
+    top: max(18px, env(safe-area-inset-top, 0px));
+    height: auto;
+    max-height: none;
+    border-radius: 22px;
   }
 
   :host([force-mobile]) .g3d-panel {

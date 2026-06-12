@@ -49,7 +49,6 @@ export const createDesktopPanelView = (
   let unsubscribe: ContentSurfaceUnsubscribe | null = null;
 
   close.type = "button";
-  close.textContent = "x";
   close.setAttribute("aria-label", "Close content");
   previous.type = "button";
   next.type = "button";
