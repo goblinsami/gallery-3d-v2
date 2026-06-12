@@ -45,7 +45,7 @@ export const premiumCorridorProject: GalleryProject = {
       lookAhead: 3.2,
       desktopFramingDistance: 1.18,
       mobileFramingDistance: 1,
-      mobileStationFramingDistance: 1.35,
+      mobileStationFramingDistance: 1.55,
     },
   },
   items: [

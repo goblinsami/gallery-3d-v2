@@ -38,9 +38,9 @@ export const scrollixGalleryStyles = `
 
   .g3d-sheet {
     position: absolute;
-    left: max(10px, env(safe-area-inset-left, 0px));
-    right: max(10px, env(safe-area-inset-right, 0px));
-    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    left: max(18px, env(safe-area-inset-left, 0px));
+    right: max(18px, env(safe-area-inset-right, 0px));
+    bottom: max(18px, env(safe-area-inset-bottom, 0px));
     z-index: 4;
     display: flex;
     flex-direction: column;
@@ -381,8 +381,8 @@ export const scrollixGalleryStyles = `
 
   :host([force-mobile]) .g3d-sheet {
     display: flex;
-    left: max(10px, env(safe-area-inset-left, 0px));
-    right: max(10px, env(safe-area-inset-right, 0px));
+    left: max(18px, env(safe-area-inset-left, 0px));
+    right: max(18px, env(safe-area-inset-right, 0px));
     width: auto;
     transform: translateY(0);
   }

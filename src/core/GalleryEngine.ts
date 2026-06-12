@@ -497,7 +497,7 @@ export class GalleryEngine {
     const isStation = activeItem?.placement.side === "center";
     const framingDistance = isMobile
       ? isStation
-        ? camera?.mobileStationFramingDistance ?? 1.35
+        ? camera?.mobileStationFramingDistance ?? 1.55
         : camera?.mobileFramingDistance ?? 1
       : camera?.desktopFramingDistance ?? 1.18;
     return composeBottomSheetCamera(baseState, activeItem, this.bottomSheetState, {
@@ -525,7 +525,7 @@ export class GalleryEngine {
       ? camera?.mobileFramingDistance ?? 1
       : camera?.desktopFramingDistance ?? 1.18;
     const stationFramingDistance = isMobile
-      ? camera?.mobileStationFramingDistance ?? 1.35
+      ? camera?.mobileStationFramingDistance ?? 1.55
       : framingDistance;
     this.keyframes = buildCameraKeyframes(journeyItems, {
       cameraHeight: camera?.height ?? 1.7,

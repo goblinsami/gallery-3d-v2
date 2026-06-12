@@ -167,7 +167,7 @@ const validateJourney = (source: Record<string, unknown>): GalleryProject["journ
       lookAhead: getNumber(camera, "lookAhead", undefined, 0.2, 12),
       desktopFramingDistance: getNumber(camera, "desktopFramingDistance", 1.18, 0.75, 2.5),
       mobileFramingDistance: getNumber(camera, "mobileFramingDistance", 1, 0.75, 2.5),
-      mobileStationFramingDistance: getNumber(camera, "mobileStationFramingDistance", 1.35, 0.75, 3),
+      mobileStationFramingDistance: getNumber(camera, "mobileStationFramingDistance", 1.55, 0.75, 3),
     },
   };
 };

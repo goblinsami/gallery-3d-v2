@@ -1,6 +1,6 @@
 import * as React from "react"
 
-const RUNTIME = "https://capable-youtiao-4bc2f1.netlify.app/element.js?v=20"
+const RUNTIME = "https://capable-youtiao-4bc2f1.netlify.app/element.js?v=21"
 const BASE = "https://capable-youtiao-4bc2f1.netlify.app"
 const TAGS = ["scrollix-gallery-v2", "scrollix-gallery"]
 
@@ -41,7 +41,7 @@ const project = {
             lookAhead: 3.2,
             desktopFramingDistance: 1.18,
             mobileFramingDistance: 1,
-            mobileStationFramingDistance: 1.35,
+            mobileStationFramingDistance: 1.55,
         },
     },
     items: [

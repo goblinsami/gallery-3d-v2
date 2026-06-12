@@ -395,7 +395,7 @@ playgroundTemplate.innerHTML = `
         <input data-control="mobileFramingDistance" type="range" min="0.75" max="2.5" step="0.01" />
       </label>
       <label class="field">
-        <span class="field__label">Mobile station <span class="field__value" data-value="mobileStationFramingDistance">1.35</span></span>
+        <span class="field__label">Mobile station <span class="field__value" data-value="mobileStationFramingDistance">1.55</span></span>
         <span class="field__hint">Aleja solo las estaciones centradas en mobile para evitar zoom excesivo.</span>
         <input data-control="mobileStationFramingDistance" type="range" min="0.75" max="3" step="0.01" />
       </label>
@@ -636,7 +636,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
       lookAhead: project.journey.camera?.lookAhead ?? 3.2,
       desktopFramingDistance: project.journey.camera?.desktopFramingDistance ?? 1.18,
       mobileFramingDistance: project.journey.camera?.mobileFramingDistance ?? 1,
-      mobileStationFramingDistance: project.journey.camera?.mobileStationFramingDistance ?? 1.35,
+      mobileStationFramingDistance: project.journey.camera?.mobileStationFramingDistance ?? 1.55,
       smoothing: project.journey.smoothing ?? 0.16,
       scrollStrength: project.journey.scrollStrength ? parseScrollStrength(String(project.journey.scrollStrength)) : "auto",
       loop: project.journey.loop ?? false,
@@ -698,7 +698,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
       lookAhead: getNumber(this.controls.lookAhead as HTMLInputElement, 3.2),
       desktopFramingDistance: getNumber(this.controls.desktopFramingDistance as HTMLInputElement, 1.18),
       mobileFramingDistance: getNumber(this.controls.mobileFramingDistance as HTMLInputElement, 1),
-      mobileStationFramingDistance: getNumber(this.controls.mobileStationFramingDistance as HTMLInputElement, 1.35),
+      mobileStationFramingDistance: getNumber(this.controls.mobileStationFramingDistance as HTMLInputElement, 1.55),
       smoothing: getNumber(this.controls.smoothing as HTMLInputElement, 0.16),
       scrollStrength: parseScrollStrength(this.controls.scrollStrength.value),
       loop: (this.controls.loop as HTMLInputElement).checked,

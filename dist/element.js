@@ -1,5 +1,5 @@
-import { m as l, c as u, a } from "./mountGalleryRuntime-DblmUrx5.js";
-import { s as h } from "./scrollixGalleryStyles-CuKl8PQD.js";
+import { m as l, c as u, a } from "./mountGalleryRuntime-BHGBFAHu.js";
+import { s as h } from "./scrollixGalleryStyles-C4smxMtI.js";
 const n = document.createElement("template");
 n.innerHTML = `
   <style>${h}</style>
