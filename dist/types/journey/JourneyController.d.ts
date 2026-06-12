@@ -6,6 +6,7 @@ export interface JourneyControllerOptions {
     smoothing?: number;
     damping?: number;
     loop?: boolean;
+    loopResetProgress?: number;
     onProgress: (state: JourneyProgressState) => void;
 }
 export interface JourneyProgressState {
@@ -19,6 +20,7 @@ export declare class JourneyController {
     private readonly smoothing;
     private readonly damping;
     private readonly loop;
+    private readonly loopResetProgress;
     private readonly touchSensitivityMultiplier;
     private sensitivity;
     private progress;
@@ -28,6 +30,7 @@ export declare class JourneyController {
     private frameId;
     private activeTouchId;
     private lastTouchY;
+    private lastEmittedSequenceProgress;
     private running;
     private interactionEnabled;
     constructor(options: JourneyControllerOptions);
@@ -44,6 +47,7 @@ export declare class JourneyController {
     private tick;
     private requestTick;
     private emit;
+    private logLoopReset;
     private getTrackedTouch;
     private normalizeWheelDelta;
     private normalizePixelDelta;

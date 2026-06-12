@@ -1,10 +1,16 @@
-import type { GalleryItem } from "../types/GalleryItem";
+import type { GalleryItem, PlacementSide } from "../types/GalleryItem";
 
 export interface ItemProgressEntry {
   itemId: string;
   sourceItemId: string;
   index: number;
   progress: number;
+  placementSide: PlacementSide;
+}
+
+export interface ActiveItemLeadOptions {
+  stationLead?: number;
+  wallLead?: number;
 }
 
 export const buildItemProgressMap = (items: GalleryItem[]): ItemProgressEntry[] => {
@@ -18,6 +24,7 @@ export const buildItemProgressMap = (items: GalleryItem[]): ItemProgressEntry[] 
     sourceItemId: item.id.split("__loop_")[0],
     index,
     progress: Math.min(1, index * step + step * 0.62),
+    placementSide: item.placement.side ?? "auto",
   }));
 };
 
@@ -30,14 +37,32 @@ export const getItemProgress = (
 export const getSequentialActiveItemId = (
   entries: ItemProgressEntry[],
   progress: number,
+  activeItemLead: number | ActiveItemLeadOptions = 0,
 ): string | null => {
   if (entries.length === 0) {
     return null;
   }
 
-  const clampedProgress = Math.min(1, Math.max(0, Number.isFinite(progress) ? progress : 0));
-  const index = Math.min(entries.length - 1, Math.floor(clampedProgress * entries.length));
-  return entries[index].sourceItemId;
+  const safeProgress = Number.isFinite(progress) ? progress : 0;
+  const clampedProgress = Math.min(1, Math.max(0, safeProgress));
+  const scaledProgress = clampedProgress * entries.length;
+  const index = Math.min(entries.length - 1, Math.floor(scaledProgress));
+  const current = entries[index];
+  const next = entries[index + 1];
+
+  if (!current || !next) {
+    return current?.sourceItemId ?? null;
+  }
+
+  const rawLead = typeof activeItemLead === "number"
+    ? activeItemLead
+    : next.placementSide === "center"
+      ? activeItemLead.stationLead ?? 0
+      : activeItemLead.wallLead ?? 0;
+  const lead = Math.min(0.95, Math.max(0, Number.isFinite(rawLead) ? rawLead : 0));
+  const segmentProgress = scaledProgress - index;
+
+  return segmentProgress >= 1 - lead ? next.sourceItemId : current.sourceItemId;
 };
 
 export const getAdjacentItemProgress = (
@@ -60,4 +85,17 @@ export const getAdjacentItemProgress = (
   }
 
   return entries[nextIndex];
+};
+
+export const getLoopResetProgress = (entries: ItemProgressEntry[]): number => {
+  if (entries.length === 0) {
+    return 1;
+  }
+
+  const step = 1 / Math.max(1, entries.length);
+  const last = entries[entries.length - 1];
+  const lastStart = (entries.length - 1) * step;
+  const finalItemExitRatio = last.placementSide === "center" ? 0.72 : 0.86;
+
+  return Math.min(1, lastStart + step * finalItemExitRatio);
 };

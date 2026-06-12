@@ -4,6 +4,7 @@ import {
   buildItemProgressMap,
   getAdjacentItemProgress,
   getItemProgress,
+  getLoopResetProgress,
   getSequentialActiveItemId,
 } from "../journey/itemProgress";
 import { BottomSheetController } from "./BottomSheetController";
@@ -93,7 +94,14 @@ export class RuntimeManager {
     const syncProgress = (progress: number, whiteMix = 0, sequenceProgress = progress): void => {
       const visibleWhiteMix = 0;
       engine.setJourneyState(progress, visibleWhiteMix);
-      const activeSourceId = getSequentialActiveItemId(itemProgress, sequenceProgress);
+      const activeSourceId = getSequentialActiveItemId(
+        itemProgress,
+        sequenceProgress,
+        {
+          stationLead: currentProject.journey.activeStationLead,
+          wallLead: currentProject.journey.activeWallLead,
+        },
+      );
       runtimeState = {
         progress,
         whiteMix: visibleWhiteMix,
@@ -134,6 +142,7 @@ export class RuntimeManager {
         sensitivity: BASE_SCROLL_SENSITIVITY * (project.journey.scrollStrength ?? 1),
         touchSensitivityMultiplier: mobileScrollStrength,
         loop: project.journey.loop,
+        loopResetProgress: getLoopResetProgress(itemProgress),
         onProgress: (state) => syncProgress(state.progress, state.whiteMix, state.sequenceProgress),
       });
     };

@@ -37,8 +37,9 @@ describe("JourneyController", () => {
     ]);
   });
 
-  it("keeps the final loop progress stable until scroll continues past it", () => {
+  it("restarts loop progress at the first item when it reaches the seam", () => {
     const emitted: Array<{ progress: number; sequenceProgress: number; whiteMix: number }> = [];
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
     const controller = new JourneyController({
       element,
       loop: true,
@@ -50,10 +51,104 @@ describe("JourneyController", () => {
     controller.setProgress(1.08);
 
     expect(emitted[0]).toEqual({ progress: 0.98, sequenceProgress: 0.98, whiteMix: 0 });
-    expect(emitted[1]).toEqual({ progress: 1, sequenceProgress: 1, whiteMix: 0 });
+    expect(emitted[1]).toEqual({ progress: 0.08, sequenceProgress: 0, whiteMix: 0 });
     expect(emitted[2].progress).toBeGreaterThan(0.08);
     expect(emitted[2].sequenceProgress).toBeCloseTo(0.08);
     expect(emitted[2].whiteMix).toBe(0);
+    expect(log).toHaveBeenCalledWith("[Scrollix] loop reset", expect.objectContaining({
+      sequenceProgress: 0,
+      progress: 0.08,
+    }));
+    log.mockRestore();
+  });
+
+  it("resets only sequence progress when crossing the configured visual seam", () => {
+    const emitted: Array<{ progress: number; sequenceProgress: number; whiteMix: number }> = [];
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const target = interactiveElement();
+    const frameCallbacks: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", vi.fn((callback: FrameRequestCallback) => {
+      frameCallbacks.push(callback);
+      return frameCallbacks.length;
+    }));
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    const controller = new JourneyController({
+      element: target.element,
+      loop: true,
+      loopResetProgress: 0.86,
+      smoothing: 0.16,
+      damping: 0.2,
+      sensitivity: 0.01,
+      onProgress: (state) => emitted.push(state),
+    });
+
+    controller.start();
+    controller.setProgress(0.84);
+    target.emit("wheel", {
+      ctrlKey: false,
+      deltaMode: 0,
+      deltaY: 10000,
+      preventDefault: vi.fn(),
+    });
+    frameCallbacks[0]?.(0);
+
+    expect(emitted.at(-1)?.progress).toBeGreaterThan(0.84);
+    expect(emitted.at(-1)?.progress).toBeLessThan(1);
+    expect(emitted.at(-1)?.sequenceProgress).toBe(0);
+    expect(emitted.at(-1)?.whiteMix).toBe(0);
+    expect(log).toHaveBeenCalledWith("[Scrollix] loop reset", expect.objectContaining({
+      previousSequenceProgress: 0.84,
+      sequenceProgress: 0,
+    }));
+    controller.dispose();
+    log.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it("snaps fast mobile gestures to the first item at the loop seam", () => {
+    const emitted: Array<{ progress: number; sequenceProgress: number; whiteMix: number }> = [];
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const target = interactiveElement();
+    const frameCallbacks: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", vi.fn((callback: FrameRequestCallback) => {
+      frameCallbacks.push(callback);
+      return frameCallbacks.length;
+    }));
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    const controller = new JourneyController({
+      element: target.element,
+      loop: true,
+      loopResetProgress: 0.86,
+      smoothing: 0.16,
+      damping: 0.2,
+      sensitivity: 0.01,
+      touchSensitivityMultiplier: 4,
+      onProgress: (state) => emitted.push(state),
+    });
+
+    controller.start();
+    controller.setProgress(0.85);
+    target.emit("touchstart", {
+      touches: [{ identifier: 1, clientY: 100 }],
+    });
+    target.emit("touchmove", {
+      touches: [{ identifier: 1, clientY: -1000000 }],
+      cancelable: true,
+      preventDefault: vi.fn(),
+    });
+    frameCallbacks[0]?.(0);
+
+    expect(emitted.at(-1)?.progress).toBeGreaterThan(0.85);
+    expect(emitted.at(-1)?.progress).toBeLessThan(1);
+    expect(emitted.at(-1)?.sequenceProgress).toBe(0);
+    expect(emitted.at(-1)?.whiteMix).toBe(0);
+    expect(log).toHaveBeenCalledWith("[Scrollix] loop reset", expect.objectContaining({
+      previousSequenceProgress: 0.85,
+      sequenceProgress: 0,
+    }));
+    controller.dispose();
+    log.mockRestore();
+    vi.unstubAllGlobals();
   });
 
   it("always emits zero white mix in loop journeys", () => {

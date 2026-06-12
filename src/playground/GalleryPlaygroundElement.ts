@@ -29,6 +29,8 @@ type ControlName =
   | "smoothing"
   | "scrollStrength"
   | "mobileScrollStrength"
+  | "activeStationLead"
+  | "activeWallLead"
   | "loop"
   | "forceMobile";
 
@@ -62,6 +64,8 @@ export interface GalleryPlaygroundValues {
   smoothing: number;
   scrollStrength: PlaygroundScrollStrength;
   mobileScrollStrength: number;
+  activeStationLead: number;
+  activeWallLead: number;
   loop: boolean;
   forceMobile: boolean;
 }
@@ -426,6 +430,16 @@ playgroundTemplate.innerHTML = `
         <span class="field__hint">Multiplica solo el gesto táctil en mobile para avanzar con menos arrastre.</span>
         <input data-control="mobileScrollStrength" type="range" min="0.5" max="4" step="0.1" />
       </label>
+      <label class="field">
+        <span class="field__label">Station lead <span class="field__value" data-value="activeStationLead">0.30</span></span>
+        <span class="field__hint">Anticipa estaciones centradas como fraccion del tramo entre items.</span>
+        <input data-control="activeStationLead" type="range" min="0" max="0.75" step="0.01" />
+      </label>
+      <label class="field">
+        <span class="field__label">Wall lead <span class="field__value" data-value="activeWallLead">0.01</span></span>
+        <span class="field__hint">Anticipa items de pared con un valor mas conservador.</span>
+        <input data-control="activeWallLead" type="range" min="0" max="0.75" step="0.01" />
+      </label>
       <label class="toggle">
         <span>
           Infinite loop
@@ -524,6 +538,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       smoothing: this.getControl("smoothing", HTMLInputElement),
       scrollStrength: this.getControl("scrollStrength", HTMLSelectElement),
       mobileScrollStrength: this.getControl("mobileScrollStrength", HTMLInputElement),
+      activeStationLead: this.getControl("activeStationLead", HTMLInputElement),
+      activeWallLead: this.getControl("activeWallLead", HTMLInputElement),
       loop: this.getControl("loop", HTMLInputElement),
       forceMobile: this.getControl("forceMobile", HTMLInputElement),
     };
@@ -553,6 +569,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       smoothing: this.getValueLabel("smoothing"),
       scrollStrength: this.getValueLabel("scrollStrength"),
       mobileScrollStrength: this.getValueLabel("mobileScrollStrength"),
+      activeStationLead: this.getValueLabel("activeStationLead"),
+      activeWallLead: this.getValueLabel("activeWallLead"),
     };
   }
 
@@ -649,6 +667,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       smoothing: project.journey.smoothing ?? 0.16,
       scrollStrength: project.journey.scrollStrength ? parseScrollStrength(String(project.journey.scrollStrength)) : "auto",
       mobileScrollStrength: project.journey.mobileScrollStrength ?? 1.8,
+      activeStationLead: project.journey.activeStationLead ?? project.journey.activeItemLead ?? 0.3,
+      activeWallLead: project.journey.activeWallLead ?? 0.01,
       loop: project.journey.loop ?? false,
       forceMobile: (this.controls.forceMobile as HTMLInputElement).checked,
     };
@@ -681,6 +701,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.controls.smoothing.value = String(values.smoothing);
     this.controls.scrollStrength.value = String(values.scrollStrength);
     this.controls.mobileScrollStrength.value = String(values.mobileScrollStrength);
+    this.controls.activeStationLead.value = String(values.activeStationLead);
+    this.controls.activeWallLead.value = String(values.activeWallLead);
     (this.controls.loop as HTMLInputElement).checked = values.loop;
     (this.controls.forceMobile as HTMLInputElement).checked = values.forceMobile;
   }
@@ -713,6 +735,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       smoothing: getNumber(this.controls.smoothing as HTMLInputElement, 0.16),
       scrollStrength: parseScrollStrength(this.controls.scrollStrength.value),
       mobileScrollStrength: getNumber(this.controls.mobileScrollStrength as HTMLInputElement, 1.8),
+      activeStationLead: getNumber(this.controls.activeStationLead as HTMLInputElement, 0.3),
+      activeWallLead: getNumber(this.controls.activeWallLead as HTMLInputElement, 0.01),
       loop: (this.controls.loop as HTMLInputElement).checked,
       forceMobile: (this.controls.forceMobile as HTMLInputElement).checked,
     };
@@ -777,6 +801,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
         smoothing: values.smoothing,
         scrollStrength,
         mobileScrollStrength: values.mobileScrollStrength,
+        activeStationLead: values.activeStationLead,
+        activeWallLead: values.activeWallLead,
         camera: {
           ...project.journey.camera,
           fov: values.fov,
@@ -817,6 +843,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.valueLabels.smoothing!.textContent = formatNumber(values.smoothing);
     this.valueLabels.scrollStrength!.textContent = formatScrollStrength(values.scrollStrength);
     this.valueLabels.mobileScrollStrength!.textContent = formatNumber(values.mobileScrollStrength);
+    this.valueLabels.activeStationLead!.textContent = formatNumber(values.activeStationLead);
+    this.valueLabels.activeWallLead!.textContent = formatNumber(values.activeWallLead);
     this.summary.textContent = `${itemCount} items · ${getTextureLabel(values.primary)} · ${values.overlayFramingMode} · ${values.loop ? "loop" : "linear"}`;
   }
 

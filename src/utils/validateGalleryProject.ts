@@ -149,6 +149,7 @@ const validateJourney = (source: Record<string, unknown>): GalleryProject["journ
     "balanced",
   );
   const overlayPreset = ARTWORK_OVERLAY_FRAMING_PRESETS[artworkOverlayFramingMode];
+  const activeItemLead = getNumber(source, "activeItemLead", 0.25, 0, 0.75);
 
   return {
     mode: resolveEnum(source.mode, JOURNEY_MODES, "scroll"),
@@ -157,6 +158,15 @@ const validateJourney = (source: Record<string, unknown>): GalleryProject["journ
     damping: getNumber(source, "damping", 0.86, 0.2, 0.98),
     scrollStrength: getNumber(source, "scrollStrength", 1, 0.25, 6),
     mobileScrollStrength: getNumber(source, "mobileScrollStrength", 1.8, 0.5, 4),
+    activeItemLead,
+    activeStationLead: getNumber(
+      source,
+      "activeStationLead",
+      typeof source.activeItemLead === "number" ? activeItemLead : 0.3,
+      0,
+      0.75,
+    ),
+    activeWallLead: getNumber(source, "activeWallLead", 0.01, 0, 0.75),
     artworkOverlayFramingMode,
     artworkOverlayAngleDistanceScale: overlayPreset.scale,
     artworkOverlayAngleDistanceMin: overlayPreset.min,

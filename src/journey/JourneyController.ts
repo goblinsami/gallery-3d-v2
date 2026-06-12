@@ -9,6 +9,7 @@ export interface JourneyControllerOptions {
   smoothing?: number;
   damping?: number;
   loop?: boolean;
+  loopResetProgress?: number;
   onProgress: (state: JourneyProgressState) => void;
 }
 
@@ -20,6 +21,8 @@ export interface JourneyProgressState {
 
 const VELOCITY_EPSILON = 0.00001;
 const PROGRESS_EPSILON = 0.000001;
+const WHEEL_DELTA_LINE = 1;
+const WHEEL_DELTA_PAGE = 2;
 
 export class JourneyController {
   private readonly element: HTMLElement;
@@ -27,6 +30,7 @@ export class JourneyController {
   private readonly smoothing: number;
   private readonly damping: number;
   private readonly loop: boolean;
+  private readonly loopResetProgress: number;
   private readonly touchSensitivityMultiplier: number;
   private sensitivity: number;
   private progress: number;
@@ -36,6 +40,7 @@ export class JourneyController {
   private frameId: number | null = null;
   private activeTouchId: number | null = null;
   private lastTouchY: number | null = null;
+  private lastEmittedSequenceProgress: number | null = null;
   private running = false;
   private interactionEnabled = true;
 
@@ -47,6 +52,7 @@ export class JourneyController {
     this.smoothing = clamp(options.smoothing ?? 0.18, 0.04, 1);
     this.damping = clamp(options.damping ?? 0.86, 0.2, 0.98);
     this.loop = options.loop ?? false;
+    this.loopResetProgress = clamp(options.loopResetProgress ?? 1, PROGRESS_EPSILON, 1);
     this.hasCompletedInitialLoop = this.loop && (options.initialProgress ?? 0) > this.getLoopCycleLength() + PROGRESS_EPSILON;
     this.progress = this.normalizeProgress(options.initialProgress ?? 0);
     this.targetProgress = this.progress;
@@ -229,7 +235,25 @@ export class JourneyController {
   }
 
   private emit(): void {
-    this.onProgress(this.resolveProgressState(this.progress));
+    const state = this.resolveProgressState(this.progress);
+    this.logLoopReset(state);
+    this.lastEmittedSequenceProgress = state.sequenceProgress;
+    this.onProgress(state);
+  }
+
+  private logLoopReset(state: JourneyProgressState): void {
+    if (!this.loop || this.lastEmittedSequenceProgress === null) {
+      return;
+    }
+
+    if (this.lastEmittedSequenceProgress > 0.5 && state.sequenceProgress <= 0.1) {
+      console.log("[Scrollix] loop reset", {
+        previousSequenceProgress: this.lastEmittedSequenceProgress,
+        sequenceProgress: state.sequenceProgress,
+        progress: state.progress,
+        rawProgress: this.progress,
+      });
+    }
   }
 
   private getTrackedTouch(touchList: TouchList): Touch | null {
@@ -242,11 +266,11 @@ export class JourneyController {
   }
 
   private normalizeWheelDelta(event: WheelEvent): number {
-    if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+    if (event.deltaMode === WHEEL_DELTA_LINE) {
       return this.normalizePixelDelta(event.deltaY * 16);
     }
 
-    if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+    if (event.deltaMode === WHEEL_DELTA_PAGE) {
       return this.normalizePixelDelta(event.deltaY * window.innerHeight * 0.85);
     }
 
@@ -275,7 +299,7 @@ export class JourneyController {
       return clamp(progress, 0, 1);
     }
 
-    if (progress > this.getLoopCycleLength() + PROGRESS_EPSILON) {
+    if (progress >= this.getLoopCycleLength() - PROGRESS_EPSILON) {
       this.hasCompletedInitialLoop = true;
     }
 
@@ -297,13 +321,25 @@ export class JourneyController {
       };
     }
 
-    const sequenceProgress = this.hasCompletedInitialLoop
+    const cycleProgress = this.hasCompletedInitialLoop
       ? this.wrap(rawProgress, 1)
       : clamp(rawProgress, 0, 1);
+    const targetCycle = Math.floor(Math.max(0, this.targetProgress) / this.getLoopCycleLength());
+    const rawCycle = Math.floor(Math.max(0, rawProgress) / this.getLoopCycleLength());
+    const targetCycleProgress = this.hasCompletedInitialLoop
+      ? this.wrap(this.targetProgress, 1)
+      : clamp(this.targetProgress, 0, 1);
+    const hasReachedSequenceReset =
+      cycleProgress >= this.loopResetProgress - PROGRESS_EPSILON ||
+      targetCycleProgress >= this.loopResetProgress - PROGRESS_EPSILON ||
+      targetCycle > rawCycle;
+    const sequenceProgress = hasReachedSequenceReset
+      ? 0
+      : cycleProgress;
 
     return {
       progress: this.hasCompletedInitialLoop
-        ? this.mapLoopRestartProgress(this.wrap(rawProgress, 1))
+        ? this.mapLoopRestartProgress(cycleProgress)
         : clamp(rawProgress, 0, 1),
       sequenceProgress,
       whiteMix: 0,
