@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { GalleryProject } from "../types/GalleryProject";
 import { CorridorLayout } from "../layouts/CorridorLayout";
-import { snapZToArchitecturalModuleCenter } from "../utils/architecturalModules";
+import {
+  getArchitecturalModuleCenterAtIndex,
+  snapZToArchitecturalModuleCenter,
+} from "../utils/architecturalModules";
 
 const project: GalleryProject = {
   theme: {
@@ -78,7 +81,7 @@ describe("CorridorLayout", () => {
     );
   });
 
-  it("does not snap pass-through wall items to architectural modules", () => {
+  it("centers slotted pass-through wall items in architectural segments", () => {
     const layout = new CorridorLayout().layout({
       ...project,
       items: [{
@@ -94,6 +97,8 @@ describe("CorridorLayout", () => {
       qualityScale: 1,
     });
 
-    expect(layout[0].position.z).toBe(-70);
+    expect(layout[0].position.z).toBeCloseTo(
+      getArchitecturalModuleCenterAtIndex(120, 1, 5),
+    );
   });
 });

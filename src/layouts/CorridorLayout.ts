@@ -1,7 +1,10 @@
 import type { GalleryProject } from "../types/GalleryProject";
 import type { PositionedGalleryItem } from "../types/GalleryItem";
 import type { LayoutContext, LayoutStrategy } from "../types/Layout";
-import { snapZToArchitecturalModuleCenter } from "../utils/architecturalModules";
+import {
+  getArchitecturalModuleCenterAtIndex,
+  snapZToArchitecturalModuleCenter,
+} from "../utils/architecturalModules";
 import { applyOffset, getItemBounds, toVec3 } from "./layoutUtils";
 
 export class CorridorLayout implements LayoutStrategy {
@@ -45,7 +48,9 @@ export class CorridorLayout implements LayoutStrategy {
     const bounds = getItemBounds(item);
     const slot = item.placement.slot ?? index + 1;
     const baseZ = -slot * spacing;
-    const z = side === "center" || item.passThrough === true
+    const z = item.passThrough === true && typeof item.placement.slot === "number" && side !== "center"
+      ? getArchitecturalModuleCenterAtIndex(depth, qualityScale, item.placement.slot, architecturalCycleDepth)
+      : side === "center"
       ? baseZ
       : snapZToArchitecturalModuleCenter(depth, qualityScale, baseZ, architecturalCycleDepth);
     const y = Math.min(height - bounds.height * 0.5 - 0.25, 1.65);

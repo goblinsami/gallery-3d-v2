@@ -3,8 +3,9 @@ import type { GalleryProject } from "../types/GalleryProject";
 import { premiumCorridorProject } from "./premiumCorridorProject";
 
 export const PEXELS_PASS_THROUGH_TEMPLATE = "pexels-pass-through";
-export const PEXELS_PASS_THROUGH_SPACING = 0.35;
+export const PEXELS_PASS_THROUGH_SPACING = 4.2;
 export const PEXELS_PASS_THROUGH_SCROLL_STRENGTH = 4;
+export const PEXELS_PASS_THROUGH_SMOOTHING = 0.2;
 export const PEXELS_PASS_THROUGH_SEED = 7319;
 
 const PEXELS_PHOTO_IDS = [
@@ -30,9 +31,8 @@ const PEXELS_PHOTO_IDS = [
   247599,
 ] as const;
 
-const WELCOME_SLOT = 12;
-const IMAGE_START_SLOT = 28;
-const IMAGE_SLOT_STEP = 12;
+const WELCOME_SLOT = 0.2;
+const IMAGE_SLOT_STEP = 1;
 
 const SIZE_PATTERN: Array<GalleryItem["appearance"]["size"]> = [
   "small",
@@ -55,8 +55,8 @@ const createPexelsUrl = (photoId: number, index: number, seed: number): string =
 
 export const createPexelsPassThroughItems = (
   seed = PEXELS_PASS_THROUGH_SEED,
-): GalleryItem[] => [
-  {
+): GalleryItem[] => {
+  const welcome: GalleryItem = {
     id: "pexels-welcome",
     type: "statement",
     placement: {
@@ -73,38 +73,45 @@ export const createPexelsPassThroughItems = (
       title: "Bienvenida",
       description: "Una estacion de entrada seguida por un corredor denso de imagenes silenciosas.",
     },
-  },
-  ...PEXELS_PHOTO_IDS.map((photoId, index): GalleryItem => {
+  };
+  const images = PEXELS_PHOTO_IDS.flatMap((photoId, index): GalleryItem[] => {
     const itemNumber = index + 1;
-    return {
-      id: `pexels-pass-through-${itemNumber}`,
+    const slot = index * IMAGE_SLOT_STEP;
+    const media = [{
+      src: createPexelsUrl(photoId, index, seed),
+      type: "image" as const,
+      format: "jpg" as const,
+      quality: "high" as const,
+      alt: `Pexels seeded corridor image ${itemNumber}`,
+    }];
+    const size = SIZE_PATTERN[seededIndex(index, seed, SIZE_PATTERN.length)];
+    const scale = 0.72 + seededIndex(index + 13, seed, 5) * 0.055;
+
+    return (["left", "right"] as const).map((side): GalleryItem => ({
+      id: `pexels-pass-through-${side}-${itemNumber}`,
       type: "image",
       passThrough: true,
       placement: {
-        side: index % 2 === 0 ? "left" : "right",
-        slot: IMAGE_START_SLOT + index * IMAGE_SLOT_STEP,
+        side,
+        slot,
         offset: {
-          y: (seededIndex(index + 5, seed, 5) - 2) * 0.08,
+          y: (seededIndex(index + (side === "left" ? 5 : 9), seed, 5) - 2) * 0.08,
         },
-        scale: 0.72 + seededIndex(index + 13, seed, 5) * 0.055,
+        scale,
       },
       appearance: {
-        size: SIZE_PATTERN[seededIndex(index, seed, SIZE_PATTERN.length)],
+        size,
         lighting: index % 3 === 0 ? "featured" : "subtle",
-        media: [{
-          src: createPexelsUrl(photoId, index, seed),
-          type: "image",
-          format: "jpg",
-          quality: "high",
-          alt: `Pexels seeded corridor image ${itemNumber}`,
-        }],
+        media,
       },
       content: {
-        title: `Pexels Seed ${seed} / ${itemNumber}`,
+        title: `Pexels Seed ${seed} / ${side} ${itemNumber}`,
       },
-    };
-  }),
-];
+    }));
+  });
+
+  return [welcome, ...images];
+};
 
 export const createPexelsPassThroughProject = (
   sourceProject: GalleryProject = premiumCorridorProject,
@@ -118,6 +125,7 @@ export const createPexelsPassThroughProject = (
   journey: {
     ...sourceProject.journey,
     loop: true,
+    smoothing: PEXELS_PASS_THROUGH_SMOOTHING,
     scrollStrength: PEXELS_PASS_THROUGH_SCROLL_STRENGTH,
     mobileScrollStrength: 3.2,
   },

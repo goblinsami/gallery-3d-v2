@@ -83,6 +83,6 @@ describe("InfiniteCorridorLayout", () => {
       qualityScale: 1,
     });
 
-    expect(layout[2].position.z).toBeCloseTo(layout[0].position.z - 45);
+    expect(layout[2].position.z).toBeCloseTo(layout[0].position.z - 55);
   });
 });

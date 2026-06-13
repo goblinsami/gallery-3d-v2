@@ -52,7 +52,9 @@ describe("camera journey", () => {
     const next = item("next", -12, "center");
     const keyframes = buildCameraKeyframes([silent, next]);
 
-    expect(keyframes.some((frame) => frame.label.startsWith("silent:"))).toBe(false);
+    expect(keyframes.some((frame) => frame.label === "silent:travel")).toBe(true);
+    expect(keyframes.some((frame) => frame.label === "silent:focus")).toBe(false);
+    expect(keyframes.some((frame) => frame.label === "silent:hold")).toBe(false);
     expect(keyframes.some((frame) => frame.activeItemId === "silent")).toBe(false);
   });
 
@@ -64,8 +66,34 @@ describe("camera journey", () => {
     const next = item("next", -12, "left");
     const keyframes = buildCameraKeyframes([silent, next]);
 
-    expect(keyframes.some((frame) => frame.label.startsWith("silent-station:"))).toBe(false);
+    expect(keyframes.some((frame) => frame.label === "silent-station:travel")).toBe(true);
+    expect(keyframes.some((frame) => frame.label === "silent-station:approach")).toBe(false);
+    expect(keyframes.some((frame) => frame.label === "silent-station:pass-through")).toBe(false);
     expect(keyframes.some((frame) => frame.activeItemId === "silent-station")).toBe(false);
+  });
+
+  it("distributes camera progress across pass-through physical items", () => {
+    const first = item("one", -6, "center");
+    const silentA = { ...item("silent-a", -12, "left"), passThrough: true };
+    const silentB = { ...item("silent-b", -18, "right"), passThrough: true };
+    const keyframes = buildCameraKeyframes([first, silentA, silentB]);
+    const firstPass = keyframes.find((frame) => frame.label === "one:pass-through");
+    const silentTravel = keyframes.find((frame) => frame.label === "silent-b:travel");
+
+    expect(firstPass?.progress).toBeLessThan(0.3);
+    expect(silentTravel?.progress).toBeGreaterThan(0.75);
+    expect(silentTravel?.activeItemId).toBeNull();
+  });
+
+  it("creates a single silent travel keyframe for paired pass-through items in the same segment", () => {
+    const first = item("one", -6, "center");
+    const left = { ...item("silent-left", -12, "left"), passThrough: true };
+    const right = { ...item("silent-right", -12, "right"), passThrough: true };
+    const keyframes = buildCameraKeyframes([first, left, right]);
+
+    expect(keyframes.filter((frame) => frame.label.endsWith(":travel"))).toHaveLength(1);
+    expect(keyframes.some((frame) => frame.activeItemId === "silent-left")).toBe(false);
+    expect(keyframes.some((frame) => frame.activeItemId === "silent-right")).toBe(false);
   });
 
   it("uses an empty camera state when all items are pass-through", () => {

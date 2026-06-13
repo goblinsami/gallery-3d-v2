@@ -3,6 +3,7 @@ import type { ArtworkOverlayFramingMode } from "../types/Journey";
 import { TEXTURE_FAMILY_OPTIONS } from "../config/architecturalTextureCatalog";
 import {
   createPexelsPassThroughProject,
+  PEXELS_PASS_THROUGH_SMOOTHING,
   PEXELS_PASS_THROUGH_SCROLL_STRENGTH,
   PEXELS_PASS_THROUGH_SPACING,
   PEXELS_PASS_THROUGH_TEMPLATE,
@@ -674,6 +675,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
       spacing: PEXELS_PASS_THROUGH_SPACING,
       scrollStrength: PEXELS_PASS_THROUGH_SCROLL_STRENGTH,
       mobileScrollStrength: 3.2,
+      smoothing: PEXELS_PASS_THROUGH_SMOOTHING,
     };
   }
 

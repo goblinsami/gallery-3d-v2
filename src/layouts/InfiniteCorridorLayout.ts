@@ -2,6 +2,7 @@ import type { GalleryProject } from "../types/GalleryProject";
 import type { PositionedGalleryItem } from "../types/GalleryItem";
 import type { LayoutContext, LayoutStrategy } from "../types/Layout";
 import { CorridorLayout } from "./CorridorLayout";
+import { getLoopCycleDepth } from "./loopCycleDepth";
 
 const DEFAULT_REPEAT_CYCLES = 3;
 
@@ -10,12 +11,7 @@ export class InfiniteCorridorLayout implements LayoutStrategy {
   private readonly corridor = new CorridorLayout();
 
   layout(project: GalleryProject, _config = project.layout, context: LayoutContext): PositionedGalleryItem[] {
-    const spacing = project.layout.spacing ?? 7;
-    const maxSlot = project.items.reduce(
-      (max, item, index) => Math.max(max, item.placement.slot ?? index + 1),
-      project.items.length,
-    );
-    const cycleDepth = maxSlot * spacing;
+    const cycleDepth = getLoopCycleDepth(project);
     const base = this.corridor.layout(project, project.layout, {
       ...context,
       architecturalCycleDepth: project.journey.loop ? cycleDepth : undefined,

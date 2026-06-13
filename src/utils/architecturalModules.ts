@@ -67,6 +67,34 @@ export const getArchitecturalModuleCenterZ = (
   getArchitecturalModuleZ(depth, count, index)
   - getArchitecturalModuleSegmentDepth(depth, count) * 0.5;
 
+export const getArchitecturalModuleCenterAtIndex = (
+  depth: number,
+  geometryDetail: number,
+  index: number,
+  cycleDepth?: number,
+): number => {
+  const pattern = getArchitecturalModulePattern(depth, geometryDetail, cycleDepth);
+  const centers = pattern.positions
+    .slice(0, -1)
+    .map((position, positionIndex) => ({
+      z: (position + pattern.positions[positionIndex + 1]) * 0.5,
+      gap: Math.abs(position - pattern.positions[positionIndex + 1]),
+    }))
+    .filter((center) => center.gap >= pattern.segmentDepth * 0.5)
+    .map((center) => center.z);
+
+  if (centers.length === 0) {
+    return -depth * 0.5;
+  }
+
+  const safeIndex = Math.max(0, Math.round(index));
+  if (safeIndex < centers.length) {
+    return centers[safeIndex];
+  }
+
+  return centers[centers.length - 1] - (safeIndex - centers.length + 1) * pattern.segmentDepth;
+};
+
 export const snapZToArchitecturalModuleCenter = (
   depth: number,
   geometryDetail: number,

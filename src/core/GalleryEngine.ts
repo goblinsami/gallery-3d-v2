@@ -20,6 +20,7 @@ import { composeBottomSheetCamera } from "../journey/composeBottomSheetCamera";
 import { createArchitectureShell } from "./createArchitectureShell";
 import { disposeObject3D } from "./disposeObject3D";
 import { getCameraStateAtProgress } from "../journey/getCameraStateAtProgress";
+import { getLoopCycleDepth } from "../layouts/loopCycleDepth";
 import { getDeviceProfile, resolveQuality } from "../utils/resolveQuality";
 import { AssetManager } from "./AssetManager";
 import { RenderScheduler } from "./RenderScheduler";
@@ -559,10 +560,7 @@ export class GalleryEngine {
       return undefined;
     }
 
-    const sourceItemCount = this.getJourneyItemsForKeyframes().length;
-    return sourceItemCount > 0
-      ? sourceItemCount * (this.project.layout.spacing ?? 7)
-      : undefined;
+    return this.project.items.length > 0 ? getLoopCycleDepth(this.project) : undefined;
   }
 
   private renderFrame = (): void => {
