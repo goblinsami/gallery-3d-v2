@@ -57,4 +57,43 @@ describe("CorridorLayout", () => {
     );
     expect(layout[1].position.z).toBe(-28);
   });
+
+  it("places explicit slots before snapping regular wall items", () => {
+    const layout = new CorridorLayout().layout({
+      ...project,
+      items: [{
+        ...project.items[0],
+        placement: {
+          side: "left",
+          slot: 5,
+        },
+      }],
+    }, project.layout, {
+      viewportAspect: 16 / 9,
+      qualityScale: 1,
+    });
+
+    expect(layout[0].position.z).toBeCloseTo(
+      snapZToArchitecturalModuleCenter(120, 1, -70),
+    );
+  });
+
+  it("does not snap pass-through wall items to architectural modules", () => {
+    const layout = new CorridorLayout().layout({
+      ...project,
+      items: [{
+        ...project.items[0],
+        passThrough: true,
+        placement: {
+          side: "left",
+          slot: 5,
+        },
+      }],
+    }, project.layout, {
+      viewportAspect: 16 / 9,
+      qualityScale: 1,
+    });
+
+    expect(layout[0].position.z).toBe(-70);
+  });
 });

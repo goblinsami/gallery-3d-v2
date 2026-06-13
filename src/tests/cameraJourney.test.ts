@@ -42,6 +42,40 @@ describe("camera journey", () => {
     expect(passThrough?.position.z).toBeLessThan(center.position.z);
   });
 
+  it("does not build focus keyframes for pass-through wall items", () => {
+    const silent = {
+      ...item("silent", -6, "left"),
+      passThrough: true,
+      position: { x: -3, y: 1.6, z: -6 },
+      focusTarget: { x: -3, y: 1.6, z: -6 },
+    };
+    const next = item("next", -12, "center");
+    const keyframes = buildCameraKeyframes([silent, next]);
+
+    expect(keyframes.some((frame) => frame.label.startsWith("silent:"))).toBe(false);
+    expect(keyframes.some((frame) => frame.activeItemId === "silent")).toBe(false);
+  });
+
+  it("does not build approach keyframes for pass-through center items", () => {
+    const silent = {
+      ...item("silent-station", -6, "center"),
+      passThrough: true,
+    };
+    const next = item("next", -12, "left");
+    const keyframes = buildCameraKeyframes([silent, next]);
+
+    expect(keyframes.some((frame) => frame.label.startsWith("silent-station:"))).toBe(false);
+    expect(keyframes.some((frame) => frame.activeItemId === "silent-station")).toBe(false);
+  });
+
+  it("uses an empty camera state when all items are pass-through", () => {
+    const keyframes = buildCameraKeyframes([{ ...item("silent", -6, "left"), passThrough: true }]);
+
+    expect(keyframes).toHaveLength(1);
+    expect(keyframes[0].label).toBe("empty");
+    expect(keyframes[0].activeItemId).toBeNull();
+  });
+
   it("pulls center items back with station framing distance", () => {
     const center = item("station", -6, "center");
     const defaultFocus = buildCameraKeyframes([center])
@@ -129,5 +163,21 @@ describe("camera journey", () => {
     expect(lastPassThrough).toBeDefined();
     expect(seam.label).toBe("loop-seam");
     expect(seam.position.z).toBeLessThanOrEqual(lastPassThrough?.position.z ?? 0);
+  });
+
+  it("builds the loop seam from the first focusable item when pass-through items lead", () => {
+    const silent = { ...item("silent", -2, "left"), passThrough: true };
+    const first = item("one", -6, "center");
+    const second = item("two", -12, "center");
+    const firstClone = item("one__loop_1", -20, "center");
+    const baseKeyframes = buildCameraKeyframes([silent, first, second]);
+    const restartState = getCameraStateAtProgress(baseKeyframes, LOOP_RESTART_PROGRESS);
+    const keyframes = buildCameraKeyframes([silent, first, second], {}, { loopSeamItem: firstClone });
+    const last = keyframes[keyframes.length - 1];
+    const loopOffsetZ = firstClone.position.z - first.position.z;
+
+    expect(last.label).toBe("loop-seam");
+    expect(last.position.z).toBeCloseTo(restartState.position.z + loopOffsetZ);
+    expect(last.lookAt.z).toBeCloseTo(restartState.lookAt.z + loopOffsetZ);
   });
 });

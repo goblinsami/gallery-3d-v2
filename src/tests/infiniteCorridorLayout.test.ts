@@ -63,4 +63,26 @@ describe("InfiniteCorridorLayout", () => {
     expect(layout[0].position.z).toBeCloseTo(expectedFirstCycleZ);
     expect(layout[2].position.z).toBeCloseTo(expectedFirstCycleZ - cycleDepth);
   });
+
+  it("uses explicit item slots when calculating loop cycle depth", () => {
+    const slottedProject: GalleryProject = {
+      ...project,
+      items: [
+        {
+          ...project.items[0],
+          placement: { side: "center", slot: 3 },
+        },
+        {
+          ...project.items[1],
+          placement: { side: "center", slot: 9 },
+        },
+      ],
+    };
+    const layout = new InfiniteCorridorLayout().layout(slottedProject, slottedProject.layout, {
+      viewportAspect: 16 / 9,
+      qualityScale: 1,
+    });
+
+    expect(layout[2].position.z).toBeCloseTo(layout[0].position.z - 45);
+  });
 });

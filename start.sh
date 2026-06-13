@@ -10,7 +10,7 @@ code .
 # nvm use
 
 # Lanzar el servidor
-npm run dev
+npm run dev:demo
 
 # Mantener la terminal abierta
 exec bash

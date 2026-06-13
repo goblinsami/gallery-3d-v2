@@ -99,8 +99,8 @@ const createBakeMaterial = (
   axis: GradientAxis,
   focus: GradientFocus,
   opacity: number,
+  color = "#fff0c6",
 ): MeshBasicMaterial => {
-  const color = "#fff0c6";
   return new MeshBasicMaterial({
     color,
     map: createGradientTexture(axis, focus, color),
@@ -132,6 +132,8 @@ export const createArchitecturalBake = (
   height: number,
   quality: QualitySettings,
   ceilingLightIntensity = 1,
+  ceilingLightColor = "#fff6df",
+  ledColor = "#fff8df",
   textureCycleDepth?: number,
 ): Group => {
   const root = new Group();
@@ -152,37 +154,37 @@ export const createArchitecturalBake = (
 
   const floorLeft = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
-    createBakeMaterial("x", "start", baseOpacity),
+    createBakeMaterial("x", "start", baseOpacity, ledColor),
     moduleZs.length,
   );
   const floorRight = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
-    createBakeMaterial("x", "end", baseOpacity),
+    createBakeMaterial("x", "end", baseOpacity, ledColor),
     moduleZs.length,
   );
   const ceilingLeft = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
-    createBakeMaterial("x", "start", ceilingOpacity),
+    createBakeMaterial("x", "start", ceilingOpacity, ceilingLightColor),
     moduleZs.length,
   );
   const ceilingRight = new InstancedMesh(
     new PlaneGeometry(floorGlowWidth, segmentDepth),
-    createBakeMaterial("x", "end", ceilingOpacity),
+    createBakeMaterial("x", "end", ceilingOpacity, ceilingLightColor),
     moduleZs.length,
   );
   const wallLower = new InstancedMesh(
     new PlaneGeometry(segmentDepth, wallEdgeHeight),
-    createBakeMaterial("y", "start", baseOpacity * 0.62),
+    createBakeMaterial("y", "start", baseOpacity * 0.62, ledColor),
     moduleZs.length * 2,
   );
   const wallUpper = new InstancedMesh(
     new PlaneGeometry(segmentDepth, wallEdgeHeight),
-    createBakeMaterial("y", "end", baseOpacity * 0.52),
+    createBakeMaterial("y", "end", baseOpacity * 0.52, ledColor),
     moduleZs.length * 2,
   );
   const wallVertical = new InstancedMesh(
     new PlaneGeometry(verticalGlowWidth, verticalGlowHeight),
-    createBakeMaterial("x", "center", baseOpacity * 0.96),
+    createBakeMaterial("x", "center", baseOpacity * 0.96, ledColor),
     moduleZs.length * 2,
   );
 

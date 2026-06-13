@@ -22,6 +22,7 @@ interface FramerItem {
     body?: string
     image?: string
     imageAlt?: string
+    passThrough?: boolean
     size?: Size
     lighting?: Lighting
     ctaLabel?: string
@@ -37,6 +38,8 @@ interface Props {
     spacing: number
     corridorWidth: number
     corridorHeight: number
+    ceilingLightColor: string
+    ledColor: string
     mobileScrollStrength: number
     contentSource: "controls" | "json"
     projectJson?: string
@@ -156,6 +159,8 @@ const DEFAULTS: Props = {
     spacing: 14,
     corridorWidth: 8,
     corridorHeight: 4.2,
+    ceilingLightColor: "#fff6df",
+    ledColor: "#fff8df",
     mobileScrollStrength: 1.8,
     contentSource: "controls",
     projectJson: "",
@@ -230,6 +235,7 @@ function buildItems(items: FramerItem[]) {
         return {
             id,
             type: item.type,
+            passThrough: item.passThrough === true ? true : undefined,
             placement: {
                 side: placementToSide(item.placement),
             },
@@ -281,7 +287,12 @@ function buildProject(props: Props) {
                     ceilingDeformation: "stretched",
                 },
             },
-            lighting: { ceilingLightIntensity: 1, ceilingLightRadius: 0.095 },
+            lighting: {
+                ceilingLightIntensity: 1,
+                ceilingLightRadius: 0.095,
+                ceilingLightColor: props.ceilingLightColor,
+                ledColor: props.ledColor,
+            },
             items: { showBorders: props.showBorders },
         },
         layout: {
@@ -443,6 +454,14 @@ addPropertyControls(ScrollixBridge, {
         max: 7,
         step: 0.1,
     },
+    ceilingLightColor: {
+        type: ControlType.Color,
+        title: "Ceiling Color",
+    },
+    ledColor: {
+        type: ControlType.Color,
+        title: "LED Color",
+    },
     mobileScrollStrength: {
         type: ControlType.Number,
         title: "Mobile Scroll",
@@ -485,6 +504,7 @@ addPropertyControls(ScrollixBridge, {
                 body: { type: ControlType.String, title: "Body", displayTextArea: true },
                 image: { type: ControlType.Image, title: "Image" },
                 imageAlt: { type: ControlType.String, title: "Alt" },
+                passThrough: { type: ControlType.Boolean, title: "Pass Through" },
                 size: {
                     type: ControlType.Enum,
                     title: "Size",

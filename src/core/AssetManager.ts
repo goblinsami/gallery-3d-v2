@@ -34,7 +34,7 @@ export class AssetManager implements RenderAssets {
   private readonly assetBaseUrl?: string;
   private readonly capabilities: TextureSelectionCapabilities;
   private readonly textureLoader = new TextureLoader();
-  private readonly textures = new Map<string, Promise<Texture>>();
+  private readonly textures = new Map<string, Promise<Texture | null>>();
 
   constructor(options: AssetManagerOptions) {
     this.quality = options.quality;
@@ -54,7 +54,7 @@ export class AssetManager implements RenderAssets {
 
   dispose(): void {
     this.textures.forEach((texturePromise) => {
-      void texturePromise.then((texture) => texture.dispose());
+      void texturePromise.then((texture) => texture?.dispose());
     });
     this.textures.clear();
   }
@@ -76,7 +76,7 @@ export class AssetManager implements RenderAssets {
     });
   }
 
-  private loadTexture(src: string): Promise<Texture> {
+  private loadTexture(src: string): Promise<Texture | null> {
     const resolved = this.resolveUrl(src);
     const existing = this.textures.get(resolved);
     if (existing) {
@@ -87,6 +87,8 @@ export class AssetManager implements RenderAssets {
       texture.colorSpace = SRGBColorSpace;
       texture.needsUpdate = true;
       return texture;
+    }).catch(() => {
+      return null;
     });
     this.textures.set(resolved, texturePromise);
     return texturePromise;

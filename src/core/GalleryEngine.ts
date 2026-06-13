@@ -422,6 +422,8 @@ export class GalleryEngine {
       this.project.theme.materials.primary,
       this.project.theme.lighting?.ceilingLightIntensity,
       this.project.theme.lighting?.ceilingLightRadius,
+      this.project.theme.lighting?.ceilingLightColor,
+      this.project.theme.lighting?.ledColor,
       this.getTextureCycleDepth(),
       this.assetBaseUrl,
       this.project.theme.materials.textureTiling,
@@ -549,7 +551,7 @@ export class GalleryEngine {
       return null;
     }
 
-    return this.positionedItems.find((item) => item.id.endsWith("__loop_1")) ?? null;
+    return this.positionedItems.find((item) => item.id.endsWith("__loop_1") && item.passThrough !== true) ?? null;
   }
 
   private getTextureCycleDepth(): number | undefined {

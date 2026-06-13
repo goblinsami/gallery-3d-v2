@@ -43,8 +43,9 @@ export class CorridorLayout implements LayoutStrategy {
   ): Omit<PositionedGalleryItem, keyof typeof item> {
     const side = item.placement.side === "right" ? "right" : item.placement.side === "center" ? "center" : "left";
     const bounds = getItemBounds(item);
-    const baseZ = -(index + 1) * spacing;
-    const z = side === "center"
+    const slot = item.placement.slot ?? index + 1;
+    const baseZ = -slot * spacing;
+    const z = side === "center" || item.passThrough === true
       ? baseZ
       : snapZToArchitecturalModuleCenter(depth, qualityScale, baseZ, architecturalCycleDepth);
     const y = Math.min(height - bounds.height * 0.5 - 0.25, 1.65);

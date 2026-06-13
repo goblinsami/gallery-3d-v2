@@ -38,8 +38,9 @@ export const buildCameraKeyframes = (
   options: CameraKeyframeOptions = {},
 ): CameraKeyframe[] => {
   const resolved = { ...DEFAULT_METRICS, ...metrics };
+  const focusableItems = items.filter((item) => item.passThrough !== true);
 
-  if (items.length === 0) {
+  if (focusableItems.length === 0) {
     return [
       {
         progress: 0,
@@ -51,18 +52,18 @@ export const buildCameraKeyframes = (
     ];
   }
 
-  const step = 1 / Math.max(1, items.length);
+  const step = 1 / Math.max(1, focusableItems.length);
   const frames: CameraKeyframe[] = [
     {
       progress: 0,
       position: { x: 0, y: resolved.cameraHeight, z: 0.9 },
-      lookAt: add(items[0].focusTarget, 0, 0, -resolved.lookAhead),
+      lookAt: add(focusableItems[0].focusTarget, 0, 0, -resolved.lookAhead),
       activeItemId: null,
       label: "start",
     },
   ];
 
-  items.forEach((item, index) => {
+  focusableItems.forEach((item, index) => {
     const start = index * step;
     const side = item.placement.side ?? "auto";
     const isCenter = side === "center";
@@ -135,9 +136,10 @@ export const buildCameraKeyframes = (
     });
   });
 
-  if (options.loopSeamItem) {
-    const first = items[0];
-    const loopOffsetZ = options.loopSeamItem.position.z - first.position.z;
+  const loopSeamItem = options.loopSeamItem?.passThrough === true ? undefined : options.loopSeamItem;
+  if (loopSeamItem) {
+    const first = focusableItems[0];
+    const loopOffsetZ = loopSeamItem.position.z - first.position.z;
     const restartState = getCameraStateAtProgress(
       [...frames].sort((a, b) => a.progress - b.progress),
       LOOP_RESTART_PROGRESS,
@@ -150,7 +152,7 @@ export const buildCameraKeyframes = (
       label: "loop-seam",
     });
   } else {
-    const last = items[items.length - 1];
+    const last = focusableItems[focusableItems.length - 1];
     const endTailDistance = resolved.focusDistance * 2.35;
     frames.push({
       progress: 1,

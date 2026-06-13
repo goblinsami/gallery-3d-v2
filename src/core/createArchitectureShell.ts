@@ -28,6 +28,8 @@ export const createArchitectureShell = async (
   materialFamily: MaterialFamily,
   ceilingLightIntensity = 1,
   ceilingLightRadius = 0.095,
+  ceilingLightColor = "#fff6df",
+  ledColor = "#fff8df",
   textureCycleDepth?: number,
   assetBaseUrl?: string,
   textureTiling?: TextureTilingConfig,
@@ -42,6 +44,8 @@ export const createArchitectureShell = async (
     depth,
     materialFamily,
     lightScale,
+    ceilingLightColor,
+    ledColor,
     textureCycleDepth,
     assetBaseUrl,
     textureTiling,
@@ -74,7 +78,7 @@ export const createArchitectureShell = async (
 
   root.name = "architecture-shell";
   root.add(floorBase, floor, ceiling, leftWall, rightWall, ambient, hemisphere, key);
-  const ceilingFill = createCeilingFillLight(width, depth, height, lightScale);
+  const ceilingFill = createCeilingFillLight(width, depth, height, lightScale, ceilingLightColor);
   if (ceilingFill) {
     root.add(ceilingFill);
   }
@@ -83,7 +87,16 @@ export const createArchitectureShell = async (
   root.add(createWallLeds(width, depth, height, materials, quality, textureCycleDepth));
   root.add(createCeilingGrid(width, depth, height, materials, quality, textureCycleDepth));
   root.add(createCeilingDownlights(width, depth, height, materials, quality, ceilingLightRadius, textureCycleDepth));
-  root.add(createArchitecturalBake(width, depth, height, quality, lightScale, textureCycleDepth));
+  root.add(createArchitecturalBake(
+    width,
+    depth,
+    height,
+    quality,
+    lightScale,
+    ceilingLightColor,
+    ledColor,
+    textureCycleDepth,
+  ));
 
   return root;
 };
@@ -96,6 +109,7 @@ const createCeilingFillLight = (
   depth: number,
   height: number,
   lightScale: number,
+  ceilingLightColor: string,
 ): RectAreaLight | null => {
   if (lightScale <= 0) {
     return null;
@@ -104,7 +118,7 @@ const createCeilingFillLight = (
   const [leftGridX, , rightGridX] = getLightGridXs(width);
   const gridWidth = rightGridX - leftGridX;
   const light = new RectAreaLight(
-    "#fff0c6",
+    ceilingLightColor,
     lightScale * 0.65,
     gridWidth * CEILING_FILL_LIGHT_WIDTH_SCALE,
     depth * CEILING_FILL_LIGHT_DEPTH_SCALE,

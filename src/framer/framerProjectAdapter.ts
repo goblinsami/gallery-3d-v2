@@ -23,6 +23,7 @@ export interface ScrollixGalleryFramerItemInput {
   body?: string;
   image?: string;
   imageAlt?: string;
+  passThrough?: boolean;
   size?: AppearanceConfig["size"];
   material?: MaterialFamily;
   lighting?: AppearanceConfig["lighting"];
@@ -57,6 +58,8 @@ export interface ScrollixGalleryFramerProps {
   ceilingTextureDeformation: FramerTextureTilingDeformation;
   ceilingLightIntensity: number;
   ceilingLightRadius: number;
+  ceilingLightColor: string;
+  ledColor: string;
   fov: number;
   cameraHeight: number;
   lookAhead: number;
@@ -147,6 +150,7 @@ export const createGalleryItemFromFramerInput = (
   return {
     id,
     type: item.type,
+    passThrough: item.passThrough === true ? true : undefined,
     placement: {
       side: placementModeToSide(item.placement),
       slot: typeof item.slot === "number" ? item.slot : undefined,
@@ -208,6 +212,7 @@ export const getDefaultFramerGalleryItems = (): ScrollixGalleryFramerItemInput[]
     body: typeof item.content.body === "string" ? item.content.body : undefined,
     image: item.appearance.media?.[0]?.src,
     imageAlt: item.appearance.media?.[0]?.alt,
+    passThrough: item.passThrough,
     size: item.appearance.size,
     material: item.appearance.material as MaterialFamily | undefined,
     lighting: item.appearance.lighting,
@@ -242,6 +247,8 @@ export const scrollixGalleryFramerDefaults: ScrollixGalleryFramerProps = {
   ceilingTextureDeformation: "stretched",
   ceilingLightIntensity: 1,
   ceilingLightRadius: 0.095,
+  ceilingLightColor: "#fff6df",
+  ledColor: "#fff8df",
   fov: 50,
   cameraHeight: 1.72,
   lookAhead: 3.2,
@@ -301,6 +308,8 @@ export const buildScrollixGalleryFramerProject = (
         ...sourceProject.theme.lighting,
         ceilingLightIntensity: props.ceilingLightIntensity,
         ceilingLightRadius: props.ceilingLightRadius,
+        ceilingLightColor: props.ceilingLightColor,
+        ledColor: props.ledColor,
       },
       items: {
         ...sourceProject.theme.items,

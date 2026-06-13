@@ -20,7 +20,12 @@ const project = {
                 ceilingDeformation: "stretched",
             },
         },
-        lighting: { ceilingLightIntensity: 1, ceilingLightRadius: 0.095 },
+        lighting: {
+            ceilingLightIntensity: 1,
+            ceilingLightRadius: 0.095,
+            ceilingLightColor: "#fff6df",
+            ledColor: "#fff8df",
+        },
         items: { showBorders: true },
     },
     layout: {

@@ -19,6 +19,8 @@ export const premiumCorridorProject: GalleryProject = {
     lighting: {
       ceilingLightIntensity: 1,
       ceilingLightRadius: 0.095,
+      ceilingLightColor: "#fff6df",
+      ledColor: "#fff8df",
     },
     items: {
       showBorders: true,
@@ -70,6 +72,28 @@ export const premiumCorridorProject: GalleryProject = {
       },
     },
     {
+      id: "silent-1",
+      type: "image",
+      passThrough: true,
+      placement: {
+        side: "right",
+      },
+      appearance: {
+        size: "medium",
+        lighting: "subtle",
+        media: [{
+          src: "/images/silent1.webp",
+          type: "image",
+          format: "webp",
+          quality: "high",
+          alt: "Silent corridor image 1",
+        }],
+      },
+      content: {
+        title: "Silent Corridor 1",
+      },
+    },
+    {
       id: "portfolio-left",
       type: "artwork",
       placement: {
@@ -109,6 +133,28 @@ export const premiumCorridorProject: GalleryProject = {
       },
     },
     {
+      id: "silent-2",
+      type: "image",
+      passThrough: true,
+      placement: {
+        side: "left",
+      },
+      appearance: {
+        size: "medium",
+        lighting: "subtle",
+        media: [{
+          src: "/images/silent2.webp",
+          type: "image",
+          format: "webp",
+          quality: "high",
+          alt: "Silent corridor image 2",
+        }],
+      },
+      content: {
+        title: "Silent Corridor 2",
+      },
+    },
+    {
       id: "station-services",
       type: "statement",
       placement: {
@@ -122,6 +168,28 @@ export const premiumCorridorProject: GalleryProject = {
         eyebrow: "4/8 Station Template",
         title: "Brand Experience",
         description: "Central stations are crossed by the camera instead of treated like wall cards.",
+      },
+    },
+    {
+      id: "silent-3",
+      type: "image",
+      passThrough: true,
+      placement: {
+        side: "left",
+      },
+      appearance: {
+        size: "medium",
+        lighting: "subtle",
+        media: [{
+          src: "/images/silent3.webp",
+          type: "image",
+          format: "webp",
+          quality: "high",
+          alt: "Silent corridor image 3",
+        }],
+      },
+      content: {
+        title: "Silent Corridor 3",
       },
     },
     {
@@ -161,6 +229,28 @@ export const premiumCorridorProject: GalleryProject = {
         eyebrow: "Profile",
         title: "Founder Spotlight",
         description: "Profiles, quotes, images, CTAs and video share the same item contract.",
+      },
+    },
+    {
+      id: "silent-4",
+      type: "image",
+      passThrough: true,
+      placement: {
+        side: "right",
+      },
+      appearance: {
+        size: "medium",
+        lighting: "subtle",
+        media: [{
+          src: "/images/silent4.webp",
+          type: "image",
+          format: "webp",
+          quality: "high",
+          alt: "Silent corridor image 4",
+        }],
+      },
+      content: {
+        title: "Silent Corridor 4",
       },
     },
     {
@@ -207,6 +297,28 @@ export const premiumCorridorProject: GalleryProject = {
         eyebrow: "Editorial",
         title: "Tactile Direction",
         description: "Image stations can mix JPEG work samples with architectural materials.",
+      },
+    },
+    {
+      id: "silent-5",
+      type: "image",
+      passThrough: true,
+      placement: {
+        side: "right",
+      },
+      appearance: {
+        size: "medium",
+        lighting: "subtle",
+        media: [{
+          src: "/images/silent5.webp",
+          type: "image",
+          format: "webp",
+          quality: "high",
+          alt: "Silent corridor image 5",
+        }],
+      },
+      content: {
+        title: "Silent Corridor 5",
       },
     },
     {

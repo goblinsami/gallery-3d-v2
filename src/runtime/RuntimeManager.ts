@@ -41,7 +41,8 @@ export class RuntimeManager {
       whiteMix: 0,
       activeItemId: null,
     };
-    let selectedSourceItemId: string | null = currentProject.items[0]?.id ?? null;
+    let selectedSourceItemId: string | null =
+      currentProject.items.find((item) => item.passThrough !== true)?.id ?? null;
     const stateListeners = new Set<RuntimeStateListener>();
     const bottomSheet = new BottomSheetController();
     const engine = new GalleryEngine({
@@ -56,18 +57,24 @@ export class RuntimeManager {
       itemId
         ? currentProject.items.find((item) => item.id === itemId.split("__loop_")[0]) ?? null
         : null;
+    const getFocusableSourceItems = () => currentProject.items.filter((item) => item.passThrough !== true);
     const getSourceItemIndex = (itemId: string | null): number | undefined => {
       const sourceId = itemId?.split("__loop_")[0];
       if (!sourceId) {
         return undefined;
       }
 
-      const index = currentProject.items.findIndex((item) => item.id === sourceId);
+      const index = getFocusableSourceItems().findIndex((item) => item.id === sourceId);
       return index >= 0 ? index : undefined;
     };
     const setBottomSheetItem = (itemId: string | null): void => {
       const sourceItem = getSourceItem(itemId);
-      bottomSheet.setActiveItem(sourceItem, getSourceItemIndex(itemId), currentProject.items.length);
+      const focusableSourceItems = getFocusableSourceItems();
+      bottomSheet.setActiveItem(
+        sourceItem?.passThrough === true ? null : sourceItem,
+        getSourceItemIndex(itemId),
+        focusableSourceItems.length,
+      );
     };
     const getSelectedItem = () => getSourceItem(selectedSourceItemId);
     const syncBottomSheetFocus = (): void => {
@@ -76,12 +83,12 @@ export class RuntimeManager {
     };
     const selectSourceItem = (itemId: string, state: BottomSheetState): boolean => {
       const sourceItem = getSourceItem(itemId);
-      if (!sourceItem) {
+      if (!sourceItem || sourceItem.passThrough === true) {
         return false;
       }
 
       selectedSourceItemId = sourceItem.id;
-      bottomSheet.setActiveItem(sourceItem, getSourceItemIndex(sourceItem.id), currentProject.items.length);
+      bottomSheet.setActiveItem(sourceItem, getSourceItemIndex(sourceItem.id), getFocusableSourceItems().length);
       bottomSheet.setState(state);
       syncBottomSheetFocus();
       runtimeState = {
@@ -159,7 +166,7 @@ export class RuntimeManager {
       updateProject: async (project: GalleryProject) => {
         currentProject = validateGalleryProject(project);
         itemProgress = buildItemProgressMap(currentProject.items);
-        selectedSourceItemId = currentProject.items[0]?.id ?? null;
+        selectedSourceItemId = getFocusableSourceItems()[0]?.id ?? null;
         await engine.updateProject(currentProject);
         resetJourneyController(currentProject);
         syncProgress(0);

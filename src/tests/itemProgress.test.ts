@@ -8,9 +8,10 @@ import {
   getSequentialActiveItemId,
 } from "../journey/itemProgress";
 
-const item = (id: string, side?: PlacementSide): GalleryItem => ({
+const item = (id: string, side?: PlacementSide, passThrough?: boolean): GalleryItem => ({
   id,
   type: "statement",
+  passThrough,
   placement: { side },
   appearance: {},
   content: {},
@@ -31,6 +32,31 @@ describe("itemProgress", () => {
     const entries = buildItemProgressMap([item("one"), item("two__loop_1")]);
 
     expect(getItemProgress(entries, "two")).toBe(0.81);
+  });
+
+  it("omits pass-through items from the active progress map", () => {
+    const entries = buildItemProgressMap([
+      item("silent-start", "left", true),
+      item("one", "center"),
+      item("silent-middle", "right", true),
+      item("two", "left"),
+    ]);
+
+    expect(entries).toEqual([
+      { itemId: "one", sourceItemId: "one", index: 0, progress: 0.31, placementSide: "center" },
+      { itemId: "two", sourceItemId: "two", index: 1, progress: 0.81, placementSide: "left" },
+    ]);
+    expect(getItemProgress(entries, "silent-start")).toBeNull();
+    expect(getSequentialActiveItemId(entries, 0.5)).toBe("two");
+  });
+
+  it("returns no active entries when every item is pass-through", () => {
+    const entries = buildItemProgressMap([item("silent", "left", true)]);
+
+    expect(entries).toEqual([]);
+    expect(getSequentialActiveItemId(entries, 0.5)).toBeNull();
+    expect(getAdjacentItemProgress(entries, null, 1)).toBeNull();
+    expect(getLoopResetProgress(entries)).toBe(1);
   });
 
   it("resolves adjacent items from the active id", () => {

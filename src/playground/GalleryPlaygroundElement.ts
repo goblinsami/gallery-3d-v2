@@ -1,6 +1,12 @@
 import type { GalleryProject, MaterialFamily } from "../types/GalleryProject";
 import type { ArtworkOverlayFramingMode } from "../types/Journey";
 import { TEXTURE_FAMILY_OPTIONS } from "../config/architecturalTextureCatalog";
+import {
+  createPexelsPassThroughProject,
+  PEXELS_PASS_THROUGH_SCROLL_STRENGTH,
+  PEXELS_PASS_THROUGH_SPACING,
+  PEXELS_PASS_THROUGH_TEMPLATE,
+} from "../samples/pexelsPassThroughProject";
 
 type ControlName =
   | "template"
@@ -20,6 +26,8 @@ type ControlName =
   | "ceilingTextureDeformation"
   | "ceilingLightIntensity"
   | "ceilingLightRadius"
+  | "ceilingLightColor"
+  | "ledColor"
   | "fov"
   | "cameraHeight"
   | "lookAhead"
@@ -34,7 +42,7 @@ type ControlName =
   | "loop"
   | "forceMobile";
 
-export type PlaygroundTemplate = "default" | "reduced";
+export type PlaygroundTemplate = "default" | "reduced" | typeof PEXELS_PASS_THROUGH_TEMPLATE;
 export type PlaygroundScrollStrength = "auto" | 0.5 | 0.75 | 1 | 1.5 | 2 | 3 | 4 | 5;
 
 export interface GalleryPlaygroundValues {
@@ -55,6 +63,8 @@ export interface GalleryPlaygroundValues {
   ceilingTextureDeformation: NonNullable<GalleryProject["theme"]["materials"]["textureTiling"]>["ceilingDeformation"];
   ceilingLightIntensity: number;
   ceilingLightRadius: number;
+  ceilingLightColor: string;
+  ledColor: string;
   fov: number;
   cameraHeight: number;
   lookAhead: number;
@@ -266,10 +276,11 @@ playgroundTemplate.innerHTML = `
     <div class="grid">
       <label class="field">
         <span class="field__label">Template <span class="field__value" data-value="template">default</span></span>
-        <span class="field__hint">Usa el recorrido completo o una version reducida de 3 items para depurar la journey.</span>
+        <span class="field__hint">Usa el recorrido completo, una version reducida o un corredor denso de imagenes silenciosas.</span>
         <select data-control="template">
           <option value="default">Default</option>
           <option value="reduced">Reduced debug</option>
+          <option value="${PEXELS_PASS_THROUGH_TEMPLATE}">Pexels pass-through</option>
         </select>
       </label>
       <label class="field">
@@ -309,7 +320,7 @@ playgroundTemplate.innerHTML = `
       <label class="field">
         <span class="field__label">Spacing <span class="field__value" data-value="spacing">14</span></span>
         <span class="field__hint">Controla la distancia entre estaciones dentro del recorrido.</span>
-        <input data-control="spacing" type="range" min="8" max="22" step="0.5" />
+        <input data-control="spacing" type="range" min="0.25" max="22" step="0.05" />
       </label>
       <label class="field">
         <span class="field__label">Width <span class="field__value" data-value="width">8</span></span>
@@ -374,6 +385,16 @@ playgroundTemplate.innerHTML = `
         <span class="field__label">Light radius <span class="field__value" data-value="ceilingLightRadius">0.095</span></span>
         <span class="field__hint">Ajusta el tamano fisico del aro y nucleo de las luces superiores.</span>
         <input data-control="ceilingLightRadius" type="range" min="0.04" max="0.22" step="0.005" />
+      </label>
+      <label class="field">
+        <span class="field__label">Ceiling color <span class="field__value" data-value="ceilingLightColor">#fff6df</span></span>
+        <span class="field__hint">Cambia el color de los downlights y el rebote superior del techo.</span>
+        <input data-control="ceilingLightColor" type="color" />
+      </label>
+      <label class="field">
+        <span class="field__label">LED color <span class="field__value" data-value="ledColor">#fff8df</span></span>
+        <span class="field__hint">Cambia el color de las tiras LED y su glow arquitectonico.</span>
+        <input data-control="ledColor" type="color" />
       </label>
       <label class="field">
         <span class="field__label">FOV <span class="field__value" data-value="fov">50</span></span>
@@ -529,6 +550,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       ceilingTextureDeformation: this.getControl("ceilingTextureDeformation", HTMLSelectElement),
       ceilingLightIntensity: this.getControl("ceilingLightIntensity", HTMLInputElement),
       ceilingLightRadius: this.getControl("ceilingLightRadius", HTMLInputElement),
+      ceilingLightColor: this.getControl("ceilingLightColor", HTMLInputElement),
+      ledColor: this.getControl("ledColor", HTMLInputElement),
       fov: this.getControl("fov", HTMLInputElement),
       cameraHeight: this.getControl("cameraHeight", HTMLInputElement),
       lookAhead: this.getControl("lookAhead", HTMLInputElement),
@@ -560,6 +583,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       ceilingTextureDeformation: this.getValueLabel("ceilingTextureDeformation"),
       ceilingLightIntensity: this.getValueLabel("ceilingLightIntensity"),
       ceilingLightRadius: this.getValueLabel("ceilingLightRadius"),
+      ceilingLightColor: this.getValueLabel("ceilingLightColor"),
+      ledColor: this.getValueLabel("ledColor"),
       fov: this.getValueLabel("fov"),
       cameraHeight: this.getValueLabel("cameraHeight"),
       lookAhead: this.getValueLabel("lookAhead"),
@@ -639,6 +664,19 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.renderValues(values, project.items.length);
   }
 
+  private resolveTemplateValues(values: GalleryPlaygroundValues): GalleryPlaygroundValues {
+    if (values.template !== PEXELS_PASS_THROUGH_TEMPLATE) {
+      return values;
+    }
+
+    return {
+      ...values,
+      spacing: PEXELS_PASS_THROUGH_SPACING,
+      scrollStrength: PEXELS_PASS_THROUGH_SCROLL_STRENGTH,
+      mobileScrollStrength: 3.2,
+    };
+  }
+
   private getValuesFromProject(project: GalleryProject): GalleryPlaygroundValues {
     return {
       template: this.currentTemplate,
@@ -658,6 +696,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       ceilingTextureDeformation: project.theme.materials.textureTiling?.ceilingDeformation ?? "stretched",
       ceilingLightIntensity: project.theme.lighting?.ceilingLightIntensity ?? 1,
       ceilingLightRadius: project.theme.lighting?.ceilingLightRadius ?? 0.095,
+      ceilingLightColor: project.theme.lighting?.ceilingLightColor ?? "#fff6df",
+      ledColor: project.theme.lighting?.ledColor ?? "#fff8df",
       fov: project.journey.camera?.fov ?? 50,
       cameraHeight: project.journey.camera?.height ?? 1.72,
       lookAhead: project.journey.camera?.lookAhead ?? 3.2,
@@ -692,6 +732,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.controls.ceilingTextureDeformation.value = values.ceilingTextureDeformation ?? "stretched";
     this.controls.ceilingLightIntensity.value = String(values.ceilingLightIntensity);
     this.controls.ceilingLightRadius.value = String(values.ceilingLightRadius);
+    this.controls.ceilingLightColor.value = values.ceilingLightColor;
+    this.controls.ledColor.value = values.ledColor;
     this.controls.fov.value = String(values.fov);
     this.controls.cameraHeight.value = String(values.cameraHeight);
     this.controls.lookAhead.value = String(values.lookAhead);
@@ -726,6 +768,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       ceilingTextureDeformation: this.controls.ceilingTextureDeformation.value === "square" ? "square" : "stretched",
       ceilingLightIntensity: getNumber(this.controls.ceilingLightIntensity as HTMLInputElement, 1),
       ceilingLightRadius: getNumber(this.controls.ceilingLightRadius as HTMLInputElement, 0.095),
+      ceilingLightColor: this.controls.ceilingLightColor.value || "#fff6df",
+      ledColor: this.controls.ledColor.value || "#fff8df",
       fov: getNumber(this.controls.fov as HTMLInputElement, 50),
       cameraHeight: getNumber(this.controls.cameraHeight as HTMLInputElement, 1.72),
       lookAhead: getNumber(this.controls.lookAhead as HTMLInputElement, 3.2),
@@ -748,8 +792,13 @@ export class GalleryPlaygroundElement extends HTMLElement {
       return null;
     }
 
+    const templateProject = values.template === PEXELS_PASS_THROUGH_TEMPLATE
+      ? createPexelsPassThroughProject(project)
+      : project;
     const sourceItems = this.templateSourceItems.length > 0 ? this.templateSourceItems : project.items;
-    const items = values.template === "reduced"
+    const items = values.template === PEXELS_PASS_THROUGH_TEMPLATE
+      ? templateProject.items
+      : values.template === "reduced"
       ? sourceItems.slice(0, 3)
       : sourceItems;
     const scrollStrength = values.scrollStrength === "auto"
@@ -757,15 +806,15 @@ export class GalleryPlaygroundElement extends HTMLElement {
       : values.scrollStrength;
 
     return {
-      ...project,
+      ...templateProject,
       theme: {
-        ...project.theme,
+        ...templateProject.theme,
         quality: values.quality,
         materials: {
-          ...project.theme.materials,
+          ...templateProject.theme.materials,
           primary: values.primary,
           textureTiling: {
-            ...project.theme.materials.textureTiling,
+            ...templateProject.theme.materials.textureTiling,
             wall: values.wallTextureTiling,
             floor: values.floorTextureTiling,
             ceiling: values.ceilingTextureTiling,
@@ -775,27 +824,29 @@ export class GalleryPlaygroundElement extends HTMLElement {
           },
         },
         lighting: {
-          ...project.theme.lighting,
+          ...templateProject.theme.lighting,
           ceilingLightIntensity: values.ceilingLightIntensity,
           ceilingLightRadius: values.ceilingLightRadius,
+          ceilingLightColor: values.ceilingLightColor,
+          ledColor: values.ledColor,
         },
         items: {
-          ...project.theme.items,
+          ...templateProject.theme.items,
           showBorders: values.showBorders,
         },
       },
       layout: {
-        ...project.layout,
+        ...templateProject.layout,
         spacing: values.spacing,
         bounds: {
-          ...project.layout.bounds,
+          ...templateProject.layout.bounds,
           width: values.width,
           height: values.height,
           depth: values.depth,
         },
       },
       journey: {
-        ...project.journey,
+        ...templateProject.journey,
         artworkOverlayFramingMode: values.overlayFramingMode,
         loop: values.loop,
         smoothing: values.smoothing,
@@ -804,7 +855,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
         activeStationLead: values.activeStationLead,
         activeWallLead: values.activeWallLead,
         camera: {
-          ...project.journey.camera,
+          ...templateProject.journey.camera,
           fov: values.fov,
           height: values.cameraHeight,
           lookAhead: values.lookAhead,
@@ -834,6 +885,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.valueLabels.ceilingTextureDeformation!.textContent = values.ceilingTextureDeformation ?? "stretched";
     this.valueLabels.ceilingLightIntensity!.textContent = formatNumber(values.ceilingLightIntensity);
     this.valueLabels.ceilingLightRadius!.textContent = formatNumber(values.ceilingLightRadius);
+    this.valueLabels.ceilingLightColor!.textContent = values.ceilingLightColor;
+    this.valueLabels.ledColor!.textContent = values.ledColor;
     this.valueLabels.fov!.textContent = formatNumber(values.fov);
     this.valueLabels.cameraHeight!.textContent = formatNumber(values.cameraHeight);
     this.valueLabels.lookAhead!.textContent = formatNumber(values.lookAhead);
@@ -868,7 +921,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
   };
 
   private handleControlsChange = (): void => {
-    const values = this.readValuesFromControls();
+    const values = this.resolveTemplateValues(this.readValuesFromControls());
     const project = this.buildProject(values);
     if (!project) {
       return;
@@ -876,6 +929,7 @@ export class GalleryPlaygroundElement extends HTMLElement {
 
     this.currentProject = project;
     this.currentTemplate = values.template;
+    this.writeValuesToControls(values);
     this.renderValues(values, project.items.length);
     this.dispatchEvent(new CustomEvent<GalleryPlaygroundChangeDetail>(
       "gallery-playground-change",

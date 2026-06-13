@@ -34,6 +34,7 @@ interface GalleryProject {
 interface GalleryItem {
   id: string;
   type: string;
+  passThrough?: boolean;
   placement: PlacementConfig;
   appearance: AppearanceConfig;
   content: Record<string, unknown>;
@@ -41,6 +42,7 @@ interface GalleryItem {
 ```
 
 Everything visible or narratively addressable is an item.
+Items with `passThrough: true` still render and participate in layout, but they do not create a camera focus stop or activate content UI/navigation.
 
 Initial registered item types:
 
@@ -90,6 +92,8 @@ Appearance describes renderer hints shared across item types.
 
 - `ceilingLightIntensity`: intensity multiplier for ceiling downlights, glow and upper bounce.
 - `ceilingLightRadius`: physical radius of the upper downlight fixture ring; the lit core scales with it.
+- `ceilingLightColor`: hex color for ceiling downlights, fill light and upper bounce.
+- `ledColor`: hex color for architectural LED strips and their baked glow.
 
 ## Content
 

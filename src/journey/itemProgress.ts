@@ -14,12 +14,13 @@ export interface ActiveItemLeadOptions {
 }
 
 export const buildItemProgressMap = (items: GalleryItem[]): ItemProgressEntry[] => {
-  if (items.length === 0) {
+  const focusableItems = items.filter((item) => item.passThrough !== true);
+  if (focusableItems.length === 0) {
     return [];
   }
 
-  const step = 1 / Math.max(1, items.length);
-  return items.map((item, index) => ({
+  const step = 1 / Math.max(1, focusableItems.length);
+  return focusableItems.map((item, index) => ({
     itemId: item.id,
     sourceItemId: item.id.split("__loop_")[0],
     index,

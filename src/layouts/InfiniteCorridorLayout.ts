@@ -11,7 +11,11 @@ export class InfiniteCorridorLayout implements LayoutStrategy {
 
   layout(project: GalleryProject, _config = project.layout, context: LayoutContext): PositionedGalleryItem[] {
     const spacing = project.layout.spacing ?? 7;
-    const cycleDepth = project.items.length * spacing;
+    const maxSlot = project.items.reduce(
+      (max, item, index) => Math.max(max, item.placement.slot ?? index + 1),
+      project.items.length,
+    );
+    const cycleDepth = maxSlot * spacing;
     const base = this.corridor.layout(project, project.layout, {
       ...context,
       architecturalCycleDepth: project.journey.loop ? cycleDepth : undefined,

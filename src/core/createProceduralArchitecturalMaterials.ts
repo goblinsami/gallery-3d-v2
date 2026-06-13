@@ -153,6 +153,8 @@ export const createProceduralArchitecturalMaterials = (
   depth: number,
   materialFamily: MaterialFamily,
   ceilingLightIntensity = 1,
+  ceilingLightColor = "#fff6df",
+  ledColor = "#fff8df",
   textureCycleDepth?: number,
   assetBaseUrl?: string,
   textureTiling?: TextureTilingConfig,
@@ -268,18 +270,18 @@ export const createProceduralArchitecturalMaterials = (
         metalness: 0.2,
       }),
       led: new MeshBasicMaterial({
-        color: new Color("#fff8df").multiplyScalar(lightScale),
+        color: new Color(ledColor).multiplyScalar(lightScale),
         toneMapped: false,
       }),
       bounce: new MeshBasicMaterial({
-        color: "#e0b67a",
+        color: ledColor,
         transparent: true,
         opacity: (quality.preset === "low" ? 0.12 : 0.2) * lightScale,
         depthWrite: false,
         toneMapped: false,
       }),
       wallWash: new MeshBasicMaterial({
-        color: "#d7985f",
+        color: ledColor,
         transparent: true,
         opacity: (quality.preset === "low" ? 0.18 : 0.34) * lightScale,
         blending: AdditiveBlending,
@@ -292,7 +294,7 @@ export const createProceduralArchitecturalMaterials = (
         metalness: 0.3,
       }),
       fixtureCore: new MeshBasicMaterial({
-        color: new Color("#fff6df").multiplyScalar(lightScale),
+        color: new Color(ceilingLightColor).multiplyScalar(lightScale),
         toneMapped: false,
       }),
     };

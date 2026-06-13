@@ -76,6 +76,7 @@ export interface GalleryContentProjection {
 export interface GalleryItem {
   id: string;
   type: GalleryItemType;
+  passThrough?: boolean;
   placement: PlacementConfig;
   appearance: AppearanceConfig;
   content: Record<string, unknown>;
