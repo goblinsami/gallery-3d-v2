@@ -60,6 +60,8 @@ describe("framer adapter", () => {
       ceilingTextureDeformation: "square",
       ceilingLightIntensity: 1.6,
       ceilingLightRadius: 0.14,
+      ceilingLightColor: "#ffd4a6",
+      ledColor: "#7ac7ff",
       fov: 58,
       cameraHeight: 1.9,
       lookAhead: 4.5,
@@ -87,6 +89,8 @@ describe("framer adapter", () => {
     expect(project.theme.materials.textureTiling?.ceilingDeformation).toBe("square");
     expect(project.theme.lighting?.ceilingLightIntensity).toBe(1.6);
     expect(project.theme.lighting?.ceilingLightRadius).toBe(0.14);
+    expect(project.theme.lighting?.ceilingLightColor).toBe("#ffd4a6");
+    expect(project.theme.lighting?.ledColor).toBe("#7ac7ff");
     expect(project.journey.artworkOverlayFramingMode).toBe("cinematic");
     expect(project.journey.camera?.fov).toBe(58);
     expect(project.journey.camera?.height).toBe(1.9);

@@ -25,6 +25,8 @@ const JOURNEY_MODES: JourneyMode[] = ["scroll", "manual"];
 const ARTWORK_OVERLAY_FRAMING_MODES: ArtworkOverlayFramingMode[] = ["frontal", "balanced", "cinematic"];
 const TEXTURE_TILING_DEFORMATIONS = ["stretched", "square"] as const;
 const TEXTURE_FORMATS: TextureFormat[] = ["ktx2", "webp", "jpg", "png"];
+const DEFAULT_CEILING_LIGHT_COLOR = "#fff6df";
+const DEFAULT_LED_COLOR = "#fff8df";
 const ARTWORK_OVERLAY_FRAMING_PRESETS: Record<ArtworkOverlayFramingMode, {
   scale: number;
   min: number;
@@ -62,6 +64,11 @@ const getRecord = (source: Record<string, unknown>, key: string): Record<string,
 const getString = (source: Record<string, unknown>, key: string): string | undefined => {
   const value = source[key];
   return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+};
+
+const getHexColor = (source: Record<string, unknown>, key: string, fallback: string): string => {
+  const value = getString(source, key);
+  return value && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : fallback;
 };
 
 const getNumber = (
@@ -119,6 +126,8 @@ const validateTheme = (source: Record<string, unknown>): GalleryProject["theme"]
     lighting: {
       ceilingLightIntensity: getNumber(lighting, "ceilingLightIntensity", 1, 0, 2.5),
       ceilingLightRadius: getNumber(lighting, "ceilingLightRadius", 0.095, 0.04, 0.22),
+      ceilingLightColor: getHexColor(lighting, "ceilingLightColor", DEFAULT_CEILING_LIGHT_COLOR),
+      ledColor: getHexColor(lighting, "ledColor", DEFAULT_LED_COLOR),
     },
     items: {
       showBorders: getBoolean(items, "showBorders", true),

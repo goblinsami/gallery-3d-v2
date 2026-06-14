@@ -37,6 +37,8 @@ interface Props {
     spacing: number
     corridorWidth: number
     corridorHeight: number
+    ceilingLightColor: string
+    ledColor: string
     mobileScrollStrength: number
     contentSource: "controls" | "json"
     projectJson?: string
@@ -156,6 +158,8 @@ const DEFAULTS: Props = {
     spacing: 14,
     corridorWidth: 8,
     corridorHeight: 4.2,
+    ceilingLightColor: "#fff6df",
+    ledColor: "#fff8df",
     mobileScrollStrength: 1.8,
     contentSource: "controls",
     projectJson: "",
@@ -281,7 +285,12 @@ function buildProject(props: Props) {
                     ceilingDeformation: "stretched",
                 },
             },
-            lighting: { ceilingLightIntensity: 1, ceilingLightRadius: 0.095 },
+            lighting: {
+                ceilingLightIntensity: 1,
+                ceilingLightRadius: 0.095,
+                ceilingLightColor: props.ceilingLightColor,
+                ledColor: props.ledColor,
+            },
             items: { showBorders: props.showBorders },
         },
         layout: {
@@ -449,6 +458,14 @@ addPropertyControls(ScrollixBridge, {
         min: 0.5,
         max: 4,
         step: 0.1,
+    },
+    ceilingLightColor: {
+        type: ControlType.Color,
+        title: "Ceiling Color",
+    },
+    ledColor: {
+        type: ControlType.Color,
+        title: "LED Color",
     },
     contentSource: {
         type: ControlType.Enum,

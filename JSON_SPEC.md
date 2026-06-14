@@ -90,6 +90,8 @@ Appearance describes renderer hints shared across item types.
 
 - `ceilingLightIntensity`: intensity multiplier for ceiling downlights, glow and upper bounce.
 - `ceilingLightRadius`: physical radius of the upper downlight fixture ring; the lit core scales with it.
+- `ceilingLightColor`: hex color used by upper downlights and ceiling bounce.
+- `ledColor`: hex color used by corridor LED strips and their architectural glow.
 
 ## Content
 

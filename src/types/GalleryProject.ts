@@ -28,6 +28,8 @@ export interface ThemeConfig {
   lighting?: {
     ceilingLightIntensity?: number;
     ceilingLightRadius?: number;
+    ceilingLightColor?: string;
+    ledColor?: string;
   };
   items?: {
     showBorders?: boolean;

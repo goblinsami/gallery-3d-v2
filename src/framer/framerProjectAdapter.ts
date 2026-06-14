@@ -57,6 +57,8 @@ export interface ScrollixGalleryFramerProps {
   ceilingTextureDeformation: FramerTextureTilingDeformation;
   ceilingLightIntensity: number;
   ceilingLightRadius: number;
+  ceilingLightColor: string;
+  ledColor: string;
   fov: number;
   cameraHeight: number;
   lookAhead: number;
@@ -242,6 +244,8 @@ export const scrollixGalleryFramerDefaults: ScrollixGalleryFramerProps = {
   ceilingTextureDeformation: "stretched",
   ceilingLightIntensity: 1,
   ceilingLightRadius: 0.095,
+  ceilingLightColor: "#fff6df",
+  ledColor: "#fff8df",
   fov: 50,
   cameraHeight: 1.72,
   lookAhead: 3.2,
@@ -301,6 +305,8 @@ export const buildScrollixGalleryFramerProject = (
         ...sourceProject.theme.lighting,
         ceilingLightIntensity: props.ceilingLightIntensity,
         ceilingLightRadius: props.ceilingLightRadius,
+        ceilingLightColor: props.ceilingLightColor,
+        ledColor: props.ledColor,
       },
       items: {
         ...sourceProject.theme.items,

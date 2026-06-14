@@ -20,6 +20,8 @@ type ControlName =
   | "ceilingTextureDeformation"
   | "ceilingLightIntensity"
   | "ceilingLightRadius"
+  | "ceilingLightColor"
+  | "ledColor"
   | "fov"
   | "cameraHeight"
   | "lookAhead"
@@ -55,6 +57,8 @@ export interface GalleryPlaygroundValues {
   ceilingTextureDeformation: NonNullable<GalleryProject["theme"]["materials"]["textureTiling"]>["ceilingDeformation"];
   ceilingLightIntensity: number;
   ceilingLightRadius: number;
+  ceilingLightColor: string;
+  ledColor: string;
   fov: number;
   cameraHeight: number;
   lookAhead: number;
@@ -376,6 +380,16 @@ playgroundTemplate.innerHTML = `
         <input data-control="ceilingLightRadius" type="range" min="0.04" max="0.22" step="0.005" />
       </label>
       <label class="field">
+        <span class="field__label">Ceiling color <span class="field__value" data-value="ceilingLightColor">#fff6df</span></span>
+        <span class="field__hint">Cambia el color de los downlights y el rebote superior del techo.</span>
+        <input data-control="ceilingLightColor" type="color" />
+      </label>
+      <label class="field">
+        <span class="field__label">LED color <span class="field__value" data-value="ledColor">#fff8df</span></span>
+        <span class="field__hint">Cambia el color de las tiras LED y su glow arquitectonico.</span>
+        <input data-control="ledColor" type="color" />
+      </label>
+      <label class="field">
         <span class="field__label">FOV <span class="field__value" data-value="fov">50</span></span>
         <span class="field__hint">Modifica la apertura de cámara: más alto se siente más angular.</span>
         <input data-control="fov" type="range" min="36" max="68" step="1" />
@@ -529,6 +543,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       ceilingTextureDeformation: this.getControl("ceilingTextureDeformation", HTMLSelectElement),
       ceilingLightIntensity: this.getControl("ceilingLightIntensity", HTMLInputElement),
       ceilingLightRadius: this.getControl("ceilingLightRadius", HTMLInputElement),
+      ceilingLightColor: this.getControl("ceilingLightColor", HTMLInputElement),
+      ledColor: this.getControl("ledColor", HTMLInputElement),
       fov: this.getControl("fov", HTMLInputElement),
       cameraHeight: this.getControl("cameraHeight", HTMLInputElement),
       lookAhead: this.getControl("lookAhead", HTMLInputElement),
@@ -560,6 +576,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       ceilingTextureDeformation: this.getValueLabel("ceilingTextureDeformation"),
       ceilingLightIntensity: this.getValueLabel("ceilingLightIntensity"),
       ceilingLightRadius: this.getValueLabel("ceilingLightRadius"),
+      ceilingLightColor: this.getValueLabel("ceilingLightColor"),
+      ledColor: this.getValueLabel("ledColor"),
       fov: this.getValueLabel("fov"),
       cameraHeight: this.getValueLabel("cameraHeight"),
       lookAhead: this.getValueLabel("lookAhead"),
@@ -658,6 +676,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       ceilingTextureDeformation: project.theme.materials.textureTiling?.ceilingDeformation ?? "stretched",
       ceilingLightIntensity: project.theme.lighting?.ceilingLightIntensity ?? 1,
       ceilingLightRadius: project.theme.lighting?.ceilingLightRadius ?? 0.095,
+      ceilingLightColor: project.theme.lighting?.ceilingLightColor ?? "#fff6df",
+      ledColor: project.theme.lighting?.ledColor ?? "#fff8df",
       fov: project.journey.camera?.fov ?? 50,
       cameraHeight: project.journey.camera?.height ?? 1.72,
       lookAhead: project.journey.camera?.lookAhead ?? 3.2,
@@ -692,6 +712,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.controls.ceilingTextureDeformation.value = values.ceilingTextureDeformation ?? "stretched";
     this.controls.ceilingLightIntensity.value = String(values.ceilingLightIntensity);
     this.controls.ceilingLightRadius.value = String(values.ceilingLightRadius);
+    this.controls.ceilingLightColor.value = values.ceilingLightColor;
+    this.controls.ledColor.value = values.ledColor;
     this.controls.fov.value = String(values.fov);
     this.controls.cameraHeight.value = String(values.cameraHeight);
     this.controls.lookAhead.value = String(values.lookAhead);
@@ -726,6 +748,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
       ceilingTextureDeformation: this.controls.ceilingTextureDeformation.value === "square" ? "square" : "stretched",
       ceilingLightIntensity: getNumber(this.controls.ceilingLightIntensity as HTMLInputElement, 1),
       ceilingLightRadius: getNumber(this.controls.ceilingLightRadius as HTMLInputElement, 0.095),
+      ceilingLightColor: this.controls.ceilingLightColor.value || "#fff6df",
+      ledColor: this.controls.ledColor.value || "#fff8df",
       fov: getNumber(this.controls.fov as HTMLInputElement, 50),
       cameraHeight: getNumber(this.controls.cameraHeight as HTMLInputElement, 1.72),
       lookAhead: getNumber(this.controls.lookAhead as HTMLInputElement, 3.2),
@@ -778,6 +802,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
           ...project.theme.lighting,
           ceilingLightIntensity: values.ceilingLightIntensity,
           ceilingLightRadius: values.ceilingLightRadius,
+          ceilingLightColor: values.ceilingLightColor,
+          ledColor: values.ledColor,
         },
         items: {
           ...project.theme.items,
@@ -834,6 +860,8 @@ export class GalleryPlaygroundElement extends HTMLElement {
     this.valueLabels.ceilingTextureDeformation!.textContent = values.ceilingTextureDeformation ?? "stretched";
     this.valueLabels.ceilingLightIntensity!.textContent = formatNumber(values.ceilingLightIntensity);
     this.valueLabels.ceilingLightRadius!.textContent = formatNumber(values.ceilingLightRadius);
+    this.valueLabels.ceilingLightColor!.textContent = values.ceilingLightColor;
+    this.valueLabels.ledColor!.textContent = values.ledColor;
     this.valueLabels.fov!.textContent = formatNumber(values.fov);
     this.valueLabels.cameraHeight!.textContent = formatNumber(values.cameraHeight);
     this.valueLabels.lookAhead!.textContent = formatNumber(values.lookAhead);

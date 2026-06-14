@@ -285,6 +285,8 @@ addPropertyControls(ScrollixGalleryFramer, {
   },
   ceilingLightIntensity: { type: ControlType.Number, title: "Ceiling", min: 0, max: 2.5, step: 0.05 },
   ceilingLightRadius: { type: ControlType.Number, title: "Light Radius", min: 0.04, max: 0.22, step: 0.005 },
+  ceilingLightColor: { type: ControlType.Color, title: "Ceiling Color" },
+  ledColor: { type: ControlType.Color, title: "LED Color" },
   fov: { type: ControlType.Number, title: "FOV", min: 36, max: 68, step: 1 },
   cameraHeight: { type: ControlType.Number, title: "Camera", min: 1.2, max: 2.3, step: 0.01 },
   lookAhead: { type: ControlType.Number, title: "Look Ahead", min: 0.8, max: 7, step: 0.1 },

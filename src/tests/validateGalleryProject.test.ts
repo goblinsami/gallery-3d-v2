@@ -124,12 +124,31 @@ describe("validateGalleryProject", () => {
     oversizedProject.theme.lighting = {
       ceilingLightIntensity: 1,
       ceilingLightRadius: 1,
+      ceilingLightColor: "#ffd4a6",
+      ledColor: "#7ac7ff",
     };
 
     const oversized = validateGalleryProject(oversizedProject);
 
     expect(defaultProject.theme.lighting?.ceilingLightRadius).toBe(0.095);
+    expect(defaultProject.theme.lighting?.ceilingLightColor).toBe("#fff6df");
+    expect(defaultProject.theme.lighting?.ledColor).toBe("#fff8df");
     expect(oversized.theme.lighting?.ceilingLightRadius).toBe(0.22);
+    expect(oversized.theme.lighting?.ceilingLightColor).toBe("#ffd4a6");
+    expect(oversized.theme.lighting?.ledColor).toBe("#7ac7ff");
+  });
+
+  it("falls back to the default lighting colors for invalid color strings", () => {
+    const project = createProject();
+    project.theme.lighting = {
+      ceilingLightColor: "orange" as never,
+      ledColor: "blue" as never,
+    };
+
+    const validated = validateGalleryProject(project);
+
+    expect(validated.theme.lighting?.ceilingLightColor).toBe("#fff6df");
+    expect(validated.theme.lighting?.ledColor).toBe("#fff8df");
   });
 
   it("preserves validated media texture sources", () => {

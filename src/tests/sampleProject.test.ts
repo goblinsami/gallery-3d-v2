@@ -9,5 +9,7 @@ describe("premiumCorridorProject", () => {
     expect(validated.items.length).toBeGreaterThan(0);
     expect(validated.layout.type).toBe("infinite-corridor");
     expect(validated.journey.loop).toBe(true);
+    expect(validated.theme.lighting?.ceilingLightColor).toBe("#fff6df");
+    expect(validated.theme.lighting?.ledColor).toBe("#fff8df");
   });
 });

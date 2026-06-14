@@ -422,6 +422,8 @@ export class GalleryEngine {
       this.project.theme.materials.primary,
       this.project.theme.lighting?.ceilingLightIntensity,
       this.project.theme.lighting?.ceilingLightRadius,
+      this.project.theme.lighting?.ceilingLightColor,
+      this.project.theme.lighting?.ledColor,
       this.getTextureCycleDepth(),
       this.assetBaseUrl,
       this.project.theme.materials.textureTiling,
